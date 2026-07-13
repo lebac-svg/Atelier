@@ -12,6 +12,7 @@ import {
   parseClientMessage, validateProject,
   type CaptureCamera, type CaptureTarget, type ClientKind, type ServerMessage, type ValidationMsg,
 } from "@atelier/core";
+import { compareHtml, type VariantSide } from "./compare.js";
 import { renderPlanSvg } from "./render/render.js";
 import type { ProjectStore, StoreEvent } from "./store.js";
 
@@ -271,10 +272,47 @@ export class LiveServer {
     app.get("/plan/:file", (c) => {
       if (!this.store.isOpen) return c.text("Chưa mở dự án — project_open trước.", 409);
       const level = c.req.param("file").replace(/\.svg$/i, "");
-      const p = this.store.current;
+      // ?variant=<slug> → vẽ từ phương án đã lưu thay vì model đang làm
+      const slug = c.req.query("variant");
+      let p = this.store.current;
+      if (slug) {
+        try {
+          p = this.store.readVariant(slug).model;
+        } catch (e) {
+          return c.text(e instanceof Error ? e.message : String(e), 404);
+        }
+      }
       if (!p.levels.some((l) => l.id === level)) return c.text(`Không có tầng "${level}".`, 404);
       const { svg } = renderPlanSvg(p, level);
       return c.body(svg, 200, { "content-type": "image/svg+xml", "cache-control": "no-store" });
+    });
+
+    // ── so sánh phương án A/B cạnh nhau (backlog v2 → 13/07/2026) ──
+    app.get("/so-sanh", (c) => {
+      if (!this.store.isOpen) return c.text("Chưa mở dự án — project_open trước.", 409);
+      try {
+        const side = (key: string | undefined, fallbackLatest: boolean): VariantSide => {
+          if (key && key !== "hien-tai") {
+            const v = this.store.readVariant(key);
+            return { label: v.name, model: v.model };
+          }
+          if (fallbackLatest) {
+            const latest = this.store.listVariants().at(-1);
+            if (latest) {
+              const v = this.store.readVariant(latest.slug);
+              return { label: v.name, model: v.model };
+            }
+          }
+          return { label: `HIỆN TẠI (r${this.store.current.meta.revision})`, model: this.store.current };
+        };
+        const a = side(c.req.query("a"), true);
+        const b = side(c.req.query("b"), false);
+        const level = c.req.query("level") ?? [...a.model.levels].sort((x, y) => x.elevation - y.elevation)[0]?.id;
+        if (!level) return c.text("Model chưa có tầng nào.", 409);
+        return c.html(compareHtml(a, b, level, this.store.current.meta.name));
+      } catch (e) {
+        return c.text(e instanceof Error ? e.message : String(e), 404);
+      }
     });
 
     app.get("/*", (c) => {

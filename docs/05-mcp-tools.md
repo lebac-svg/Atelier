@@ -24,6 +24,9 @@ Mô tả (description) của từng tool sẽ nhúng luôn quy tắc hành vi ch
 | 14 | `estimate_cost` | `(muc?: "co-ban"\|"trung-binh-kha"\|"cao-cap")` | ✅ 13/07/2026 — diện tích quy đổi + khối lượng từ model × bảng đơn giá `rules/don-gia.json` (người dùng sửa được), tự so ngân sách brief; kèm tờ `estimate` (KT-06) trong bộ export |
 | 15 | `history_restore` | `(revision)` | ⚠ chỉ khi người dùng yêu cầu rõ ràng |
 | 16 | `render_view` | `(kind: "elevation"\|"section", scale?)` | **ảnh PNG** mặt đứng chính / mặt cắt A-A — bổ sung ở P4 để Claude tự soi trước checkpoint E |
+| 17 | `variant_save` | `(name)` | ✅ 13/07/2026 — chụp model thành phương án có tên (A/B) |
+| 18 | `variant_open` | `(slug)` | checkout phương án (⚠ lưu bản hiện tại trước nếu muốn giữ); revision vẫn đơn điệu tăng |
+| 19 | `variant_compare` | `(a?, b?, level?)` | **ảnh PNG** 2 mặt bằng cạnh nhau + diff phòng-m² + dự toán từng bên; bản tương tác tại `/so-sanh` |
 
 `export` đã mở khóa ở P4 với `pdf` (một file A3 nhiều trang) / `svg` / `dxf` (TS thuần, xem ADR-08); `gltf` chờ P5, `ifc` ở backlog.
 

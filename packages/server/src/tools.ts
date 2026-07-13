@@ -8,6 +8,7 @@ import {
   type AssetCategory, type CaptureCamera, type FinishLevel, type Issue, type Op, type Project,
 } from "@atelier/core";
 import { buildAssetsSheetSvg, SHEET_CAPACITY } from "./render/assets-sheet.js";
+import { compareHtml, compareProjects } from "./compare.js";
 import { DEFAULT_WEB_DIST, LiveServer, openInBrowser } from "./live.js";
 import { renderElevationSvg, renderPlanFiles, renderSectionSvg } from "./render/render.js";
 import { buildSheetSet, sheetDxf, sheetSvg } from "./render/sheets.js";
@@ -413,6 +414,107 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
             { type: "text" as const, text: `Đã render ${r.title} (${r.scaleLabel}) → ${svgPath}` },
           ],
         };
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    "variant_save",
+    {
+      title: "Lưu phương án (A/B)",
+      description:
+        "Chụp model hiện tại thành PHƯƠNG ÁN có tên (.atelier/phuong-an/) để so sánh A/B — vd trước khi thử một bố trí khác: variant_save('Phương án A — thang giữa nhà'). Cùng tên → cập nhật đè. Xem cạnh nhau: variant_compare hoặc trang /so-sanh trên editor.",
+      inputSchema: { name: z.string().min(1).describe("Tên phương án, vd 'Phương án A — bếp quay ra sau'") },
+    },
+    (args) => {
+      try {
+        const { slug, revision } = store.saveVariant(args.name);
+        const all = store.listVariants().map((v) => `${v.slug} ("${v.name}", r${v.revision})`).join("; ");
+        return text(`✅ Đã lưu phương án "${args.name}" (slug: ${slug}, tại revision ${revision}).\nHiện có: ${all}.`);
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    "variant_open",
+    {
+      title: "Chuyển sang phương án đã lưu",
+      description:
+        "Checkout một phương án thành model đang làm — mọi tab editor tự nhận snapshot mới. ⚠ Model hiện tại KHÔNG tự lưu: nếu muốn giữ, variant_save trước rồi hãy mở. Revision tiếp tục tăng nên get_changes_since vẫn liền mạch.",
+      inputSchema: { slug: z.string().min(1) },
+    },
+    (args) => {
+      try {
+        const p = store.openVariant(args.slug);
+        return text(`✅ Đang làm việc trên phương án "${args.slug}".\n${projectBrief(p)}`);
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    "variant_compare",
+    {
+      title: "So sánh 2 phương án cạnh nhau",
+      description:
+        "Đặt 2 mặt bằng CẠNH NHAU + bảng diff (diện tích từng phòng, số tường/cửa/nội thất, DỰ TOÁN từng bên) — trả ảnh PNG nhìn ngay trong chat. a/b là slug phương án hoặc 'hien-tai' (mặc định: a = phương án lưu gần nhất, b = model hiện tại). Người dùng xem bản tương tác tại <editor>/so-sanh?a=&b=&level=.",
+      inputSchema: {
+        a: z.string().optional(),
+        b: z.string().optional(),
+        level: z.string().optional().describe("ID tầng, mặc định tầng thấp nhất"),
+      },
+    },
+    async (args) => {
+      try {
+        const side = (key: string | undefined, fallbackLatest: boolean): { label: string; model: Project } => {
+          if (key && key !== "hien-tai") {
+            const v = store.readVariant(key);
+            return { label: v.name, model: v.model };
+          }
+          if (fallbackLatest) {
+            const latest = store.listVariants().at(-1);
+            if (latest) {
+              const v = store.readVariant(latest.slug);
+              return { label: v.name, model: v.model };
+            }
+            throw new Error("Chưa có phương án nào — variant_save trước rồi mới so sánh được.");
+          }
+          return { label: `HIỆN TẠI (r${store.current.meta.revision})`, model: store.current };
+        };
+        const a = side(args.a, true);
+        const b = side(args.b, false);
+        const level = args.level ?? [...a.model.levels].sort((x, y) => x.elevation - y.elevation)[0]?.id;
+        if (!level) return fail(new Error("Model chưa có tầng nào."));
+
+        const report = compareProjects(a, b);
+        const lines = [
+          `So sánh (${level}): A = ${report.a.label} · B = ${report.b.label}`,
+          ...report.highlights.map((h) => `• ${h}`),
+          `Tổng DT phòng: A ${report.a.tongPhong_m2}m² · B ${report.b.tongPhong_m2}m²; dự toán: A ~${formatVnd(report.a.duToan_vnd)} · B ~${formatVnd(report.b.duToan_vnd)}.`,
+          ...(live.url ? [`Bản tương tác: ${live.url}/so-sanh${args.a ? `?a=${args.a}` : ""}`] : []),
+        ];
+        try {
+          const html = compareHtml(a, b, level, store.current.meta.name);
+          const { htmlToPng } = await import("./render/png.js");
+          const { mkdtempSync } = await import("node:fs");
+          const os = await import("node:os");
+          const fp = path.join(mkdtempSync(path.join(os.tmpdir(), "atelier-sosanh-")), "so-sanh.png");
+          await htmlToPng(html, fp);
+          const png = readFileSync(fp).toString("base64");
+          return {
+            content: [
+              { type: "image" as const, data: png, mimeType: "image/png" },
+              { type: "text" as const, text: lines.join("\n") },
+            ],
+          };
+        } catch {
+          return text(lines.join("\n")); // không có Chromium vẫn có diff chữ
+        }
       } catch (e) {
         return fail(e);
       }

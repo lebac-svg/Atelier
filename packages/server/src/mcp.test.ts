@@ -31,15 +31,44 @@ const textOf = (r: Awaited<ReturnType<Client["callTool"]>>): string =>
     .join("\n");
 
 describe("MCP server — tools DoD P1 + P2 + P4", () => {
-  it("liệt kê đúng 13 tools", async () => {
+  it("liệt kê đúng 16 tools", async () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();
     expect(names).toEqual([
       "apply_ops", "assets_search", "capture_view", "editor_open", "estimate_cost", "export",
       "get_changes_since", "model_query", "project_new", "project_open", "render_plan",
-      "render_view", "validate",
+      "render_view", "validate", "variant_compare", "variant_open", "variant_save",
     ].sort());
+  });
+
+  it("phương án A/B: save → sửa → compare thấy khác biệt → open quay lại", async () => {
+    const { client, store } = await connect();
+    await client.callTool({ name: "project_new", arguments: { name: "Nhà anh Ba", template: "nha-ong-4x16-2t" } });
+
+    const saved = await client.callTool({ name: "variant_save", arguments: { name: "Phương án A — gốc" } });
+    expect(textOf(saved)).toContain("phuong-an-a-goc");
+
+    // sửa model: bỏ 2 món nội thất → phương án B (hiện tại)
+    await client.callTool({
+      name: "apply_ops",
+      arguments: { baseRevision: 0, ops: [{ op: "delete", entity: "furniture", id: "F1" }, { op: "delete", entity: "furniture", id: "F2" }] },
+    });
+
+    const cmp = await client.callTool({ name: "variant_compare", arguments: {} });
+    expect(cmp.isError).not.toBe(true);
+    const msg = textOf(cmp);
+    expect(msg).toContain("A = Phương án A — gốc");
+    expect(msg).toContain("Nội thất: 19 → 17 món");
+    expect(msg).toContain("dự toán");
+
+    const opened = await client.callTool({ name: "variant_open", arguments: { slug: "phuong-an-a-goc" } });
+    expect(textOf(opened)).toContain("✅");
+    expect(store.current.furniture).toHaveLength(19); // quay về đủ đồ
+    expect(store.current.meta.revision).toBe(2); // revision vẫn đơn điệu tăng
+
+    const bad = await client.callTool({ name: "variant_open", arguments: { slug: "khong-co" } });
+    expect(bad.isError).toBe(true);
   });
 
   it("estimate_cost: tổng tiền + so ngân sách brief + override mức hoàn thiện", async () => {

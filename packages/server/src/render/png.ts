@@ -22,6 +22,18 @@ export async function svgToPng(svg: string, outPath: string): Promise<void> {
   }
 }
 
+/** Trang HTML bất kỳ → PNG cả trang (so sánh phương án A/B). */
+export async function htmlToPng(html: string, outPath: string, width = 1800): Promise<void> {
+  if (!browser) browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width, height: 1000 }, deviceScaleFactor: 2 });
+  try {
+    await page.setContent(html, { waitUntil: "load" });
+    await page.screenshot({ path: outPath, fullPage: true });
+  } finally {
+    await page.close();
+  }
+}
+
 export async function closePngRenderer(): Promise<void> {
   if (browser) {
     await browser.close();

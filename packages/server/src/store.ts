@@ -1,4 +1,4 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
   applyOps, loadNhaOng4x16, validateProject,
@@ -167,6 +167,84 @@ export class ProjectStore {
       });
     }
     return result;
+  }
+
+  // ── Phương án A/B (backlog v2 → 13/07/2026): snapshot có tên ────
+  // Journal không tái tạo được state cũ (rev 0 không lưu ops) — snapshot là
+  // đường thẳng nhất, và cũng chính là ngữ nghĩa người dùng cần: "lưu bố trí này lại".
+
+  get variantsDir(): string {
+    return path.join(this.baseDir, ".atelier", "phuong-an");
+  }
+
+  /** Lưu model hiện tại thành phương án (cùng tên → cập nhật đè). Trả slug. */
+  saveVariant(name: string): { slug: string; revision: number } {
+    const p = this.current;
+    const slug = slugify(name);
+    mkdirSync(this.variantsDir, { recursive: true });
+    const payload = {
+      name,
+      savedAt: new Date().toISOString(),
+      revision: p.meta.revision,
+      model: p,
+    };
+    writeFileSync(path.join(this.variantsDir, `${slug}.json`), JSON.stringify(payload, null, 2) + "\n", "utf8");
+    return { slug, revision: p.meta.revision };
+  }
+
+  listVariants(): Array<{ slug: string; name: string; savedAt: string; revision: number }> {
+    if (!existsSync(this.variantsDir)) return [];
+    const out: Array<{ slug: string; name: string; savedAt: string; revision: number }> = [];
+    for (const f of readdirSync(this.variantsDir)) {
+      if (!f.endsWith(".json")) continue;
+      try {
+        const v = JSON.parse(readFileSync(path.join(this.variantsDir, f), "utf8")) as {
+          name?: string; savedAt?: string; revision?: number;
+        };
+        out.push({
+          slug: f.replace(/\.json$/, ""),
+          name: v.name ?? f,
+          savedAt: v.savedAt ?? "",
+          revision: v.revision ?? 0,
+        });
+      } catch {
+        // file hỏng — bỏ qua, không làm gãy list
+      }
+    }
+    return out.sort((a, b) => a.savedAt.localeCompare(b.savedAt));
+  }
+
+  /** Đọc model của một phương án (không đổi model đang làm). */
+  readVariant(slug: string): { name: string; savedAt: string; model: Project } {
+    const fp = path.join(this.variantsDir, `${slug}.json`);
+    if (!existsSync(fp)) {
+      const known = this.listVariants().map((v) => v.slug).join(", ") || "(chưa có phương án nào)";
+      throw new Error(`Không có phương án "${slug}" — hiện có: ${known}.`);
+    }
+    const v = JSON.parse(readFileSync(fp, "utf8")) as { name?: string; savedAt?: string; model: Project };
+    return { name: v.name ?? slug, savedAt: v.savedAt ?? "", model: v.model };
+  }
+
+  /**
+   * Chuyển sang làm việc trên một phương án (checkout). Model hiện tại KHÔNG
+   * tự lưu — caller (tool description dặn Claude) phải saveVariant trước nếu muốn giữ.
+   * Revision tiếp tục đơn điệu tăng để optimistic concurrency không gãy.
+   */
+  openVariant(slug: string): Project {
+    const { name, model } = this.readVariant(slug);
+    const next = structuredClone(model);
+    next.meta.revision = this.current.meta.revision + 1;
+    this.project = next;
+    this.persist();
+    this.appendJournal({
+      revision: next.meta.revision,
+      at: new Date().toISOString(),
+      origin: "system",
+      summary: `chuyển sang phương án "${name}" (${slug})`,
+      ops: [],
+    });
+    this.emit({ kind: "project", reason: "opened" }); // mọi tab nhận snapshot + session token mới
+    return next;
   }
 
   changesSince(revision: number): { entries: JournalEntry[]; currentRevision: number } {

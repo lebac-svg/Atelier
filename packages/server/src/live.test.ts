@@ -278,6 +278,25 @@ describe("LiveServer", () => {
     expect((await fetch(`${url}/xem/${share.token}`)).status).toBe(404);
   });
 
+  it("trang /so-sanh + /plan?variant: phương án cạnh nhau qua HTTP", async () => {
+    const { store, url } = await boot();
+    store.saveVariant("Phương án A");
+    store.apply(0, [{ op: "delete", entity: "furniture", id: "F1" }], "bớt đồ");
+
+    const plan = await fetch(`${url}/plan/L1.svg?variant=phuong-an-a`);
+    expect(plan.status).toBe(200);
+    expect(await plan.text()).toContain('data-id="F1"'); // phương án A vẫn còn F1
+    expect((await fetch(`${url}/plan/L1.svg?variant=khong-co`)).status).toBe(404);
+
+    const page = await fetch(`${url}/so-sanh`);
+    expect(page.status).toBe(200);
+    const html = await page.text();
+    expect(html).toContain("SO SÁNH PHƯƠNG ÁN");
+    expect(html).toContain("Phương án A");
+    expect(html).toContain("HIỆN TẠI (r1)");
+    expect((await fetch(`${url}/so-sanh?a=khong-co`)).status).toBe(404);
+  });
+
   it("capture: browser trả PNG; timeout khi browser im; lỗi khi không có browser", async () => {
     const { live, url } = await boot({ captureTimeoutMs: 300 });
     await expect(live.capture("3d")).rejects.toThrow(/Chưa có browser/);
