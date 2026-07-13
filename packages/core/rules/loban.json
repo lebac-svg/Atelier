@@ -1,0 +1,55 @@
+{
+  "rulers": {
+    "thong_thuy": {
+      "label": "Thước Lỗ Ban 52.2cm (thông thủy cửa)",
+      "cycle": 522,
+      "cungs": [
+        { "name": "Quý Nhân", "good": true },
+        { "name": "Hiểm Họa", "good": false },
+        { "name": "Thiên Tai", "good": false },
+        { "name": "Thiên Tài", "good": true },
+        { "name": "Nhân Lộc", "good": true },
+        { "name": "Cô Độc", "good": false },
+        { "name": "Thiên Tặc", "good": false },
+        { "name": "Tể Tướng", "good": true }
+      ]
+    },
+    "khoi_xay": {
+      "label": "Thước Lỗ Ban 42.9cm (khối xây: bệ bếp, bàn thờ)",
+      "cycle": 429,
+      "cungs": [
+        { "name": "Tài", "good": true },
+        { "name": "Bệnh", "good": false },
+        { "name": "Ly", "good": false },
+        { "name": "Nghĩa", "good": true },
+        { "name": "Quan", "good": true },
+        { "name": "Kiếp", "good": false },
+        { "name": "Hại", "good": false },
+        { "name": "Bản", "good": true }
+      ]
+    }
+  },
+  "rules": [
+    {
+      "id": "LBB-01",
+      "title": "Thông thủy cửa theo thước Lỗ Ban 52.2cm",
+      "severity": "info",
+      "source": { "vanBan": "thước Lỗ Ban 52.2 lưu truyền — tên cung & biên cần đối chiếu nguồn tin cậy", "verified": false },
+      "message": "Thông thủy {dim} cửa {opening} = {value}mm rơi cung {cung} (xấu) theo thước 52.2cm."
+    },
+    {
+      "id": "LBB-02",
+      "title": "Khối xây quan trọng theo thước Lỗ Ban 42.9cm",
+      "severity": "info",
+      "source": { "vanBan": "thước Lỗ Ban 42.9 lưu truyền — cần đối chiếu", "verified": false },
+      "message": "{item} cạnh {value}mm rơi cung {cung} (xấu) theo thước 42.9cm."
+    },
+    {
+      "id": "LBB-03",
+      "title": "Gợi ý kích thước vào cung đẹp gần nhất",
+      "severity": "info",
+      "source": { "vanBan": "dẫn xuất từ LBB-01/02", "verified": false },
+      "message": "{item}: {value}mm → {suggest}mm vào cung {cungTot} (chênh {delta}mm)."
+    }
+  ]
+}

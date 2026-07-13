@@ -1,0 +1,62 @@
+{
+  "rules": [
+    {
+      "id": "GEO-01",
+      "title": "Opening nằm trọn trong chiều dài tường",
+      "severity": "block",
+      "source": { "vanBan": "hình học nội tại", "verified": true },
+      "message": "Cửa {opening} (rộng {width}, offset {offset}) vượt ra ngoài tường {wall} (dài {len})."
+    },
+    {
+      "id": "GEO-02",
+      "title": "Hai opening cùng tường không chồng nhau",
+      "severity": "block",
+      "source": { "vanBan": "hình học nội tại", "verified": true },
+      "message": "{a} và {b} chồng nhau {overlap}mm trên tường {wall}."
+    },
+    {
+      "id": "GEO-03",
+      "title": "Hai tường song song không đè lên nhau",
+      "severity": "error",
+      "source": { "vanBan": "hình học nội tại", "verified": true },
+      "message": "Tường {a} và {b} song song đè nhau: tim cách {dist}mm < {minDist}mm (tổng nửa dày)."
+    },
+    {
+      "id": "GEO-04",
+      "title": "Nội thất không đè nhau / đè tường",
+      "severity": "error",
+      "params": { "tolerance": 10 },
+      "source": { "vanBan": "hình học nội tại", "verified": true },
+      "message": "{a} đè lên {b} ({depth}mm)."
+    },
+    {
+      "id": "GEO-05",
+      "title": "Polygon khép kín, không tự cắt",
+      "severity": "block",
+      "source": { "vanBan": "hình học nội tại", "verified": true },
+      "message": "Polygon của {entity} tự cắt hoặc suy biến — sửa lại thứ tự đỉnh."
+    },
+    {
+      "id": "GEO-06",
+      "title": "Cung mở cửa không vướng tường/nội thất",
+      "severity": "warn",
+      "params": { "tolerance": 10 },
+      "source": { "vanBan": "thực hành thiết kế", "verified": true },
+      "message": "Cung mở cửa {opening} vướng {obstacle}."
+    },
+    {
+      "id": "GEO-07",
+      "title": "Vế trên + chiếu nghỉ thang nằm trong lỗ sàn tầng trên",
+      "severity": "warn",
+      "source": { "vanBan": "hình học nội tại", "verified": true },
+      "message": "Thang {stair}: phần lộ thiên (vế trên/chiếu nghỉ) không nằm trong lỗ sàn {slab} — người đi sẽ đụng đầu. v2 sẽ kiểm headroom chính xác."
+    },
+    {
+      "id": "GEO-08",
+      "title": "Tường nằm trong ranh đất (+ khoảng lùi nếu khai trong brief)",
+      "severity": "error",
+      "source": { "vanBan": "hình học nội tại", "verified": true },
+      "message": "Tường {wall} {detail}."
+    }
+  ]
+}

@@ -17,3 +17,8 @@ export * from "./geometry/stair.js";
 export * from "./ops/ops.js";
 export * from "./ops/apply.js";
 export * from "./ops/summary.js";
+
+export * from "./validate/rules.js";
+export * from "./validate/loban.js";
+export * from "./validate/engine.js";
+export type { Finding } from "./validate/finding.js";

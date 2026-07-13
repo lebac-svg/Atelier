@@ -57,6 +57,13 @@ export function getAsset(id: string): Asset | undefined {
   return byId.get(id);
 }
 
+/** Đăng ký asset ngoài catalog gốc (test, asset tùy biến P5). */
+export function registerAsset(a: Asset): void {
+  if (byId.has(a.id)) throw new Error(`asset ${a.id} đã tồn tại`);
+  CATALOG.push(a);
+  byId.set(a.id, a);
+}
+
 export function searchAssets(query: string, category?: AssetCategory, maxFootprint?: { w?: number; d?: number }): Asset[] {
   const q = query.trim().toLowerCase();
   return CATALOG.filter((a) => {

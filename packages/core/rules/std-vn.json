@@ -1,0 +1,100 @@
+{
+  "rules": [
+    {
+      "id": "STD-01",
+      "title": "Diện tích phòng tối thiểu",
+      "severity": "warn",
+      "params": { "ngu_chinh": 10, "ngu_phu": 7, "bep": 5, "wc": 2.2, "khach": 12 },
+      "source": { "vanBan": "TCVN 4451:2012 (dự thảo số liệu)", "dieu": "—", "verified": false },
+      "message": "Phòng {ten} ({room}) {area}m² — dưới mức tối thiểu {min}m² ({loai})."
+    },
+    {
+      "id": "STD-02",
+      "title": "Bề rộng thông thủy phòng ở",
+      "severity": "warn",
+      "params": { "min": 2100 },
+      "source": { "vanBan": "TCVN 4451:2012 (dự thảo)", "verified": false },
+      "message": "Phòng {ten} ({room}) bề rộng {width}mm < {min}mm.",
+      "note": "v1 đo theo OBB nhỏ nhất — phòng chữ L lấy bề rộng bao, v2 dùng trục trung tuyến."
+    },
+    {
+      "id": "STD-03",
+      "title": "Cao thông thủy",
+      "severity": "error",
+      "params": { "phong_o": 2600, "phu": 2200 },
+      "source": { "vanBan": "TCVN 4451:2012 (dự thảo)", "verified": false },
+      "message": "{ten} ({room}): cao thông thủy tầng {level} = {clear}mm < {min}mm."
+    },
+    {
+      "id": "STD-04",
+      "title": "Bề rộng hành lang",
+      "severity": "error",
+      "params": { "min": 900 },
+      "source": { "vanBan": "TCVN 4451:2012 (dự thảo)", "verified": false },
+      "message": "Hành lang {ten} ({room}) rộng {width}mm < {min}mm."
+    },
+    {
+      "id": "STD-05",
+      "title": "Bề rộng cửa đi",
+      "severity": "error",
+      "params": { "chinh": 800, "chinh_khuyen": 900, "phong": 700, "wc": 600 },
+      "source": { "vanBan": "TCVN 4451:2012 (dự thảo)", "verified": false },
+      "message": "Cửa {opening} ({loai}) rộng {width}mm < {min}mm."
+    },
+    {
+      "id": "STD-06",
+      "title": "Kích thước thang",
+      "severity": "error",
+      "params": { "riser_min": 150, "riser_max": 190, "tread_min": 240, "ve_min": 800, "ve_khuyen": 900, "buoc_min": 550, "buoc_max": 700 },
+      "source": { "vanBan": "TCVN 4451:2012 (dự thảo)", "verified": false },
+      "message": "Thang {stair}: {detail}."
+    },
+    {
+      "id": "STD-07",
+      "title": "Chiều cao lan can",
+      "severity": "error",
+      "status": "planned",
+      "params": { "lan_can": 900, "ban_cong_tang_cao": 1100 },
+      "source": { "vanBan": "QCVN 05:2008/BXD (dự thảo)", "verified": false },
+      "message": "Lan can {entity} cao {height}mm < {min}mm.",
+      "note": "Chưa chạy được ở v1 — schema chưa có thực thể lan can (dự kiến P4 cùng mặt đứng/mặt cắt). Cửa sổ tầng cao đã có STD-08 đỡ."
+    },
+    {
+      "id": "STD-08",
+      "title": "Cửa sổ bậu thấp ở tầng cao — an toàn trẻ em",
+      "severity": "warn",
+      "params": { "sill_min": 900 },
+      "source": { "vanBan": "QCVN 05:2008/BXD (dự thảo)", "verified": false },
+      "message": "Cửa sổ {opening} bậu {sill}mm < {min}mm ở {level} (tầng cao) mà chưa có lan can bảo vệ."
+    },
+    {
+      "id": "STD-09",
+      "title": "Phòng ở có lấy sáng tự nhiên",
+      "severity": "warn",
+      "source": { "vanBan": "QCVN 04:2021/BXD (dự thảo)", "verified": false },
+      "message": "Phòng {ten} ({room}) không có cửa sổ hay giếng trời lấy sáng — nhà ống nên cân nhắc giếng trời/thông tầng."
+    },
+    {
+      "id": "STD-10",
+      "title": "Cửa WC không mở thẳng vào khu bếp",
+      "severity": "warn",
+      "source": { "vanBan": "thực hành + phong tục VN", "verified": true },
+      "message": "Cửa {opening} của WC mở thẳng vào khu bếp/ăn ({room}) — nên đổi hướng hoặc thêm khoảng đệm."
+    },
+    {
+      "id": "STD-11",
+      "title": "Lối đi tối thiểu quanh nội thất",
+      "severity": "info",
+      "params": { "giuong": 600, "bep_truoc": 900, "bon_cau_truoc": 500 },
+      "source": { "vanBan": "thực hành thiết kế nội thất", "verified": false },
+      "message": "{item}: {detail}."
+    },
+    {
+      "id": "STD-12",
+      "title": "Không vượt brief quy hoạch (mật độ, số tầng)",
+      "severity": "warn",
+      "source": { "vanBan": "brief người dùng khai", "verified": true },
+      "message": "Vượt quy hoạch trong brief: {detail}."
+    }
+  ]
+}
