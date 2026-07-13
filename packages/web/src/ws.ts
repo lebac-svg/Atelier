@@ -21,12 +21,16 @@ export class WsClient {
   private retry = 0;
   private reconnectTimer: number | null = null;
 
-  constructor(private readonly handlers: WsHandlers) {}
+  constructor(
+    private readonly handlers: WsHandlers,
+    /** Query gắn vào /ws — link chia sẻ chỉ-xem truyền "?token=…". */
+    private readonly query = "",
+  ) {}
 
   connect(): void {
     this.handlers.onConn(this.retry === 0 ? "connecting" : "off");
     const proto = location.protocol === "https:" ? "wss" : "ws";
-    const sock = new WebSocket(`${proto}://${location.host}/ws`);
+    const sock = new WebSocket(`${proto}://${location.host}/ws${this.query}`);
     this.sock = sock;
 
     sock.onopen = () => {

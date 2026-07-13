@@ -58,8 +58,11 @@ export class UI {
   private readonly btnUndo = $<HTMLButtonElement>("btn-undo");
   private readonly btnRedo = $<HTMLButtonElement>("btn-redo");
   private claudeTimer: number | null = null;
+  /** Chế độ chỉ-xem (link chia sẻ) — panel thuộc tính không có ô nhập. */
+  readonly readonly: boolean;
 
-  constructor(private readonly cb: UICallbacks) {
+  constructor(private readonly cb: UICallbacks, opts: { readonly?: boolean } = {}) {
+    this.readonly = opts.readonly ?? false;
     for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-view-btn]")) {
       btn.addEventListener("click", () => {
         for (const b of document.querySelectorAll("[data-view-btn]")) b.classList.remove("is-active");
@@ -211,7 +214,7 @@ export class UI {
     chip.textContent = `${found.kind} · ${id}`;
     this.propsBody.appendChild(chip);
 
-    const specs = new Map((EDITABLE[found.entity] ?? []).map((s) => [s.key, s]));
+    const editable = this.readonly ? [] : EDITABLE[found.entity] ?? [];
     const table = document.createElement("table");
     table.className = "prop-table";
 
@@ -226,9 +229,9 @@ export class UI {
       table.appendChild(tr);
     };
 
-    // field sửa được luôn hiện (kể cả đang undefined, vd wall.height)
+    // field sửa được luôn hiện (kể cả đang undefined, vd wall.height); chỉ-xem thì rỗng
     const shown = new Set<string>();
-    for (const spec of EDITABLE[found.entity] ?? []) {
+    for (const spec of editable) {
       shown.add(spec.key);
       addRow(spec.key, this.buildEditor(found, id, spec));
     }

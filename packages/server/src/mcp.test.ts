@@ -108,6 +108,8 @@ describe("MCP server — tools DoD P1 + P2 + P4", () => {
     expect(textOf(opened)).toContain("✅ Editor: http://localhost:");
     expect(live.running).toBe(true);
     expect(textOf(opened)).toContain(`http://localhost:${live.port}`);
+    // kèm link chia sẻ chỉ-xem cho Claude đưa thẳng cho gia chủ
+    expect(textOf(opened)).toContain(`/xem/${live.shareToken()}`);
 
     const cap = await client.callTool({ name: "capture_view", arguments: { target: "3d" } });
     expect(cap.isError).toBe(true);

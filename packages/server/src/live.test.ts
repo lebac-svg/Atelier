@@ -41,8 +41,8 @@ class TestClient {
     });
   }
 
-  static async connect(httpUrl: string): Promise<TestClient> {
-    const c = new TestClient(httpUrl.replace(/^http/, "ws") + "/ws");
+  static async connect(httpUrl: string, query = ""): Promise<TestClient> {
+    const c = new TestClient(httpUrl.replace(/^http/, "ws") + "/ws" + query);
     await new Promise<void>((res, rej) => {
       c.sock.once("open", () => res());
       c.sock.once("error", rej);
@@ -231,6 +231,51 @@ describe("LiveServer", () => {
     await new Promise((r) => setTimeout(r, 250));
     const rSau = store.apply(1, [{ op: "update", entity: "wall", id: wallId, data: { thickness: 110 } }]);
     expect(rSau.ok).toBe(true);
+  });
+
+  it("link chia sẻ chỉ-xem: token persist, viewer bị VIEW-01, không soft-lock được, rotate đá viewer", async () => {
+    const { store, live, url } = await boot();
+    // token qua HTTP + persist qua restart LiveServer (đọc lại .atelier/share.json)
+    const share = (await (await fetch(`${url}/share`)).json()) as { url: string; token: string };
+    expect(share.url).toContain(`/xem/${share.token}`);
+    const live2 = new LiveServer(store, { port: 0 });
+    expect(live2.shareToken()).toBe(share.token);
+
+    // trang /xem: đúng token → 200; sai token → 404
+    expect((await fetch(`${url}/xem/${share.token}`)).status).toBe(200);
+    expect((await fetch(`${url}/xem/sai-token`)).status).toBe(404);
+
+    // WS sai token bị đóng ngay
+    const bad = new WebSocket(url.replace(/^http/, "ws") + "/ws?token=sai");
+    const closeCode = await new Promise<number>((res) => bad.on("close", (code) => res(code)));
+    expect(closeCode).toBe(4001);
+
+    // viewer: nhận snapshot như thường, nhưng ops bị VIEW-01 và draggingIds không khóa được ai
+    const viewer = await TestClient.connect(url, `?token=${share.token}`);
+    viewer.hello();
+    const snap = await viewer.next<SnapshotMsg>("snapshot");
+    expect(snap.model.meta.name).toBe("Nhà anh Ba");
+
+    viewer.send({ type: "ops", baseRevision: 0, ops: [{ op: "update", entity: "level", id: "L2", data: { height: 3500 } }] });
+    const rej = await viewer.next<RejectMsg>("reject");
+    expect(rej.errors[0]!.rule).toBe("VIEW-01");
+    expect(store.current.meta.revision).toBe(0);
+
+    const wallId = store.current.walls[0]!.id;
+    viewer.send({ type: "presence", draggingIds: [wallId] });
+    await viewer.next("presence");
+    const rClaude = store.apply(0, [{ op: "update", entity: "wall", id: wallId, data: { thickness: 220 } }]);
+    expect(rClaude.ok).toBe(true); // viewer không tạo được soft-lock
+
+    // capture không bao giờ chọn tab viewer
+    await expect(live.capture("3d")).rejects.toThrow(/Chưa có browser/);
+
+    // thu hồi: token mới, viewer cũ bị ngắt, link cũ thành 404
+    const viewerClosed = new Promise<number>((res) => viewer.sock.on("close", (code) => res(code)));
+    const rotated = (await (await fetch(`${url}/share/rotate`, { method: "POST" })).json()) as { token: string };
+    expect(rotated.token).not.toBe(share.token);
+    expect(await viewerClosed).toBe(4001);
+    expect((await fetch(`${url}/xem/${share.token}`)).status).toBe(404);
   });
 
   it("capture: browser trả PNG; timeout khi browser im; lỗi khi không có browser", async () => {

@@ -37,7 +37,7 @@ Cỡ M/L là tương đối giữa các giai đoạn — ước lượng thô, c
 |---|---|---|
 | ~~Dự toán sơ bộ~~ | ✅ 13/07/2026 — `estimate_cost` (diện tích quy đổi móng/sàn/mái × `rules/don-gia.json`, so ngân sách brief) + tờ DỰ TOÁN SƠ BỘ KT-06 trong bộ hồ sơ | ~~v2~~ xong |
 | So sánh phương án A/B | 2 revision/branch cạnh nhau trên editor | v2 |
-| Link chia sẻ chỉ-xem | token + read-only client (giao thức đã sẵn) | v2 |
+| ~~Link chia sẻ chỉ-xem~~ | ✅ 13/07/2026 — `/xem/<token>` (token persist `.atelier/share.json`, thu hồi `POST /share/rotate`); server CƯỠNG CHẾ read-only ở WS: ops → `VIEW-01`, không soft-lock, capture không chọn tab khách; UI khách khóa công cụ nhưng vẫn live + đi bộ + nắng; nút "chia sẻ" trên editor + link kèm trong `editor_open`. LAN: `ATELIER_HOST=0.0.0.0` (mặc định loopback) | ~~v2~~ xong |
 | Rule pack quy hoạch địa phương | PLN — khoảng lùi/mật độ/tầng cao nhập theo dự án | P4 |
 | Xuất IFC | bàn giao KTS thật (IfcOpenShell sidecar nếu cần) | P4+ |
 | Render photoreal | glTF → Blender pipeline, chạy nền | P5+ |

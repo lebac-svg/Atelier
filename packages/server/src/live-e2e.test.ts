@@ -16,15 +16,16 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
   let live: LiveServer;
   let browser: Browser;
   let page: Page;
+  let baseUrl: string;
 
   beforeAll(async () => {
     store = new ProjectStore(mkdtempSync(path.join(tmpdir(), "atelier-e2e-")));
     store.newProject("Nhà anh Ba", "nha-ong-4x16-2t");
     live = new LiveServer(store, { port: 0, lockReleaseMs: 300 }); // khóa nguội ngắn cho test
-    const url = await live.start();
+    baseUrl = await live.start();
     browser = await chromium.launch();
     page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    await page.goto(url);
+    await page.goto(baseUrl);
     // chờ snapshot dựng xong — test chạy đơn lẻ (-t) cũng phải có model sẵn
     await page.waitForSelector("#paper svg", { timeout: 15_000 });
   }, 90_000);
@@ -203,8 +204,8 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
     await page.mouse.move(pts.from.x, pts.from.y);
     await page.mouse.down();
     await page.mouse.move(pts.to.x, pts.to.y, { steps: 5 });
-    // presence draggingIds đã lên server → agent phải bị chặn
-    await page.waitForTimeout(150);
+    // chờ tới khi server THẬT SỰ giữ khóa (fixed-wait dễ hụt khi test chạy song song)
+    await expect.poll(() => store.locks.lockedAmong(["W98"]).length, { timeout: 5_000 }).toBeGreaterThan(0);
     const rev = store.current.meta.revision;
     const rLocked = store.apply(rev, [{ op: "update", entity: "wall", id: "W98", data: { thickness: 220 } }]);
 
@@ -225,11 +226,13 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
     expect(await page.textContent("#props-body .prop-id")).toContain("W98");
 
     const rev0 = store.current.meta.revision;
+    // fill giá trị KHÁC hiện tại — bằng thì UI đúng đắn không sinh op
+    const next = store.current.walls.find((x) => x.id === "W98")!.thickness === 220 ? 110 : 220;
     const thick = page.locator("#props-body tr", { hasText: "thickness" }).locator("input");
-    await thick.fill("220");
+    await thick.fill(String(next));
     await thick.press("Enter");
     await page.waitForFunction((r) => document.getElementById("rev-seal")?.textContent === `r ${r}`, rev0 + 1, { timeout: 10_000 });
-    expect(store.current.walls.find((x) => x.id === "W98")!.thickness).toBe(220);
+    expect(store.current.walls.find((x) => x.id === "W98")!.thickness).toBe(next);
   }, 30_000);
 
   it("P5 tool 5: mở catalog, chọn xe máy, click đặt 2 lần liên tiếp → 2 op add origin user", async () => {
@@ -342,6 +345,72 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
       await page.click('[data-view-btn="split"]');
     }
   }, 30_000);
+
+  it("link chia sẻ chỉ-xem: khách thấy live, kéo chỉ pan, không sửa được gì", async () => {
+    const share = (await (await fetch(`${baseUrl}/share`)).json()) as { url: string };
+    const viewer = await browser.newPage({ viewport: { width: 1200, height: 800 } });
+    try {
+      await viewer.goto(share.url);
+      await viewer.waitForSelector("#paper svg", { timeout: 15_000 });
+
+      // vai khách hiện rõ + công cụ khóa
+      expect(await viewer.textContent(".view-badge")).toBe("CHỈ XEM");
+      expect(await viewer.$eval("#share-btn", (el) => (el as HTMLElement).hidden)).toBe(true);
+      expect(await viewer.$eval("#tool-select", (el) => (el as HTMLButtonElement).disabled)).toBe(true);
+
+      // THẤY LIVE: chủ nhà (Claude) sửa → tab khách nhảy revision
+      const rev0 = store.current.meta.revision;
+      const r = store.apply(rev0, [{ op: "update", entity: "level", id: "L2", data: { height: 3450 } }], "thử live cho khách");
+      expect(r.ok).toBe(true);
+      await viewer.waitForFunction(
+        (rv) => document.getElementById("rev-seal")?.textContent === `r ${rv}`,
+        rev0 + 1,
+        { timeout: 10_000 },
+      );
+
+      // KHÔNG SỬA ĐƯỢC: kéo tường trên tab khách chỉ pan — revision đứng yên
+      const wall = await viewer.evaluate(() => {
+        const el = document.querySelector('#paper svg [data-id="W1"]') as SVGGraphicsElement;
+        const bb = el.getBBox();
+        const c = new DOMPoint(bb.x + bb.width / 2, bb.y + bb.height / 2)
+          .matrixTransform((el.ownerSVGElement as SVGSVGElement).getScreenCTM()!);
+        return { x: c.x, y: c.y };
+      });
+      await viewer.mouse.move(wall.x, wall.y);
+      await viewer.mouse.down();
+      await viewer.mouse.move(wall.x + 60, wall.y + 60, { steps: 5 });
+      await viewer.mouse.up();
+      await viewer.waitForTimeout(400);
+      expect(store.current.meta.revision).toBe(rev0 + 1); // không đẻ op nào
+
+      // panel thuộc tính: click chọn được nhưng KHÔNG có ô nhập
+      // (tọa độ cũ đã trôi vì vừa pan — quét lại điểm có data-id bất kỳ)
+      const pick = await viewer.evaluate(() => {
+        const svg = document.querySelector("#paper svg") as SVGSVGElement;
+        const bb = svg.getBoundingClientRect();
+        for (const fx of [0.5, 0.4, 0.6, 0.3, 0.7]) {
+          for (const fy of [0.5, 0.4, 0.6]) {
+            const x = bb.x + bb.width * fx;
+            const y = bb.y + bb.height * fy;
+            if (document.elementFromPoint(x, y)?.closest("[data-id]")) return { x, y };
+          }
+        }
+        return null;
+      });
+      expect(pick).not.toBeNull();
+      await viewer.mouse.click(pick!.x, pick!.y);
+      await viewer.waitForFunction(() => !!document.querySelector("#props-body .prop-id"), undefined, { timeout: 5_000 });
+      expect(await viewer.$$eval("#props-body .prop-input", (els) => els.length)).toBe(0);
+    } finally {
+      await viewer.close();
+    }
+  }, 40_000);
+
+  it("nút chia sẻ trên tab chủ nhà lấy được link /xem/<token>", async () => {
+    const r = (await (await fetch(`${baseUrl}/share`)).json()) as { url: string; token: string };
+    expect(r.url).toContain(`/xem/${r.token}`);
+    expect(await page.$eval("#share-btn", (el) => (el as HTMLElement).hidden)).toBe(false);
+  }, 15_000);
 
   it("click bản vẽ chọn entity → panel thuộc tính hiện đúng đối tượng vừa chạm", async () => {
     // điểm hit-verified (nhãn phòng/nội thất có thể đè lên tường — phải né)

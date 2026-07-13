@@ -260,8 +260,12 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
         const distNote = existsSync(DEFAULT_WEB_DIST)
           ? ""
           : "\n⚠ Web editor chưa build — trang sẽ hướng dẫn chạy: pnpm --filter @atelier/web build";
+        const share = live.shareUrl();
         return text(
-          `✅ Editor: ${url}${args.openBrowser !== false ? " (đã mở trình duyệt)" : ""} — browser đang nối: ${live.browserCount}.${distNote}`,
+          `✅ Editor: ${url}${args.openBrowser !== false ? " (đã mở trình duyệt)" : ""} — browser đang nối: ${live.browserCount}.${distNote}` +
+            (share
+              ? `\n👁 Link chia sẻ CHỈ-XEM (gửi cho người thân cùng ngắm, không sửa được): ${share}\n   (mặc định server chỉ nghe 127.0.0.1 — muốn máy khác trong mạng LAN mở được, đặt ATELIER_HOST=0.0.0.0 rồi mở lại; thu hồi link: POST /share/rotate)`
+              : ""),
         );
       } catch (e) {
         return fail(e);

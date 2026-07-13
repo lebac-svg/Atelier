@@ -14,6 +14,8 @@ export type Plan2DDeps = {
   onCommit(op: Op, label: string): void;
   /** Click đặt nội thất khi đang ở chế độ đặt (tool 5, P5) — pt là mm model đã snap. */
   onPlace(assetId: string, pt: Point): void;
+  /** Link chia sẻ chỉ-xem: chọn/pan/zoom vẫn chạy, kéo-thả thì không. */
+  readonly?: boolean;
 };
 
 /** Ngưỡng hít tính theo px màn hình — quy về mm model theo zoom lúc kéo. */
@@ -187,6 +189,7 @@ export class Plan2D {
 
   /** Dựng phiên kéo cho entity nếu loại đó kéo được (tường/cửa/nội thất — P3). */
   private sessionFor(id: string, startModel: Point): DragSession | null {
+    if (this.deps.readonly) return null; // chỉ-xem: kéo = pan, không bao giờ thành phiên sửa
     const model = this.deps.getModel();
     if (!model) return null;
     const wall = model.walls.find((w) => w.id === id);

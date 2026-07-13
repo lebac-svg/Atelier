@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
-import { randomUUID } from "node:crypto";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { randomBytes, randomUUID } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import type { Server as HttpServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import path from "node:path";
@@ -58,6 +58,8 @@ type Peer = {
   session: string | null;
   /** Lần cuối peer CHỦ ĐỘNG nhắn (hello/ops/presence) — tab đang được dùng thật sự. */
   lastActive: number;
+  /** Nối qua link chia sẻ chỉ-xem — server CƯỠNG CHẾ: ops bị VIEW-01, không soft-lock, không capture. */
+  readonly: boolean;
   selection?: string[];
   draggingIds?: string[];
 };
@@ -83,6 +85,8 @@ export class LiveServer {
   private unsubscribe: (() => void) | null = null;
   /** Token phiên — đổi mỗi lần model thay MỚI (project_new/open) để tab cũ không tưởng nhầm còn sync. */
   private session = randomUUID();
+  /** Token link chia sẻ chỉ-xem — nạp/lưu .atelier/share.json (sống qua restart). */
+  private share: string | null = null;
   url: string | null = null;
 
   constructor(
@@ -106,7 +110,8 @@ export class LiveServer {
   /** Khởi động (idempotent) — trả URL editor. */
   async start(): Promise<string> {
     if (this.url) return this.url;
-    const host = this.opts.host ?? "127.0.0.1";
+    // ATELIER_HOST=0.0.0.0 → máy khác trong LAN mở được editor + link chia sẻ (mặc định chỉ loopback)
+    const host = this.opts.host ?? process.env.ATELIER_HOST ?? "127.0.0.1";
     const prefer = this.opts.port ?? Number(process.env.ATELIER_PORT ?? 4823);
     let lastErr: unknown = null;
     for (let i = 0; i < 10; i++) {
@@ -125,7 +130,7 @@ export class LiveServer {
     this.url = `http://localhost:${this.port}`;
 
     this.wss = new WebSocketServer({ server: this.http, path: "/ws" });
-    this.wss.on("connection", (sock) => this.onConnection(sock));
+    this.wss.on("connection", (sock, req) => this.onConnection(sock, req?.url ?? ""));
 
     this.heartbeat = setInterval(() => this.pingPeers(), 15_000);
     this.heartbeat.unref?.();
@@ -153,13 +158,47 @@ export class LiveServer {
     this.url = null;
   }
 
+  /** Token chia sẻ hiện hành — tạo mới + lưu file nếu chưa có. */
+  shareToken(): string {
+    if (this.share) return this.share;
+    const fp = path.join(this.store.baseDir, ".atelier", "share.json");
+    try {
+      const saved = JSON.parse(readFileSync(fp, "utf8")) as { token?: string };
+      if (typeof saved.token === "string" && saved.token.length >= 8) {
+        this.share = saved.token;
+        return this.share;
+      }
+    } catch {
+      // chưa có file — tạo mới bên dưới
+    }
+    return this.rotateShareToken();
+  }
+
+  /** Cấp token mới (thu hồi link cũ) — mọi tab viewer đang mở bị ngắt. */
+  rotateShareToken(): string {
+    this.share = randomBytes(9).toString("base64url");
+    const dir = path.join(this.store.baseDir, ".atelier");
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(path.join(dir, "share.json"), JSON.stringify({ token: this.share }) + "\n", "utf8");
+    for (const peer of this.peers) {
+      if (peer.readonly) peer.sock.close(4001, "link chia sẻ đã được thu hồi");
+    }
+    return this.share;
+  }
+
+  /** URL trang chỉ-xem hoàn chỉnh — cần server đang chạy. */
+  shareUrl(): string | null {
+    return this.url ? `${this.url}/xem/${this.shareToken()}` : null;
+  }
+
   /**
    * Nhờ browser chụp canvas — trả PNG base64. Chọn tab ĐÃ SYNC đúng phiên và
    * HOẠT ĐỘNG gần nhất (tab cũ để không nhưng reconnect muộn sẽ không cướp lượt chụp).
+   * Tab chỉ-xem không bao giờ được chọn — ảnh phải là khung của CHỦ NHÀ.
    */
   capture(target: CaptureTarget, camera?: CaptureCamera): Promise<string> {
     const peer = [...this.peers]
-      .filter((p) => p.kind === "browser" && p.sock.readyState === p.sock.OPEN && p.session === this.session)
+      .filter((p) => p.kind === "browser" && !p.readonly && p.sock.readyState === p.sock.OPEN && p.session === this.session)
       .sort((a, b) => a.lastActive - b.lastActive)
       .at(-1);
     if (!peer) {
@@ -202,6 +241,33 @@ export class LiveServer {
         browsers: this.browserCount,
       }));
 
+    // ── link chia sẻ chỉ-xem (backlog v2 → 13/07/2026) ──────────
+    app.get("/share", (c) => {
+      const url = this.shareUrl();
+      return url ? c.json({ url, token: this.shareToken() }) : c.text("Server chưa sẵn sàng.", 503);
+    });
+    app.post("/share/rotate", (c) => {
+      this.rotateShareToken();
+      const url = this.shareUrl();
+      return url ? c.json({ url, token: this.shareToken() }) : c.text("Server chưa sẵn sàng.", 503);
+    });
+    app.get("/xem/:token", (c) => {
+      if (c.req.param("token") !== this.shareToken()) {
+        return c.html(
+          `<!doctype html><meta charset="utf-8"><title>Atelier</title>
+<body style="font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0;background:#111;color:#eee">
+<div style="max-width:30rem;line-height:1.6"><h1 style="font-weight:600">🔒 Link không còn hiệu lực</h1>
+<p>Link chia sẻ này đã được thu hồi hoặc gõ sai — xin chủ nhà gửi lại link mới.</p></div>`,
+          404,
+        );
+      }
+      // token đúng → giao SPA như trang chính; client tự nhận vai chỉ-xem từ URL
+      const dist = this.opts.webDist ?? DEFAULT_WEB_DIST;
+      const index = path.join(dist, "index.html");
+      if (!existsSync(index)) return c.html(NO_DIST_PAGE);
+      return c.body(readFileSync(index), 200, { "content-type": "text/html; charset=utf-8" });
+    });
+
     app.get("/plan/:file", (c) => {
       if (!this.store.isOpen) return c.text("Chưa mở dự án — project_open trước.", 409);
       const level = c.req.param("file").replace(/\.svg$/i, "");
@@ -231,8 +297,17 @@ export class LiveServer {
 
   // ── WebSocket ──────────────────────────────────────────────────
 
-  private onConnection(sock: WsSocket): void {
-    const peer: Peer = { id: randomUUID(), sock, kind: "browser", alive: true, session: null, lastActive: Date.now() };
+  private onConnection(sock: WsSocket, reqUrl: string): void {
+    // link chia sẻ: WS mang ?token — đúng token thì vào với vai CHỈ-XEM, sai thì đóng
+    const token = new URL(reqUrl, "http://x").searchParams.get("token");
+    if (token != null && token !== this.shareToken()) {
+      sock.close(4001, "share token không còn hiệu lực");
+      return;
+    }
+    const peer: Peer = {
+      id: randomUUID(), sock, kind: "browser", alive: true, session: null,
+      lastActive: Date.now(), readonly: token != null,
+    };
     this.peers.add(peer);
     sock.on("pong", () => {
       peer.alive = true;
@@ -260,6 +335,14 @@ export class LiveServer {
         return;
       }
       case "ops": {
+        if (peer.readonly) {
+          this.send(peer, {
+            type: "reject", yourBase: msg.baseRevision,
+            currentRevision: this.store.isOpen ? this.store.current.meta.revision : -1,
+            errors: [{ rule: "VIEW-01", severity: "block", entities: [], message: "Bạn đang xem qua link chia sẻ chỉ-xem — không sửa được model." }],
+          });
+          return;
+        }
         if (!this.store.isOpen) {
           this.send(peer, {
             type: "reject", yourBase: msg.baseRevision, currentRevision: -1,
@@ -277,7 +360,8 @@ export class LiveServer {
       }
       case "presence": {
         if (msg.selection) peer.selection = msg.selection;
-        if (msg.draggingIds) {
+        // viewer được CHỈ TRỎ (selection hiện cho người khác) nhưng không được khóa gì
+        if (msg.draggingIds && !peer.readonly) {
           peer.draggingIds = msg.draggingIds;
           if (peer.kind === "browser") this.store.locks.set(peer.id, msg.draggingIds);
         }

@@ -7,6 +7,10 @@ import { UI } from "./ui.js";
 import { WsClient } from "./ws.js";
 import { invertOps, UndoStack, type UndoEntry } from "./undo.js";
 
+/** Link chia sẻ chỉ-xem: /xem/<token> — server cưỡng chế, UI chỉ khóa cho tử tế. */
+const VIEW_TOKEN = location.pathname.startsWith("/xem/") ? location.pathname.split("/")[2] ?? null : null;
+const READONLY = VIEW_TOKEN != null;
+
 const state = new AppState();
 const undoStack = new UndoStack();
 
@@ -19,6 +23,10 @@ type Pending = { ops: Op[]; entry: UndoEntry | null; kind: "edit" | "undo" | "re
 const pending: Pending[] = [];
 
 function sendOps(ops: Op[], label: string, kind: Pending["kind"]): void {
+  if (READONLY) {
+    ui.toast("reject", "Bạn đang xem qua link chia sẻ — chỉ xem, không sửa được.");
+    return;
+  }
   if (!state.model) return;
   let entry: UndoEntry | null = null;
   if (kind === "edit") {
@@ -78,7 +86,7 @@ const ui = new UI({
   },
   onUndo: doUndo,
   onRedo: doRedo,
-});
+}, { readonly: READONLY });
 
 const plan = new Plan2D(document.getElementById("paper-viewport")!, document.getElementById("paper")!, {
   onSelect: (id) => state.select(id),
@@ -86,6 +94,7 @@ const plan = new Plan2D(document.getElementById("paper-viewport")!, document.get
   getGrid: () => ui.snapGrid(),
   onDragIds: (ids) => ws.send({ type: "presence", draggingIds: ids, tool: "V" }),
   onCommit: (op, label) => sendOps([op], label, "edit"),
+  readonly: READONLY,
   onPlace: (assetId, at) => {
     const m = state.model;
     if (!m || !state.activeLevel) return;
@@ -122,7 +131,7 @@ const ws = new WsClient({
     syncUndoButtons();
     if (m.currentRevision > state.revision) ws.resync(); // mirror tụt hậu — xin snapshot tươi
   },
-});
+}, VIEW_TOKEN ? `?token=${encodeURIComponent(VIEW_TOKEN)}` : "");
 
 state.on("snapshot", ({ model }) => {
   pending.length = 0;
@@ -304,6 +313,10 @@ window.addEventListener("keydown", (e) => {
   if (plan.dragging) return; // phiên kéo tự xử lý bàn phím (HUD)
   const t = e.target as HTMLElement | null;
   if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+  if (READONLY) {
+    if (e.key === "Escape") state.select(null);
+    return; // chỉ-xem: mọi phím sửa (Del, R, Ctrl+Z…) đứng ngoài
+  }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
     e.preventDefault();
     doUndo();
@@ -324,5 +337,31 @@ window.addEventListener("keydown", (e) => {
     else state.select(null);
   }
 });
+
+// ── Chia sẻ chỉ-xem (backlog v2 → 13/07/2026) ──────────────────
+const shareBtn = document.getElementById("share-btn") as HTMLButtonElement;
+if (READONLY) {
+  // vai khách: badge + khóa mọi công cụ sửa (server vẫn là người gác thật)
+  shareBtn.hidden = true;
+  const badge = document.createElement("span");
+  badge.className = "view-badge";
+  badge.textContent = "CHỈ XEM";
+  document.querySelector(".brand")?.appendChild(badge);
+  for (const b of document.querySelectorAll<HTMLButtonElement>(".rail .tool")) {
+    b.disabled = true;
+    b.title = "Link chia sẻ chỉ-xem — không sửa được";
+  }
+  (document.getElementById("snap-input") as HTMLInputElement).disabled = true;
+} else {
+  shareBtn.addEventListener("click", async () => {
+    try {
+      const r = (await (await fetch("/share")).json()) as { url: string };
+      await navigator.clipboard.writeText(r.url);
+      ui.toast("user", `Đã copy link chỉ-xem — gửi cho người thân cùng ngắm:\n${r.url}`);
+    } catch {
+      ui.toast("reject", "Không lấy được link chia sẻ — thử tải lại trang.");
+    }
+  });
+}
 
 ws.connect();
