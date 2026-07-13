@@ -12,6 +12,8 @@ import { compareHtml, compareProjects } from "./compare.js";
 import { DEFAULT_WEB_DIST, LiveServer, openInBrowser } from "./live.js";
 import { renderElevationSvg, renderPlanFiles, renderSectionSvg } from "./render/render.js";
 import { buildSheetSet, sheetDxf, sheetSvg } from "./render/sheets.js";
+import { modelToGlb } from "./render/gltf-writer.js";
+import { modelToIfc } from "./render/ifc-writer.js";
 import { ProjectStore, TEMPLATES } from "./store.js";
 
 const ENTITY = z.enum([
@@ -576,7 +578,7 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
     {
       title: "Xuất hồ sơ bản vẽ",
       description:
-        "Xuất BỘ hồ sơ concept vào .atelier/exports/ho-so/: mặt bằng từng tầng + mặt đứng chính + mặt cắt A-A + thống kê phòng/cửa + dự toán sơ bộ, đánh số KT-01… format: 'pdf' = MỘT file A3 ngang nhiều trang (bàn giao); 'svg' = mỗi tờ một file; 'dxf' = mỗi tờ hình học một file mm thật (mở CAD đo được; tờ bảng không có DXF). sheets để lọc: plan-<levelId> | elevation | section | schedule | estimate. LUÔN validate + tự soi render trước khi bàn giao (checkpoint 5). gltf/ifc chưa hỗ trợ (backlog).",
+        "Xuất hồ sơ vào .atelier/exports/ho-so/. format: 'pdf' = BỘ tờ KT-01… một file A3 nhiều trang (bàn giao); 'svg' = mỗi tờ một file; 'dxf' = mỗi tờ hình học một file mm thật (mở CAD đo được; tờ bảng không có DXF); 'gltf' = MỘT file .glb toàn nhà (mét, mỗi entity một node theo id — mở viewer/Blender, kèm scripts/render-photoreal.py để render đẹp); 'ifc' = IFC4 concept (tường + lỗ cửa đúng quan hệ voids/fills, sàn có lỗ, thang, IfcSpace từng phòng — bàn giao KTS/BIM, KHÔNG phải hồ sơ thi công). sheets chỉ áp cho pdf/svg/dxf: plan-<levelId> | elevation | section | schedule | estimate. LUÔN validate + tự soi render trước khi bàn giao (checkpoint 5).",
       inputSchema: {
         format: z.enum(["pdf", "svg", "dxf", "gltf", "ifc"]),
         sheets: z.array(z.string()).optional(),
@@ -586,7 +588,24 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
       try {
         const p = store.current;
         if (args.format === "gltf" || args.format === "ifc") {
-          return fail(new Error(`Định dạng ${args.format} chưa hỗ trợ — pdf/svg/dxf đã sẵn (gltf: P5, ifc: backlog P4+).`));
+          const dir0 = path.join(store.exportDir, "ho-so");
+          mkdirSync(dir0, { recursive: true });
+          const issues0 = validateProject(p);
+          const vNote = `Validator: ${issues0.length === 0 ? "sạch." : `${issues0.length} vấn đề — chạy validate soi lại trước khi bàn giao.`}`;
+          if (args.format === "gltf") {
+            const fp = path.join(dir0, `${p.meta.id}.glb`);
+            const glb = modelToGlb(p);
+            writeFileSync(fp, glb);
+            return text(`✅ glTF (GLB) ${Math.round(glb.length / 1024)}KB → ${fp}
+Mét thật, mỗi entity một node theo id. Render photoreal: blender -b -P scripts/render-photoreal.py -- "${fp}" out.png
+${vNote}`);
+          }
+          const fp = path.join(dir0, `${p.meta.id}.ifc`);
+          const ifc = modelToIfc(p);
+          writeFileSync(fp, ifc, "utf8");
+          return text(`✅ IFC4 concept → ${fp}
+Tường + lỗ cửa (voids/fills), sàn có lỗ, thang, IfcSpace từng phòng — mở bằng BIM viewer/BlenderBIM; KHÔNG thay hồ sơ thi công.
+${vNote}`);
         }
         const set = buildSheetSet(p, {
           date: new Date().toLocaleDateString("vi-VN"),

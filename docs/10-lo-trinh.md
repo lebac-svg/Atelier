@@ -41,8 +41,8 @@ Cỡ M/L là tương đối giữa các giai đoạn — ước lượng thô, c
 | ~~So sánh phương án A/B~~ | ✅ 13/07/2026 — phương án = snapshot có tên (`.atelier/phuong-an/`, journal không tái tạo được state cũ nên snapshot là ngữ nghĩa đúng); tools `variant_save`/`variant_open` (checkout, revision vẫn đơn điệu)/`variant_compare` (ảnh 2 mặt bằng cạnh nhau + diff phòng-m² + DỰ TOÁN từng bên); trang `GET /so-sanh?a=&b=&level=` server-render | ~~v2~~ xong |
 | ~~Link chia sẻ chỉ-xem~~ | ✅ 13/07/2026 — `/xem/<token>` (token persist `.atelier/share.json`, thu hồi `POST /share/rotate`); server CƯỠNG CHẾ read-only ở WS: ops → `VIEW-01`, không soft-lock, capture không chọn tab khách; UI khách khóa công cụ nhưng vẫn live + đi bộ + nắng; nút "chia sẻ" trên editor + link kèm trong `editor_open`. LAN: `ATELIER_HOST=0.0.0.0` (mặc định loopback) | ~~v2~~ xong |
 | ~~Rule pack quy hoạch địa phương~~ | ✅ 13/07/2026 — pack `pln.json` 6 rules (lùi trước/sau tổng quát mọi hình lô, mật độ, tầng, chiều cao, ô văng vươn hẻm) chạy từ `brief.quy_hoach`, không khai không kiểm; thay STD-12 + đuôi GEO-08 | ~~P4~~ xong |
-| Xuất IFC | bàn giao KTS thật (IfcOpenShell sidecar nếu cần) | P4+ |
-| Render photoreal | glTF → Blender pipeline, chạy nền | P5+ |
+| ~~Xuất IFC~~ | ✅ 13/07/2026 — writer IFC4 SPF **thuần TS** (`export ifc`, không cần sidecar IfcOpenShell): tường + lỗ cửa đúng quan hệ voids/fills, sàn có lỗ thật (profile-with-voids), vế thang + chiếu nghỉ gộp dưới IfcStair, phòng thành IfcSpace theo tầng, GlobalId deterministic (chạy lại diff được); mức CONCEPT bàn giao KTS/BIM viewer — KHÔNG thay hồ sơ thi công | ~~P4+~~ xong |
+| ~~Render photoreal~~ | ✅ 13/07/2026 — `export gltf` ra MỘT file GLB (mét thật, mỗi entity một node theo id, tường tách mảnh quanh cửa, kính blend) + `scripts/render-photoreal.py`: Blender headless nhập GLB, nắng đúng giờ/tháng cùng công thức sun study, trời Nishita, camera tự đóng khung, Cycles — cần cài Blender, chạy nền ngoài editor | ~~P5+~~ xong |
 | Import DXF/ảnh mặt bằng cũ | bài toán nhận dạng riêng, khó | xa |
 | Kết cấu/MEP | ngoài phạm vi sản phẩm hiện tại | xa |
 

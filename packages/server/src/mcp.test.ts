@@ -95,7 +95,7 @@ describe("MCP server — tools DoD P1 + P2 + P4", () => {
     expect(bad.isError).toBe(true);
   });
 
-  it("export dxf: xuất tờ hình học, bỏ tờ thống kê; ifc chưa hỗ trợ", async () => {
+  it("export dxf: xuất tờ hình học, bỏ tờ thống kê; gltf + ifc mỗi định dạng một file", async () => {
     const { client, store } = await connect();
     await client.callTool({ name: "project_new", arguments: { name: "Nhà anh Ba", template: "nha-ong-4x16-2t" } });
 
@@ -109,9 +109,21 @@ describe("MCP server — tools DoD P1 + P2 + P4", () => {
     const path = await import("node:path");
     expect(existsSync(path.join(store.exportDir, "ho-so", "kt-01-mat-bang-l1.dxf"))).toBe(true);
 
+    const gltf = await client.callTool({ name: "export", arguments: { format: "gltf" } });
+    expect(gltf.isError).not.toBe(true);
+    expect(textOf(gltf)).toContain("glTF (GLB)");
+    expect(textOf(gltf)).toContain("render-photoreal.py");
+    const { readdirSync, readFileSync } = await import("node:fs");
+    const hoSo = path.join(store.exportDir, "ho-so");
+    const glbFile = readdirSync(hoSo).find((f) => f.endsWith(".glb"))!;
+    expect(glbFile).toBeDefined();
+    expect(readFileSync(path.join(hoSo, glbFile)).toString("ascii", 0, 4)).toBe("glTF");
+
     const ifc = await client.callTool({ name: "export", arguments: { format: "ifc" } });
-    expect(ifc.isError).toBe(true);
-    expect(textOf(ifc)).toContain("chưa hỗ trợ");
+    expect(ifc.isError).not.toBe(true);
+    expect(textOf(ifc)).toContain("IFC4");
+    const ifcFile = readdirSync(hoSo).find((f) => f.endsWith(".ifc"))!;
+    expect(readFileSync(path.join(hoSo, ifcFile), "utf8")).toContain("FILE_SCHEMA(('IFC4'));");
   });
 
   it("export svg lọc theo sheets giữ đúng số KT trong bộ", async () => {

@@ -30,7 +30,7 @@ Each tool's description embeds behavioural rules for Claude — e.g. `apply_ops`
 | 18 | `variant_open` | `(slug)` | checks out a variant (⚠ save the current one first if you want to keep it); revision keeps increasing monotonically |
 | 19 | `variant_compare` | `(a?, b?, level?)` | **PNG image** of 2 floor plans side by side + per-room m² diff + per-variant cost estimate; interactive version at `/so-sanh` |
 
-`export` was unlocked in P4 with `pdf` (one multi-page A3 file) / `svg` / `dxf` (pure TS, see ADR-08); `gltf` waits for P5, `ifc` sits in the backlog.
+`export` is fully unlocked across all 5 formats: `pdf` (one multi-page A3 file) / `svg` / `dxf` (pure TS, see ADR-08) since P4; `gltf` (ONE GLB in true metres, one node per entity named by id — with `scripts/render-photoreal.py` for Cycles renders via Blender) and `ifc` (concept-level IFC4: proper voids/fills relations, slabs with holes, per-room IfcSpace) from the P5+ backlog. `sheets` only applies to pdf/svg/dxf.
 
 ## The ops vocabulary (shared by MCP and the web editor)
 

@@ -30,7 +30,7 @@ Mô tả (description) của từng tool sẽ nhúng luôn quy tắc hành vi ch
 | 18 | `variant_open` | `(slug)` | checkout phương án (⚠ lưu bản hiện tại trước nếu muốn giữ); revision vẫn đơn điệu tăng |
 | 19 | `variant_compare` | `(a?, b?, level?)` | **ảnh PNG** 2 mặt bằng cạnh nhau + diff phòng-m² + dự toán từng bên; bản tương tác tại `/so-sanh` |
 
-`export` đã mở khóa ở P4 với `pdf` (một file A3 nhiều trang) / `svg` / `dxf` (TS thuần, xem ADR-08); `gltf` chờ P5, `ifc` ở backlog.
+`export` đã mở khóa đủ 5 định dạng: `pdf` (một file A3 nhiều trang) / `svg` / `dxf` (TS thuần, xem ADR-08) từ P4; `gltf` (MỘT file GLB mét thật, mỗi entity một node theo id — kèm `scripts/render-photoreal.py` render Cycles bằng Blender) và `ifc` (IFC4 mức concept: voids/fills đúng quan hệ, sàn có lỗ, IfcSpace từng phòng) từ backlog P5+. `sheets` chỉ áp cho pdf/svg/dxf.
 
 ## Bộ từ vựng ops (dùng chung cho MCP lẫn web editor)
 

@@ -11,6 +11,7 @@ export * from "./geometry/vec.js";
 export * from "./geometry/segment.js";
 export * from "./geometry/polygon.js";
 export * from "./geometry/wall.js";
+export * from "./geometry/wall-pieces.js";
 export * from "./geometry/obb.js";
 export * from "./geometry/stair.js";
 
