@@ -406,6 +406,31 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
     }
   }, 40_000);
 
+  it("i18n: ?lang=en → UI tiếng Anh (kể cả catalog + badge viewer); mặc định vẫn tiếng Việt", async () => {
+    const en = await browser.newPage({ viewport: { width: 1200, height: 800 } });
+    try {
+      await en.goto(`${baseUrl}/?lang=en`);
+      await en.waitForSelector("#paper svg", { timeout: 15_000 });
+      expect(await en.textContent("#share-btn")).toBe("share");
+      expect(await en.textContent('[data-view-btn="plan"]')).toBe("Plan");
+      expect(await en.textContent("#conn-text")).toBe("live");
+      expect(await en.textContent("#lang-btn")).toBe("VI"); // nút hiện ngôn ngữ ĐÍCH
+      // catalog hiện tên tiếng Anh
+      await en.click("#tool-furniture");
+      await en.fill("#catalog-panel .cat-search", "scooter");
+      expect(await en.textContent("#catalog-panel .cat-item .cat-name")).toContain("Scooter");
+      // viewer EN: badge dịch (lang lưu localStorage nên trang /xem cùng context giữ EN)
+      const share = (await (await fetch(`${baseUrl}/share`)).json()) as { url: string };
+      await en.goto(share.url);
+      await en.waitForSelector(".view-badge", { timeout: 15_000 });
+      expect(await en.textContent(".view-badge")).toBe("VIEW ONLY");
+    } finally {
+      await en.close();
+    }
+    // tab chính (không ?lang) vẫn nguyên tiếng Việt — Việt trước là mặc định
+    expect(await page.textContent("#share-btn")).toBe("chia sẻ");
+  }, 40_000);
+
   it("nút chia sẻ trên tab chủ nhà lấy được link /xem/<token>", async () => {
     const r = (await (await fetch(`${baseUrl}/share`)).json()) as { url: string; token: string };
     expect(r.url).toContain(`/xem/${r.token}`);

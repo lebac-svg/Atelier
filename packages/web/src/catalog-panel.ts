@@ -1,4 +1,5 @@
 import { CATALOG, type Asset } from "@atelier/core";
+import { LANG, t } from "./i18n.js";
 
 /**
  * Panel catalog nội thất (doc 09 tool 5, P5): tìm + chọn asset để đặt vào
@@ -18,11 +19,11 @@ export class CatalogPanel {
     const head = document.createElement("div");
     head.className = "cat-head";
     const title = document.createElement("span");
-    title.textContent = "Nội thất";
+    title.textContent = t("catalog.title");
     title.className = "cat-title";
     this.searchEl = document.createElement("input");
     this.searchEl.type = "search";
-    this.searchEl.placeholder = "tìm: giường, sofa, xe máy…";
+    this.searchEl.placeholder = t("catalog.search");
     this.searchEl.className = "cat-search";
     this.searchEl.addEventListener("input", () => this.renderList());
     this.searchEl.addEventListener("keydown", (e) => e.stopPropagation()); // không rơi vào phím tắt toàn cục
@@ -59,7 +60,8 @@ export class CatalogPanel {
 
   private renderList(): void {
     const q = this.searchEl.value.trim().toLowerCase();
-    const match = (a: Asset): boolean => !q || `${a.id} ${a.label} ${a.category}`.toLowerCase().includes(q);
+    const match = (a: Asset): boolean =>
+      !q || `${a.id} ${a.label} ${a.labelEn ?? ""} ${a.category}`.toLowerCase().includes(q);
     this.listEl.textContent = "";
     let count = 0;
     for (const a of CATALOG) {
@@ -70,10 +72,10 @@ export class CatalogPanel {
       btn.dataset.asset = a.id;
       const name = document.createElement("span");
       name.className = "cat-name";
-      name.textContent = a.label;
+      name.textContent = LANG === "en" && a.labelEn ? a.labelEn : a.label;
       const dims = document.createElement("span");
       dims.className = "cat-dims";
-      dims.textContent = `${a.footprint.w}×${a.footprint.d}${a.mountHeight != null ? " · treo" : ""}`;
+      dims.textContent = `${a.footprint.w}×${a.footprint.d}${a.mountHeight != null ? ` · ${t("catalog.mounted")}` : ""}`;
       btn.append(name, dims);
       btn.addEventListener("click", () => {
         this.setPicked(a.id);
@@ -84,7 +86,7 @@ export class CatalogPanel {
     if (count === 0) {
       const p = document.createElement("p");
       p.className = "panel-empty";
-      p.textContent = "Không có asset nào khớp.";
+      p.textContent = t("catalog.empty");
       this.listEl.appendChild(p);
     }
   }

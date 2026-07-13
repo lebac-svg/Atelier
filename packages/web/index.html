@@ -16,66 +16,67 @@
       </svg>
       <span class="brand-name">Atelier</span>
       <span class="brand-sep" aria-hidden="true"></span>
-      <span id="project-name" class="project-name">đang kết nối…</span>
+      <span id="project-name" class="project-name" data-i18n="app.connecting">đang kết nối…</span>
     </div>
     <div class="top-right">
-      <button id="share-btn" class="share-btn" title="Copy link CHỈ-XEM gửi người thân — họ thấy live nhưng không sửa được; thu hồi link: POST /share/rotate">chia sẻ</button>
+      <button id="share-btn" class="share-btn" data-i18n="share.btn" data-i18n-title="share.title" title="Copy link CHỈ-XEM gửi người thân — họ thấy live nhưng không sửa được; thu hồi link: POST /share/rotate">chia sẻ</button>
+      <button id="lang-btn" class="share-btn" data-i18n-title="lang.title" title="Switch interface language">EN</button>
       <nav class="views" role="tablist" aria-label="Chế độ xem">
-        <button class="view-btn" data-view-btn="plan" role="tab">Mặt bằng</button>
-        <button class="view-btn" data-view-btn="3d" role="tab">3D</button>
-        <button class="view-btn is-active" data-view-btn="split" role="tab" aria-selected="true">Chia đôi</button>
+        <button class="view-btn" data-view-btn="plan" role="tab" data-i18n="view.plan">Mặt bằng</button>
+        <button class="view-btn" data-view-btn="3d" role="tab" data-i18n="view.3d">3D</button>
+        <button class="view-btn is-active" data-view-btn="split" role="tab" aria-selected="true" data-i18n="view.split">Chia đôi</button>
       </nav>
     </div>
   </header>
 
   <main class="work">
     <aside class="rail" aria-label="Công cụ">
-      <button class="tool is-active" id="tool-select" title="Chọn / di chuyển — kéo tường, cửa, nội thất; đang kéo gõ số để chốt chính xác; Alt bỏ snap; R xoay nội thất đang chọn">V</button>
-      <button class="tool" disabled title="Vẽ tường — giai đoạn sau">1</button>
-      <button class="tool" disabled title="Đặt cửa đi — giai đoạn sau">2</button>
-      <button class="tool" disabled title="Đặt cửa sổ — giai đoạn sau">3</button>
-      <button class="tool" disabled title="Vẽ phòng — giai đoạn sau">4</button>
-      <button class="tool" id="tool-furniture" title="Nội thất — mở catalog, chọn món rồi click vào mặt bằng để đặt; Esc/V để thôi">5</button>
-      <button class="tool" disabled title="Đo — giai đoạn sau">M</button>
+      <button class="tool is-active" id="tool-select" data-i18n-title="tool.select" title="Chọn / di chuyển — kéo tường, cửa, nội thất; đang kéo gõ số để chốt chính xác; Alt bỏ snap; R xoay nội thất đang chọn">V</button>
+      <button class="tool" disabled data-i18n-title="tool.wall" title="Vẽ tường — giai đoạn sau">1</button>
+      <button class="tool" disabled data-i18n-title="tool.door" title="Đặt cửa đi — giai đoạn sau">2</button>
+      <button class="tool" disabled data-i18n-title="tool.window" title="Đặt cửa sổ — giai đoạn sau">3</button>
+      <button class="tool" disabled data-i18n-title="tool.room" title="Vẽ phòng — giai đoạn sau">4</button>
+      <button class="tool" id="tool-furniture" data-i18n-title="tool.furniture" title="Nội thất — mở catalog, chọn món rồi click vào mặt bằng để đặt; Esc/V để thôi">5</button>
+      <button class="tool" disabled data-i18n-title="tool.measure" title="Đo — giai đoạn sau">M</button>
     </aside>
 
     <section class="canvas">
       <div id="pane2d" class="pane pane-2d">
-        <div class="pane-empty" id="empty2d">Đang chờ dự án — Claude sẽ dựng đến đâu, bản vẽ mọc đến đó.</div>
+        <div class="pane-empty" id="empty2d" data-i18n="pane2d.empty">Đang chờ dự án — Claude sẽ dựng đến đâu, bản vẽ mọc đến đó.</div>
         <div class="paper-viewport" id="paper-viewport">
           <div class="paper" id="paper"></div>
         </div>
         <div class="pane-actions">
-          <button id="fit2d" class="pane-btn" title="Khớp bản vẽ vào khung">khớp khung</button>
+          <button id="fit2d" class="pane-btn" data-i18n="fit2d" data-i18n-title="fit2d.title" title="Khớp bản vẽ vào khung">khớp khung</button>
         </div>
-        <div class="pane-hint">kéo đối tượng — di chuyển · gõ số khi kéo — chốt chính xác · Alt — bỏ snap</div>
+        <div class="pane-hint" data-i18n="pane2d.hint">kéo đối tượng — di chuyển · gõ số khi kéo — chốt chính xác · Alt — bỏ snap</div>
       </div>
       <div id="pane3d" class="pane pane-3d">
         <canvas id="canvas3d"></canvas>
         <div class="pane-actions">
-          <button id="walk3d" class="pane-btn" title="Đi bộ trong nhà — WASD di chuyển, chuột nhìn, Shift chạy, Esc thoát">đi bộ</button>
-          <button id="sun3d" class="pane-btn" title="Xem nắng theo giờ + tháng (vĩ độ lấy từ brief)">nắng</button>
-          <button id="reset3d" class="pane-btn" title="Về góc nhìn mặc định">về góc chuẩn</button>
+          <button id="walk3d" class="pane-btn" data-i18n="walk.btn" data-i18n-title="walk.title" title="Đi bộ trong nhà — WASD di chuyển, chuột nhìn, Shift chạy, Esc thoát">đi bộ</button>
+          <button id="sun3d" class="pane-btn" data-i18n="sun.btn" data-i18n-title="sun.title" title="Xem nắng theo giờ + tháng (vĩ độ lấy từ brief)">nắng</button>
+          <button id="reset3d" class="pane-btn" data-i18n="reset3d" data-i18n-title="reset3d.title" title="Về góc nhìn mặc định">về góc chuẩn</button>
         </div>
         <div id="sun-controls" class="sun-controls" hidden>
-          <label>giờ <input id="sun-hour" type="range" min="6" max="18" step="0.5" value="9" /> <span id="sun-hour-val">9:00</span></label>
-          <label>tháng <input id="sun-month" type="range" min="1" max="12" step="1" value="6" /> <span id="sun-month-val">6</span></label>
+          <label><span data-i18n="sun.hour">giờ</span> <input id="sun-hour" type="range" min="6" max="18" step="0.5" value="9" /> <span id="sun-hour-val">9:00</span></label>
+          <label><span data-i18n="sun.month">tháng</span> <input id="sun-month" type="range" min="1" max="12" step="1" value="6" /> <span id="sun-month-val">6</span></label>
         </div>
-        <div class="pane-hint" id="hint3d">kéo — xoay · lăn — zoom · chuột phải — trượt</div>
+        <div class="pane-hint" id="hint3d" data-i18n="hint3d.orbit">kéo — xoay · lăn — zoom · chuột phải — trượt</div>
       </div>
     </section>
 
     <aside class="side">
       <section class="panel" id="panel-props">
-        <h2 class="panel-title">Thuộc tính</h2>
+        <h2 class="panel-title" data-i18n="panel.props">Thuộc tính</h2>
         <div class="panel-body" id="props-body">
-          <p class="panel-empty">Chạm một đối tượng trên bản vẽ để xem thông số.<br /><span class="dim">Kéo để di chuyển — đang kéo thì gõ số là chốt chính xác.</span></p>
+          <p class="panel-empty"><span data-i18n="props.empty">Chạm một đối tượng trên bản vẽ để xem thông số.</span><br /><span class="dim" data-i18n="props.empty.sub">Kéo để di chuyển — đang kéo thì gõ số là chốt chính xác.</span></p>
         </div>
       </section>
       <section class="panel panel-grow" id="panel-issues">
-        <h2 class="panel-title">Kiểm tra <span id="issues-count" class="count" hidden></span></h2>
+        <h2 class="panel-title"><span data-i18n="panel.issues">Kiểm tra</span> <span id="issues-count" class="count" hidden></span></h2>
         <div class="panel-body" id="issues-body">
-          <p class="panel-empty">Chưa có kết quả kiểm tra.</p>
+          <p class="panel-empty" data-i18n="issues.pending">Chưa có kết quả kiểm tra.</p>
         </div>
       </section>
     </aside>
@@ -83,31 +84,31 @@
 
   <footer class="status" aria-label="Khung tên">
     <div class="cell cell-levels">
-      <span class="cell-label">Tầng</span>
+      <span class="cell-label" data-i18n="footer.levels">Tầng</span>
       <span class="cell-value" id="level-tabs"></span>
     </div>
     <div class="cell">
-      <span class="cell-label">Revision</span>
+      <span class="cell-label" data-i18n="footer.revision">Revision</span>
       <span class="cell-value"><span id="rev-seal" class="rev-seal">—</span></span>
     </div>
     <div class="cell">
-      <span class="cell-label">Kết nối</span>
-      <span class="cell-value"><span id="conn-dot" class="dot"></span><span id="conn-text">đang nối…</span></span>
+      <span class="cell-label" data-i18n="footer.conn">Kết nối</span>
+      <span class="cell-value"><span id="conn-dot" class="dot"></span><span id="conn-text" data-i18n="conn.connecting">đang nối…</span></span>
     </div>
     <div class="cell cell-flex">
-      <span class="cell-label">Claude</span>
+      <span class="cell-label" data-i18n="footer.claude">Claude</span>
       <span class="cell-value" id="claude-note">—</span>
     </div>
     <div class="cell">
-      <span class="cell-label">Hoàn tác</span>
+      <span class="cell-label" data-i18n="footer.undo">Hoàn tác</span>
       <span class="cell-value">
-        <button id="btn-undo" class="hist-btn" disabled title="Hoàn tác (Ctrl+Z) — chỉ thao tác của bạn">⟲</button>
-        <button id="btn-redo" class="hist-btn" disabled title="Làm lại (Ctrl+Y)">⟳</button>
+        <button id="btn-undo" class="hist-btn" disabled data-i18n-title="undo.title" title="Hoàn tác (Ctrl+Z) — chỉ thao tác của bạn">⟲</button>
+        <button id="btn-redo" class="hist-btn" disabled data-i18n-title="redo.title" title="Làm lại (Ctrl+Y)">⟳</button>
       </span>
     </div>
     <div class="cell cell-dim">
-      <span class="cell-label">Snap</span>
-      <span class="cell-value"><input id="snap-input" class="snap-input" type="number" value="50" min="0" step="25" title="Bước lưới snap (mm) — 0 là tắt" /> mm</span>
+      <span class="cell-label" data-i18n="footer.snap">Snap</span>
+      <span class="cell-value"><input id="snap-input" class="snap-input" type="number" value="50" min="0" step="25" data-i18n-title="snap.title" title="Bước lưới snap (mm) — 0 là tắt" /> mm</span>
     </div>
   </footer>
 

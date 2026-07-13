@@ -4,7 +4,7 @@
 
 **An AI architect inside Claude Code** — from a spoken description to standards-compliant floor plans and a furnished 3D model, with a live browser editor you can edit by hand while the AI works.
 
-Built for the **Vietnamese tube house** (nhà ống): TCVN drawing symbols, Vietnamese dimensional rules, Lỗ Ban feng-shui rulers, irregular lot polygons — things no Western tool ships as first-class citizens. The product UI is intentionally Vietnamese-first (its users are Vietnamese homeowners); this README and the codebase identifiers are English.
+Built for the **Vietnamese tube house** (nhà ống): TCVN drawing symbols, Vietnamese dimensional rules, Lỗ Ban feng-shui rulers, irregular lot polygons — things no Western tool ships as first-class citizens. The editor UI is bilingual (Vietnamese by default — its users are Vietnamese homeowners; switch with the **VI/EN** button or `?lang=en`). Exported drawings stay Vietnamese by design: they are TCVN documents.
 
 > **Atelier** /ˌætəlˈjeɪ/ — "design workshop".
 
@@ -52,7 +52,7 @@ All six phases (P0–P5) plus the first three backlog items shipped:
 
 **Backlog shipped:** rough **cost estimate** (`estimate_cost` + a KT-06 sheet: converted areas × an editable local price table, auto-checked against the interview budget) · **view-only share links** (`/xem/<token>`, server-enforced read-only — send it to your spouse) · **A/B design comparison** (`variant_save/open/compare`, two plans side by side with per-room m² and per-variant cost deltas).
 
-Next up: local zoning rule packs, IFC export, photoreal rendering, English i18n for UI/docs.
+**Bilingual:** English README + full English design docs (`docs/en/`) + bilingual editor UI (VI default, EN via the language button — asset catalog included). Next up: local zoning rule packs, IFC export, photoreal rendering.
 
 ## Design docs
 

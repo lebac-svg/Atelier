@@ -3,6 +3,7 @@ import {
   wallDir, wallLength, wallNormal, wallsParallel,
   type Furniture, type Op, type Opening, type Point, type Project, type Wall,
 } from "@atelier/core";
+import { LANG, t } from "./i18n.js";
 
 /**
  * Ngữ nghĩa kéo-thả P3 (doc 09) — THUẦN, không DOM. Trong lúc kéo chỉ sinh
@@ -52,7 +53,7 @@ export type DragSession = {
   typed(value: number, opts: SnapOpts): DragState | null;
 };
 
-const fmt = (v: number): string => Math.round(v).toLocaleString("vi-VN");
+const fmt = (v: number): string => Math.round(v).toLocaleString(LANG === "en" ? "en-US" : "vi-VN");
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 const roundPt = ([x, y]: Point): Point => [Math.round(x), Math.round(y)];
 
@@ -211,7 +212,7 @@ export function furnitureDragSession(model: Project, f: Furniture, start: Point)
     const gapInfo = anchor && asset ? nearestGapTo(at) : null;
     const moved = Math.abs(at[0] - f.at[0]) >= 0.5 || Math.abs(at[1] - f.at[1]) >= 0.5;
     const hud: HudInfo = gapInfo
-      ? { text: `khe → ${gapInfo.a.wallId} · ${fmt(Math.max(0, gapInfo.gap))}`, typable: true }
+      ? { text: `${t("hud.gap")} → ${gapInfo.a.wallId} · ${fmt(Math.max(0, gapInfo.gap))}`, typable: true }
       : { text: `${fmt(at[0])}, ${fmt(at[1])}`, typable: false };
     return {
       delta: sub(at, f.at),

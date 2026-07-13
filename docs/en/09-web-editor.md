@@ -72,4 +72,4 @@ Every hand action = **ops**, exactly like Claude's: while dragging, only a local
 
 - Target scale: a town house < 2,000 entities — SVG re-render < 16ms, 3D at 60fps on an ordinary laptop.
 - Browsers: Chromium + Firefox. **Out of scope for v1:** mobile, share links for other viewers (v2 — the protocol is ready, since an Nth browser is just another client), side-by-side A/B design comparison (v2).
-- UI language: Vietnamese first (informal "bạn" address), with an i18n skeleton in place.
+- UI language: Vietnamese first (informal "bạn" address), with an i18n skeleton in place. ✅ *2026-07-13: the i18n framework is built — all UI chrome + the 106 asset names are bilingual vi/en, switched via the VI/EN button or `?lang=en` (the default REMAINS Vietnamese, no auto-detect). v1 limits: exported drawings and server-broadcast validator/summary messages stay Vietnamese (drawings are TCVN documents; messages are shared across all clients).*

@@ -201,7 +201,7 @@ describe("LBB — thước Lỗ Ban (advisory, bật qua brief)", () => {
   });
 
   it("LBB-02: khối xây (tủ bếp) cạnh rơi cung xấu theo 42.9", () => {
-    registerAsset({ id: "tu-bep-xau", label: "Tủ bếp thử", category: "tu-bep-duoi", footprint: { w: 1000, d: 500, h: 850 } });
+    registerAsset({ id: "tu-bep-xau", label: "Tủ bếp thử", labelEn: "Test kitchen cabinet", category: "tu-bep-duoi", footprint: { w: 1000, d: 500, h: 850 } });
     const issues = violate((p) => {
       p.furniture.push({ id: "F96", level: "L1", asset: "tu-bep-xau", at: [1500, 6900], rotation: 0 });
     });
@@ -212,7 +212,7 @@ describe("LBB — thước Lỗ Ban (advisory, bật qua brief)", () => {
   it("LBB-04: bàn thờ đo bằng thước 38.8 (Đinh Lan), cạnh xấu → info; bàn thờ catalog thì đẹp", () => {
     expect(cungAt(1070, RULERS.ban_tho)).toMatchObject({ name: "Hưng", good: true });
     expect(cungAt(610, RULERS.ban_tho)).toMatchObject({ name: "Quan", good: true });
-    registerAsset({ id: "ban-tho-xau", label: "Bàn thờ thử", category: "ban-tho", footprint: { w: 830, d: 460, h: 1200 } });
+    registerAsset({ id: "ban-tho-xau", label: "Bàn thờ thử", labelEn: "Test altar", category: "ban-tho", footprint: { w: 830, d: 460, h: 1200 } });
     const issues = violate((p) => {
       p.furniture.push({ id: "F97", level: "L2", asset: "ban-tho-xau", at: [2200, 6400], rotation: 90 });
     });

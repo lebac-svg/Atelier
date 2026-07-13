@@ -2,6 +2,8 @@
  * HUD gõ số (doc 09) — ô nổi cạnh con trỏ khi đang kéo. Không phải <input>:
  * bàn phím được gom bằng buffer ở controller để không tranh focus với pointer capture.
  */
+import { t } from "./i18n.js";
+
 export class Hud {
   private readonly el: HTMLDivElement;
   private readonly valueEl: HTMLSpanElement;
@@ -24,7 +26,7 @@ export class Hud {
     this.el.hidden = false;
     this.el.classList.toggle("typing", typing != null);
     this.valueEl.textContent = typing != null ? `${typing || "…"} mm` : text;
-    this.hintEl.textContent = typing != null ? "⏎ chốt · Esc xóa" : typable ? "gõ số để chốt chính xác" : "";
+    this.hintEl.textContent = typing != null ? t("hud.typing") : typable ? t("hud.typable") : "";
     this.el.style.left = `${clientX + 18}px`;
     this.el.style.top = `${clientY + 14}px`;
   }

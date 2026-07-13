@@ -6,6 +6,9 @@ import { Scene3D } from "./three3d.js";
 import { UI } from "./ui.js";
 import { WsClient } from "./ws.js";
 import { invertOps, UndoStack, type UndoEntry } from "./undo.js";
+import { applyDom, LANG, t, toggleLang } from "./i18n.js";
+
+applyDom(); // áp từ điển lên chuỗi tĩnh trong index.html trước khi UI khởi động
 
 /** Link chia sẻ chỉ-xem: /xem/<token> — server cưỡng chế, UI chỉ khóa cho tử tế. */
 const VIEW_TOKEN = location.pathname.startsWith("/xem/") ? location.pathname.split("/")[2] ?? null : null;
@@ -24,7 +27,7 @@ const pending: Pending[] = [];
 
 function sendOps(ops: Op[], label: string, kind: Pending["kind"]): void {
   if (READONLY) {
-    ui.toast("reject", "Bạn đang xem qua link chia sẻ — chỉ xem, không sửa được.");
+    ui.toast("reject", t("toast.readonly"));
     return;
   }
   if (!state.model) return;
@@ -45,7 +48,7 @@ function doUndo(): void {
   if (pending.length > 0) return; // chờ op trước hạ cánh — tránh base đuổi nhau
   const entry = undoStack.peekUndo();
   if (!entry) return;
-  sendOps(structuredClone(entry.undo), `hoàn tác: ${entry.label}`, "undo");
+  sendOps(structuredClone(entry.undo), t("note.undo", { label: entry.label }), "undo");
   syncUndoButtons();
 }
 
@@ -53,7 +56,7 @@ function doRedo(): void {
   if (pending.length > 0) return;
   const entry = undoStack.peekRedo();
   if (!entry) return;
-  sendOps(structuredClone(entry.redo), `làm lại: ${entry.label}`, "redo");
+  sendOps(structuredClone(entry.redo), t("note.redo", { label: entry.label }), "redo");
   syncUndoButtons();
 }
 
@@ -63,10 +66,10 @@ function deleteSelection(): void {
   const found = state.findEntity(id);
   if (!found) return;
   if (!["wall", "opening", "furniture", "room"].includes(found.entity)) {
-    ui.toast("reject", `Chưa hỗ trợ xóa ${found.kind.toLowerCase()} từ editor.`);
+    ui.toast("reject", t("toast.deleteUnsupported", { kind: t(`kind.${found.entity}`) }));
     return;
   }
-  sendOps([{ op: "delete", entity: found.entity, id }], `xóa ${id}`, "edit");
+  sendOps([{ op: "delete", entity: found.entity, id }], t("note.delete", { id }), "edit");
   state.select(null);
 }
 
@@ -82,7 +85,7 @@ const ui = new UI({
   onFit2d: () => plan.fit(),
   onReset3d: () => scene3d.resetView(),
   onPropEdit: (entity: EntityKind, id: string, field: string, value: unknown) => {
-    sendOps([{ op: "update", entity, id, data: { [field]: value } }], `sửa ${id}.${field}`, "edit");
+    sendOps([{ op: "update", entity, id, data: { [field]: value } }], t("note.prop", { id, field }), "edit");
   },
   onUndo: doUndo,
   onRedo: doRedo,
@@ -102,7 +105,7 @@ const plan = new Plan2D(document.getElementById("paper-viewport")!, document.get
     const id = nextId(m, "F");
     sendOps(
       [{ op: "add", entity: "furniture", data: { id, level: state.activeLevel, asset: assetId, at, rotation: 0 } }],
-      `đặt ${asset?.label ?? assetId}`,
+      t("note.place", { label: (LANG === "en" ? asset?.labelEn : undefined) ?? asset?.label ?? assetId }),
       "edit",
     );
     // giữ chế độ đặt — đặt liên tiếp tới khi Esc/V
@@ -236,7 +239,7 @@ function rotateSelection(): void {
   if (!f) return;
   sendOps(
     [{ op: "update", entity: "furniture", id, data: { rotation: (f.rotation + 90) % 360 } }],
-    `xoay ${id}`,
+    t("note.rotate", { id }),
     "edit",
   );
 }
@@ -250,7 +253,7 @@ const sunMonth = document.getElementById("sun-month") as HTMLInputElement;
 const sunHourVal = document.getElementById("sun-hour-val")!;
 const sunMonthVal = document.getElementById("sun-month-val")!;
 const hint3d = document.getElementById("hint3d")!;
-const HINT_ORBIT = hint3d.textContent ?? "";
+const HINT_ORBIT = t("hint3d.orbit");
 
 /** Điểm xuất phát đi bộ: tâm phòng lớn nhất của tầng đang xem. */
 function walkSpawn(): [number, number] | undefined {
@@ -282,7 +285,7 @@ walkBtn.addEventListener("click", () => {
     hint3d.textContent = HINT_ORBIT;
   });
   walkBtn.classList.add("is-active");
-  hint3d.textContent = "WASD — di chuyển · chuột — nhìn · Shift — chạy · Esc — thoát";
+  hint3d.textContent = t("walk.hint");
 });
 
 let sunOn = false;
@@ -345,11 +348,11 @@ if (READONLY) {
   shareBtn.hidden = true;
   const badge = document.createElement("span");
   badge.className = "view-badge";
-  badge.textContent = "CHỈ XEM";
+  badge.textContent = t("viewer.badge");
   document.querySelector(".brand")?.appendChild(badge);
   for (const b of document.querySelectorAll<HTMLButtonElement>(".rail .tool")) {
     b.disabled = true;
-    b.title = "Link chia sẻ chỉ-xem — không sửa được";
+    b.title = t("tool.locked");
   }
   (document.getElementById("snap-input") as HTMLInputElement).disabled = true;
 } else {
@@ -357,11 +360,16 @@ if (READONLY) {
     try {
       const r = (await (await fetch("/share")).json()) as { url: string };
       await navigator.clipboard.writeText(r.url);
-      ui.toast("user", `Đã copy link chỉ-xem — gửi cho người thân cùng ngắm:\n${r.url}`);
+      ui.toast("user", t("share.copied", { url: r.url }));
     } catch {
-      ui.toast("reject", "Không lấy được link chia sẻ — thử tải lại trang.");
+      ui.toast("reject", t("share.error"));
     }
   });
 }
+
+// nút đổi ngôn ngữ — hiện NGÔN NGỮ ĐÍCH, giữ nguyên trang (kể cả /xem/<token>)
+const langBtn = document.getElementById("lang-btn") as HTMLButtonElement;
+langBtn.textContent = LANG === "vi" ? "EN" : "VI";
+langBtn.addEventListener("click", toggleLang);
 
 ws.connect();

@@ -1,4 +1,5 @@
 import type { EntityKind, Issue, Level } from "@atelier/core";
+import { t } from "./i18n.js";
 import type { ConnState, FoundEntity, ViewMode } from "./state.js";
 
 const SEVERITY_ORDER: Record<string, number> = { block: 0, error: 1, warn: 2, info: 3 };
@@ -103,7 +104,7 @@ export class UI {
   setConn(state: ConnState): void {
     this.connDot.className = `dot ${state === "on" ? "on" : state === "off" ? "off" : ""}`;
     this.connText.textContent =
-      state === "on" ? "trực tiếp" : state === "connecting" ? "đang nối…" : "mất kết nối — tự nối lại…";
+      state === "on" ? t("conn.on") : state === "connecting" ? t("conn.connecting") : t("conn.off");
   }
 
   setRevision(rev: number, pulse: boolean): void {
@@ -140,7 +141,7 @@ export class UI {
     if (issues.length === 0) {
       const p = document.createElement("p");
       p.className = "issue-ok";
-      p.textContent = "Bản vẽ sạch — không có vấn đề nào.";
+      p.textContent = t("issues.clean");
       this.issuesBody.appendChild(p);
       return;
     }
@@ -168,7 +169,7 @@ export class UI {
     head.className = "toast-head";
     const who = document.createElement("span");
     who.className = "toast-who";
-    who.textContent = kind === "claude" ? "Claude" : kind === "user" ? "Bạn" : "Bị từ chối";
+    who.textContent = kind === "claude" ? t("toast.claude") : kind === "user" ? t("toast.user") : t("toast.reject");
     head.appendChild(who);
     if (rev != null) {
       const r = document.createElement("span");
@@ -204,14 +205,18 @@ export class UI {
     if (!found || !id) {
       const p = document.createElement("p");
       p.className = "panel-empty";
-      p.innerHTML =
-        'Chạm một đối tượng trên bản vẽ để xem thông số.<br /><span class="dim">Kéo để di chuyển — đang kéo thì gõ số là chốt chính xác.</span>';
+      const main = document.createElement("span");
+      main.textContent = t("props.empty");
+      const sub = document.createElement("span");
+      sub.className = "dim";
+      sub.textContent = t("props.empty.sub");
+      p.append(main, document.createElement("br"), sub);
       this.propsBody.appendChild(p);
       return;
     }
     const chip = document.createElement("span");
     chip.className = "prop-id";
-    chip.textContent = `${found.kind} · ${id}`;
+    chip.textContent = `${t(`kind.${found.entity}`)} · ${id}`;
     this.propsBody.appendChild(chip);
 
     const editable = this.readonly ? [] : EDITABLE[found.entity] ?? [];
