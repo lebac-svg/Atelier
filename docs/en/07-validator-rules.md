@@ -83,7 +83,7 @@ A differentiator no Western tool has. Pure arithmetic: the ruler's cycle divides
 
 > ✅ **Cross-checked against 3+ rulers in circulation (2026-07-13):** the 52.2cm ruler has a cycle of **520mm** (8 segments × 65mm — not 65.25), segment 5 named *Nhân Lộc* (some sources say *Phúc Lộc*; the same auspicious segment); 42.9cm = masonry (plinths/kitchen counters, steps); **altars are measured with the 38.8/39cm ruler (Đinh Lan, 10 segments × 39mm)** → split into its own rule **LBB-04**; auspicious: Đinh, Vượng, Nghĩa, Quan, Hưng, Tài. Exact figures in `packages/core/rules/loban.json`.
 
-## PLN — local zoning (🔭 Phase 4)
+## PLN — local zoning (✅ 2026-07-13) (🔭 Phase 4)
 
 A per-project rule pack: setbacks, maximum building density, height/floor limits, canopy projection over the alley. Same structure as STD but `params` come from `brief.quy_hoach` as declared by the user (Atelier does not look up zoning itself — out of scope).
 

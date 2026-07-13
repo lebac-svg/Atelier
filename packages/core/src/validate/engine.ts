@@ -4,7 +4,8 @@ import type { Project } from "../types.js";
 import type { Finding } from "./finding.js";
 import { activeRules, getRule, type RuleDef } from "./rules.js";
 import { geo01, geo02, geo03, geo04, geo05, geo06, geo07, geo08 } from "./evaluators-geo.js";
-import { std01, std02, std03, std04, std05, std06, std08, std09, std10, std11, std12 } from "./evaluators-std.js";
+import { std01, std02, std03, std04, std05, std06, std08, std09, std10, std11 } from "./evaluators-std.js";
+import { pln01, pln02, pln03, pln04, pln05, pln06 } from "./evaluators-pln.js";
 import { lbb01, lbb02, lbb04 } from "./evaluators-lbb.js";
 
 type Evaluator = (p: Project, def: RuleDef) => Finding[];
@@ -28,7 +29,12 @@ const EVALUATORS: Record<string, Evaluator> = {
   "STD-09": std09,
   "STD-10": std10,
   "STD-11": std11,
-  "STD-12": std12,
+  "PLN-01": pln01,
+  "PLN-02": pln02,
+  "PLN-03": pln03,
+  "PLN-04": pln04,
+  "PLN-05": pln05,
+  "PLN-06": pln06,
   "LBB-01": lbb01,
   "LBB-02": lbb02,
   "LBB-04": lbb04,

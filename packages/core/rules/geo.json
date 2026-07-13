@@ -53,7 +53,7 @@
     },
     {
       "id": "GEO-08",
-      "title": "Tường nằm trong ranh đất (+ khoảng lùi nếu khai trong brief)",
+      "title": "Tường nằm trong ranh đất (khoảng lùi → PLN-01/02)",
       "severity": "error",
       "source": { "vanBan": "hình học nội tại", "verified": true },
       "message": "Tường {wall} {detail}."

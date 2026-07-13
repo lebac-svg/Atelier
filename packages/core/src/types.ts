@@ -174,6 +174,10 @@ export type Brief = {
       khoang_lui_sau?: number;
       tang_max?: number;
       mat_do_max?: number; // %
+      /** Chiều cao đỉnh công trình tối đa (mm) — nuôi PLN-05. */
+      chieu_cao_max?: number;
+      /** Mức ô văng/mái được vươn ra ngoài ranh TRƯỚC tối đa (mm) — nuôi PLN-06. */
+      o_vang_max?: number;
     };
   };
   gia_dinh?: string;

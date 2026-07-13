@@ -2,6 +2,7 @@ import type { Severity } from "../issues.js";
 import geoJson from "../../rules/geo.json" with { type: "json" };
 import stdJson from "../../rules/std-vn.json" with { type: "json" };
 import lobanJson from "../../rules/loban.json" with { type: "json" };
+import plnJson from "../../rules/pln.json" with { type: "json" };
 
 export type RuleSource = { vanBan?: string; dieu?: string; verified: boolean };
 
@@ -23,8 +24,9 @@ export type RulerDef = { label: string; cycle: number; cungs: CungDef[] };
 const geo = geoJson as { rules: RuleDef[] };
 const std = stdJson as { rules: RuleDef[] };
 const loban = lobanJson as { rulers: Record<string, RulerDef>; rules: RuleDef[] };
+const pln = plnJson as { rules: RuleDef[] };
 
-export const ALL_RULES: RuleDef[] = [...geo.rules, ...std.rules, ...loban.rules];
+export const ALL_RULES: RuleDef[] = [...geo.rules, ...std.rules, ...loban.rules, ...pln.rules];
 export const RULERS: { thong_thuy: RulerDef; khoi_xay: RulerDef; ban_tho: RulerDef } = loban.rulers as never;
 
 const byId = new Map(ALL_RULES.map((r) => [r.id, r]));

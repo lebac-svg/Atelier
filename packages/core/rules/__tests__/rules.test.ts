@@ -83,13 +83,75 @@ describe("GEO — hình học/topology (case phạm; case đạt = fixture golde
     expectRule(issues, "GEO-07", "warn");
   });
 
-  it("GEO-08: tường vượt ranh đất (error) + phạm khoảng lùi brief (warn)", () => {
+  it("GEO-08: tường vượt ranh đất (error) — khoảng lùi đã tách sang PLN-01", () => {
     const out = violate((p) => {
       p.walls.push({ id: "W99", level: "L1", from: [3890, 15000], to: [4400, 15000], thickness: 110, kind: "gach" });
     });
     expectRule(out, "GEO-08", "error");
-    const lui = violate((p) => { p.brief.dat!.quy_hoach!.khoang_lui_truoc = 500; });
-    expectRule(lui, "GEO-08", "warn");
+  });
+});
+
+describe("PLN — quy hoạch địa phương (params từ brief, không khai = không kiểm)", () => {
+  it("PLN-01: khoảng lùi trước — tường mặt tiền phạm; tổng quát cho cả đất méo", () => {
+    const issues = violate((p) => { p.brief.dat!.quy_hoach!.khoang_lui_truoc = 500; });
+    const i = expectRule(issues, "PLN-01", "error");
+    expect(i.message).toContain("khoảng lùi trước 500mm");
+    // lùi 100 thì W1 (tim 110, dày 220 → mép 0) vẫn phạm; nhưng nếu chỉ 0 thì im
+    expect(violate((p) => { p.brief.dat!.quy_hoach!.khoang_lui_truoc = 0; }).filter((x) => x.rule === "PLN-01")).toEqual([]);
+  });
+
+  it("PLN-02: khoảng lùi sau — cạnh sau tự nhận là cạnh xa mặt tiền nhất; tường hông chạm ranh cũng phạm", () => {
+    const issues = violate((p) => { p.brief.dat!.quy_hoach!.khoang_lui_sau = 400; });
+    const i = expectRule(issues, "PLN-02", "error");
+    expect(i.message).toContain("khoảng lùi sau 400mm"); // W4 tim y=15890 cách ranh sau 110
+    expect(issues.some((x) => x.rule === "PLN-02" && x.entities.includes("W2"))).toBe(true); // tường hông chạy suốt tới ranh sau
+    // nhà đã lùi thật (tường duy nhất cách ranh sau 8m) → im
+    const ok = violate((p) => {
+      p.brief.dat!.quy_hoach!.khoang_lui_sau = 400;
+      p.openings = [];
+      p.furniture = [];
+      p.stairs = [];
+      p.walls = [{ id: "W1", level: "L1", from: [220, 110], to: [3780, 110], thickness: 220, kind: "gach" }];
+    });
+    expect(ok.filter((x) => x.rule === "PLN-02")).toEqual([]);
+  });
+
+  it("PLN-03: mật độ xây dựng — fixture phủ ~100% lô nên max 80% là nổ", () => {
+    const issues = violate((p) => { p.brief.dat!.quy_hoach!.mat_do_max = 80; });
+    expectRule(issues, "PLN-03", "error");
+    expect(violate((p) => { p.brief.dat!.quy_hoach!.mat_do_max = 100; }).filter((x) => x.rule === "PLN-03")).toEqual([]);
+  });
+
+  it("PLN-04: số tầng — fixture 2 tầng, max 1 là nổ, max 4 (fixture khai) thì im", () => {
+    const issues = violate((p) => { p.brief.dat!.quy_hoach!.tang_max = 1; });
+    const i = expectRule(issues, "PLN-04", "error");
+    expect(i.message).toContain("2");
+    expect(validateProject(loadNhaOng4x16()).filter((x) => x.rule === "PLN-04")).toEqual([]); // tang_max=4 sẵn trong fixture
+  });
+
+  it("PLN-05: chiều cao đỉnh công trình — fixture +7000", () => {
+    const issues = violate((p) => { p.brief.dat!.quy_hoach!.chieu_cao_max = 6500; });
+    const i = expectRule(issues, "PLN-05", "error");
+    expect(i.message).toContain("7000");
+    expect(violate((p) => { p.brief.dat!.quy_hoach!.chieu_cao_max = 7000; }).filter((x) => x.rule === "PLN-05")).toEqual([]);
+  });
+
+  it("PLN-06: ô văng vươn ra ranh trước quá mức khai; vươn trong mức thì im", () => {
+    const canopy = (p: Project, vuon: number): void => {
+      p.slabs.push({ id: "SL99", level: "L2", kind: "canopy", outline: [[220, -vuon], [3780, -vuon], [3780, 300], [220, 300]], thickness: 100 });
+    };
+    const issues = violate((p) => {
+      p.brief.dat!.quy_hoach!.o_vang_max = 600;
+      canopy(p, 1000);
+    });
+    const i = expectRule(issues, "PLN-06", "error");
+    expect(i.message).toContain("SL99");
+    expect(
+      violate((p) => {
+        p.brief.dat!.quy_hoach!.o_vang_max = 600;
+        canopy(p, 500);
+      }).filter((x) => x.rule === "PLN-06"),
+    ).toEqual([]);
   });
 });
 
@@ -174,14 +236,7 @@ describe("STD — tiêu chuẩn kích thước VN", () => {
     expectRule(giuong, "STD-11", "info");
   });
 
-  it("STD-12: vượt số tầng + mật độ khai trong brief", () => {
-    const issues = violate((p) => {
-      p.brief.dat!.quy_hoach!.tang_max = 1;
-      p.brief.dat!.quy_hoach!.mat_do_max = 50;
-    });
-    const all = issues.filter((i) => i.rule === "STD-12");
-    expect(all).toHaveLength(2);
-  });
+  // STD-12 cũ (tầng + mật độ) đã chuyển thành PLN-03/PLN-04 — xem describe PLN
 });
 
 describe("LBB — thước Lỗ Ban (advisory, bật qua brief)", () => {

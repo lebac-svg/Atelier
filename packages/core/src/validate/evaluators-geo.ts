@@ -199,6 +199,7 @@ export function geo07(p: Project): Finding[] {
 }
 
 export function geo08(p: Project): Finding[] {
+  // khoảng lùi đã tách sang PLN-01/02 (pack quy hoạch, 13/07/2026) — GEO-08 chỉ còn ranh đất
   const out: Finding[] = [];
   const boundary = p.site.boundary;
   for (const w of p.walls) {
@@ -206,34 +207,7 @@ export function geo08(p: Project): Finding[] {
     const inside = band.every((pt) => pointInPolygon(pt, boundary)) && polygonInsidePolygon(band, boundary);
     if (!inside) {
       out.push({ entities: [w.id], values: { wall: w.id, detail: "vượt ra ngoài ranh đất" } });
-      continue;
-    }
-  }
-  // khoảng lùi (chỉ với ranh chữ nhật thẳng trục — v1)
-  const sb = p.brief.dat?.quy_hoach;
-  const lui = sb?.khoang_lui_truoc ?? p.site.setbacks?.front ?? 0;
-  if (lui > 0 && isAxisAlignedRect(boundary)) {
-    const frontY = Math.min(...boundary.map((pt) => pt[1]));
-    for (const w of p.walls) {
-      const band = wallBand(w);
-      if (band.some((pt) => pt[1] < frontY + lui - 0.5)) {
-        out.push({
-          entities: [w.id],
-          severity: "warn",
-          values: { wall: w.id, detail: `phạm khoảng lùi trước ${lui}mm khai trong brief` },
-        });
-      }
     }
   }
   return out;
-}
-
-function isAxisAlignedRect(poly: Polygon): boolean {
-  if (poly.length !== 4) return false;
-  for (let i = 0; i < 4; i++) {
-    const a = poly[i]!;
-    const b = poly[(i + 1) % 4]!;
-    if (a[0] !== b[0] && a[1] !== b[1]) return false;
-  }
-  return true;
 }

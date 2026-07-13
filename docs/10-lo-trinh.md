@@ -40,7 +40,7 @@ Cỡ M/L là tương đối giữa các giai đoạn — ước lượng thô, c
 | ~~Dự toán sơ bộ~~ | ✅ 13/07/2026 — `estimate_cost` (diện tích quy đổi móng/sàn/mái × `rules/don-gia.json`, so ngân sách brief) + tờ DỰ TOÁN SƠ BỘ KT-06 trong bộ hồ sơ | ~~v2~~ xong |
 | ~~So sánh phương án A/B~~ | ✅ 13/07/2026 — phương án = snapshot có tên (`.atelier/phuong-an/`, journal không tái tạo được state cũ nên snapshot là ngữ nghĩa đúng); tools `variant_save`/`variant_open` (checkout, revision vẫn đơn điệu)/`variant_compare` (ảnh 2 mặt bằng cạnh nhau + diff phòng-m² + DỰ TOÁN từng bên); trang `GET /so-sanh?a=&b=&level=` server-render | ~~v2~~ xong |
 | ~~Link chia sẻ chỉ-xem~~ | ✅ 13/07/2026 — `/xem/<token>` (token persist `.atelier/share.json`, thu hồi `POST /share/rotate`); server CƯỠNG CHẾ read-only ở WS: ops → `VIEW-01`, không soft-lock, capture không chọn tab khách; UI khách khóa công cụ nhưng vẫn live + đi bộ + nắng; nút "chia sẻ" trên editor + link kèm trong `editor_open`. LAN: `ATELIER_HOST=0.0.0.0` (mặc định loopback) | ~~v2~~ xong |
-| Rule pack quy hoạch địa phương | PLN — khoảng lùi/mật độ/tầng cao nhập theo dự án | P4 |
+| ~~Rule pack quy hoạch địa phương~~ | ✅ 13/07/2026 — pack `pln.json` 6 rules (lùi trước/sau tổng quát mọi hình lô, mật độ, tầng, chiều cao, ô văng vươn hẻm) chạy từ `brief.quy_hoach`, không khai không kiểm; thay STD-12 + đuôi GEO-08 | ~~P4~~ xong |
 | Xuất IFC | bàn giao KTS thật (IfcOpenShell sidecar nếu cần) | P4+ |
 | Render photoreal | glTF → Blender pipeline, chạy nền | P5+ |
 | Import DXF/ảnh mặt bằng cũ | bài toán nhận dạng riêng, khó | xa |

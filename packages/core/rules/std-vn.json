@@ -4,8 +4,19 @@
       "id": "STD-01",
       "title": "Diện tích sử dụng tối thiểu của phòng",
       "severity": "warn",
-      "params": { "ngu_don": 9, "ngu_doi": 12, "khach": 13, "bep_an": 12, "wc": 3, "kho": 3 },
-      "source": { "vanBan": "TCVN 13967:2024", "dieu": "Bảng 1", "verified": true },
+      "params": {
+        "ngu_don": 9,
+        "ngu_doi": 12,
+        "khach": 13,
+        "bep_an": 12,
+        "wc": 3,
+        "kho": 3
+      },
+      "source": {
+        "vanBan": "TCVN 13967:2024",
+        "dieu": "Bảng 1",
+        "verified": true
+      },
       "message": "Phòng {ten} ({room}) {area}m² — dưới mức tối thiểu {min}m² ({loai}).",
       "note": "Phòng ngủ phân loại theo giường đang kê trong phòng: giường ≥1m4 tính là giường đôi (12m²), còn lại tính giường đơn (9m²)."
     },
@@ -13,8 +24,13 @@
       "id": "STD-02",
       "title": "Bề rộng thông thủy phòng ở",
       "severity": "warn",
-      "params": { "min": 2100 },
-      "source": { "vanBan": "khuyến nghị tiện nghi Atelier — đã rà TCVN 13967:2024 (13/07/2026): chuẩn KHÔNG quy định bề rộng phòng", "verified": true },
+      "params": {
+        "min": 2100
+      },
+      "source": {
+        "vanBan": "khuyến nghị tiện nghi Atelier — đã rà TCVN 13967:2024 (13/07/2026): chuẩn KHÔNG quy định bề rộng phòng",
+        "verified": true
+      },
       "message": "Phòng {ten} ({room}) bề rộng {width}mm < {min}mm.",
       "note": "Không phải số bắt buộc theo chuẩn — ngưỡng tiện nghi (giường 2m + lối đi tối thiểu). v1 đo theo OBB nhỏ nhất — phòng chữ L lấy bề rộng bao, v2 dùng trục trung tuyến."
     },
@@ -22,8 +38,17 @@
       "id": "STD-03",
       "title": "Chiều cao thông thủy",
       "severity": "error",
-      "params": { "phong_o": 2600, "bep_an": 2600, "wc": 2300, "kho": 2200 },
-      "source": { "vanBan": "TCVN 13967:2024", "dieu": "5.9", "verified": true },
+      "params": {
+        "phong_o": 2600,
+        "bep_an": 2600,
+        "wc": 2300,
+        "kho": 2200
+      },
+      "source": {
+        "vanBan": "TCVN 13967:2024",
+        "dieu": "5.9",
+        "verified": true
+      },
       "message": "{ten} ({room}): cao thông thủy tầng {level} = {clear}mm < {min}mm.",
       "note": "13967: ở/ăn ≥2600, bếp/VS ≥2300 — bếp liền ăn lấy 2600 thiên an toàn. Kho 2200 theo TCVN 9411:2012 (13967 chỉ nêu hầm ≥2000)."
     },
@@ -31,24 +56,51 @@
       "id": "STD-04",
       "title": "Bề rộng hành lang/lối đi",
       "severity": "error",
-      "params": { "min": 1000 },
-      "source": { "vanBan": "TCVN 13967:2024", "dieu": "đường thoát nạn — đoạn nằm ngang", "verified": true },
+      "params": {
+        "min": 1000
+      },
+      "source": {
+        "vanBan": "TCVN 13967:2024",
+        "dieu": "đường thoát nạn — đoạn nằm ngang",
+        "verified": true
+      },
       "message": "Hành lang {ten} ({room}) rộng {width}mm < {min}mm."
     },
     {
       "id": "STD-05",
       "title": "Bề rộng cửa đi",
       "severity": "error",
-      "params": { "chinh": 800, "chinh_khuyen": 900, "phong": 700, "wc": 600 },
-      "source": { "vanBan": "TCVN 13967:2024 (lối ra thoát nạn ≥800); cửa phòng 700/WC 600 = khuyến nghị thực hành — đã rà 13967: không quy định riêng (13/07/2026)", "verified": true },
+      "params": {
+        "chinh": 800,
+        "chinh_khuyen": 900,
+        "phong": 700,
+        "wc": 600
+      },
+      "source": {
+        "vanBan": "TCVN 13967:2024 (lối ra thoát nạn ≥800); cửa phòng 700/WC 600 = khuyến nghị thực hành — đã rà 13967: không quy định riêng (13/07/2026)",
+        "verified": true
+      },
       "message": "Cửa {opening} ({loai}) rộng {width}mm < {min}mm."
     },
     {
       "id": "STD-06",
       "title": "Kích thước thang",
       "severity": "error",
-      "params": { "riser_min": 50, "riser_max": 220, "riser_khuyen": 190, "tread_min": 250, "ve_min": 700, "ve_khuyen": 900, "buoc_min": 550, "buoc_max": 700 },
-      "source": { "vanBan": "TCVN 13967:2024", "dieu": "5.11", "verified": true },
+      "params": {
+        "riser_min": 50,
+        "riser_max": 220,
+        "riser_khuyen": 190,
+        "tread_min": 250,
+        "ve_min": 700,
+        "ve_khuyen": 900,
+        "buoc_min": 550,
+        "buoc_max": 700
+      },
+      "source": {
+        "vanBan": "TCVN 13967:2024",
+        "dieu": "5.11",
+        "verified": true
+      },
       "message": "Thang {stair}: {detail}.",
       "note": "Vế ≥700 theo 13967; mức khuyên 900 theo TCVN 9411:2012 (thang thoát nạn nhà liên kế). Bậc >190 chỉ cảnh báo (13967 'khuyến khích ≤190')."
     },
@@ -57,8 +109,16 @@
       "title": "Chiều cao lan can",
       "severity": "error",
       "status": "planned",
-      "params": { "cau_thang": 900, "ban_cong_hanh_lang_mai": 1100, "lo_gia_san_thuong_tu_tang_9": 1400, "khe_ho_max": 100 },
-      "source": { "vanBan": "QCXDVN 05:2008/BXD (bảng lan can: thang/dốc ≥900, vị trí khác ≥1100, lô gia+sân thượng từ tầng 9 ≥1400, khe không lọt cầu ⌀100, không tạo chỗ trèo) + TCVN 13967:2024 5.11 (thang ≥900)", "verified": true },
+      "params": {
+        "cau_thang": 900,
+        "ban_cong_hanh_lang_mai": 1100,
+        "lo_gia_san_thuong_tu_tang_9": 1400,
+        "khe_ho_max": 100
+      },
+      "source": {
+        "vanBan": "QCXDVN 05:2008/BXD (bảng lan can: thang/dốc ≥900, vị trí khác ≥1100, lô gia+sân thượng từ tầng 9 ≥1400, khe không lọt cầu ⌀100, không tạo chỗ trèo) + TCVN 13967:2024 5.11 (thang ≥900)",
+        "verified": true
+      },
       "message": "Lan can {entity} cao {height}mm < {min}mm.",
       "note": "Số đã chốt đủ nhưng schema v1 chưa có thực thể lan can — bật ở P4 cùng mặt đứng/mặt cắt. Cửa sổ tầng cao đã có STD-08 đỡ."
     },
@@ -66,8 +126,13 @@
       "id": "STD-08",
       "title": "Cửa sổ bậu thấp ở tầng cao — an toàn trẻ em",
       "severity": "warn",
-      "params": { "sill_min": 900 },
-      "source": { "vanBan": "QCXDVN 05:2008/BXD — bộ phận mở được phải có rào chắn/lan can ≥900 (đối chiếu 13/07/2026)", "verified": true },
+      "params": {
+        "sill_min": 900
+      },
+      "source": {
+        "vanBan": "QCXDVN 05:2008/BXD — bộ phận mở được phải có rào chắn/lan can ≥900 (đối chiếu 13/07/2026)",
+        "verified": true
+      },
       "message": "Cửa sổ {opening} bậu {sill}mm < {min}mm ở {level} (tầng cao) mà chưa có lan can bảo vệ.",
       "note": "Schema v1 chưa mô tả được lan can cửa sổ nên bậu <900 ở tầng cao luôn nhắc — người dùng tự kiểm nếu đã có rào chắn rời."
     },
@@ -75,30 +140,37 @@
       "id": "STD-09",
       "title": "Phòng ở có lấy sáng tự nhiên",
       "severity": "warn",
-      "source": { "vanBan": "TCVN 13967:2024", "dieu": "5.8", "verified": true },
+      "source": {
+        "vanBan": "TCVN 13967:2024",
+        "dieu": "5.8",
+        "verified": true
+      },
       "message": "Phòng {ten} ({room}) không có cửa sổ hay giếng trời lấy sáng — nhà ống nên cân nhắc giếng trời/thông tầng."
     },
     {
       "id": "STD-10",
       "title": "Cửa WC không mở thẳng vào khu bếp",
       "severity": "warn",
-      "source": { "vanBan": "thực hành + phong tục VN", "verified": true },
+      "source": {
+        "vanBan": "thực hành + phong tục VN",
+        "verified": true
+      },
       "message": "Cửa {opening} của WC mở thẳng vào khu bếp/ăn ({room}) — nên đổi hướng hoặc thêm khoảng đệm."
     },
     {
       "id": "STD-11",
       "title": "Lối đi tối thiểu quanh nội thất",
       "severity": "info",
-      "params": { "giuong": 600, "bep_truoc": 900, "bon_cau_truoc": 500 },
-      "source": { "vanBan": "quy ước công thái học nội thất (Neufert) — TCVN không quy định, mức advisory", "verified": true },
+      "params": {
+        "giuong": 600,
+        "bep_truoc": 900,
+        "bon_cau_truoc": 500
+      },
+      "source": {
+        "vanBan": "quy ước công thái học nội thất (Neufert) — TCVN không quy định, mức advisory",
+        "verified": true
+      },
       "message": "{item}: {detail}."
-    },
-    {
-      "id": "STD-12",
-      "title": "Không vượt brief quy hoạch (mật độ, số tầng)",
-      "severity": "warn",
-      "source": { "vanBan": "brief người dùng khai", "verified": true },
-      "message": "Vượt quy hoạch trong brief: {detail}."
     }
   ]
 }

@@ -82,9 +82,11 @@ Mỗi rule:
 
 > ✅ **Đã đối chiếu chéo 3+ nguồn thước cuộn lưu hành (13/07/2026):** thước 52.2cm chu kỳ **520mm** (8 cung × 65mm — không phải 65.25), cung 5 tên *Nhân Lộc* (nguồn khác ghi *Phúc Lộc*, cùng cung tốt); 42.9cm = khối xây (bệ/tủ bếp, bậc); **bàn thờ đo bằng thước 38.8/39cm (Đinh Lan, 10 cung × 39mm)** → tách thành rule **LBB-04**, tốt: Đinh, Vượng, Nghĩa, Quan, Hưng, Tài. Số cụ thể xem `packages/core/rules/loban.json`.
 
-## PLN — quy hoạch địa phương (🔭 Giai đoạn 4)
+## PLN — quy hoạch địa phương (✅ 13/07/2026)
 
 Rule pack nhập theo dự án: khoảng lùi, mật độ xây dựng tối đa, cao độ/tầng cao, ô văng vươn ra hẻm. Cấu trúc giống STD nhưng `params` lấy từ `brief.quy_hoach` do người dùng khai (Atelier không tự tra quy hoạch — ngoài phạm vi).
+
+> ✅ **Pack `pln.json` đã chạy (13/07/2026):** PLN-01/02 khoảng lùi trước/sau (tổng quát mọi hình lô — đo khoảng cách vuông góc tới cạnh ranh; cạnh sau = cạnh xa mặt tiền nhất; tường hông chạm ranh cũng phạm, đúng ngữ nghĩa lùi), PLN-03 mật độ, PLN-04 tầng max, PLN-05 chiều cao đỉnh (brief thêm `chieu_cao_max`), PLN-06 ô văng vươn ranh trước (brief thêm `o_vang_max`). Mục nào không khai → rule đó im lặng. **STD-12 cũ và đuôi khoảng lùi trong GEO-08 đã chuyển hết về đây** (nâng mức warn → error: quy hoạch là pháp lý). Mỗi rule 1 case phạm + 1 đạt trong `__tests__`.
 
 ## Hợp đồng chạy validator
 
