@@ -1,0 +1,12 @@
+# haido — DB local; tri thức đi theo docs/memory-pack/ (commit được)
+.haido/
+
+# Node
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Editor / OS
+.DS_Store
+Thumbs.db

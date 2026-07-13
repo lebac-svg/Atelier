@@ -1,0 +1,14 @@
+# Chuẩn hóa LF trong repo (làm việc trên Windows nhưng không muốn CRLF churn)
+* text=auto eol=lf
+
+# Nhị phân
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.glb binary
+*.gltf binary
+*.db binary

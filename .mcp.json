@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "haido": {
+      "command": "haido",
+      "args": [
+        "serve"
+      ]
+    }
+  }
+}
