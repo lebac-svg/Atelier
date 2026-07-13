@@ -7,6 +7,11 @@ dist/
 coverage/
 *.tsbuildinfo
 
+# Dự án nhà tạo ra khi chạy thử Atelier (không thuộc repo này)
+sandbox/
+/.atelier/
+/atelier.project.json
+
 # Editor / OS
 .DS_Store
 Thumbs.db
