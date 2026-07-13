@@ -7,6 +7,10 @@ export type PlanTransform = {
   rotated: boolean; // nhà dọc (sâu > ngang) → xoay bản vẽ, mặt tiền bên trái
   paperW: number;
   paperH: number;
+  /** Gốc hình trên giấy + bounds model — nhúng vào SVG cho web editor đảo ngược paper↔model. */
+  ox: number;
+  oy: number;
+  bounds: Bounds;
   toPaper: (p: Point) => Point;
   /** Biến đổi HƯỚNG (không tịnh tiến, không scale) — mũi tên bắc, góc chữ. */
   dirToPaper: (v: Point) => Point;
@@ -57,7 +61,7 @@ export function planTransform(b: Bounds, preferScale?: number): PlanTransform {
     ? (v: Point): Point => [v[1], v[0]]
     : (v: Point): Point => [v[0], -v[1]];
 
-  return { scale, rotated, paperW, paperH, toPaper, dirToPaper };
+  return { scale, rotated, paperW, paperH, ox, oy, bounds: b, toPaper, dirToPaper };
 }
 
 export const PAPER = A3;

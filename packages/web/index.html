@@ -26,14 +26,14 @@
   </header>
 
   <main class="work">
-    <aside class="rail" aria-label="Công cụ (giai đoạn 3)">
-      <button class="tool" disabled title="Chọn / di chuyển — chỉnh tay đến ở giai đoạn 3">V</button>
-      <button class="tool" disabled title="Vẽ tường — giai đoạn 3">1</button>
-      <button class="tool" disabled title="Đặt cửa đi — giai đoạn 3">2</button>
-      <button class="tool" disabled title="Đặt cửa sổ — giai đoạn 3">3</button>
-      <button class="tool" disabled title="Vẽ phòng — giai đoạn 3">4</button>
-      <button class="tool" disabled title="Nội thất — giai đoạn 3">5</button>
-      <button class="tool" disabled title="Đo — giai đoạn 3">M</button>
+    <aside class="rail" aria-label="Công cụ">
+      <button class="tool is-active" id="tool-select" title="Chọn / di chuyển — kéo tường, cửa, nội thất; đang kéo gõ số để chốt chính xác; Alt bỏ snap">V</button>
+      <button class="tool" disabled title="Vẽ tường — giai đoạn sau">1</button>
+      <button class="tool" disabled title="Đặt cửa đi — giai đoạn sau">2</button>
+      <button class="tool" disabled title="Đặt cửa sổ — giai đoạn sau">3</button>
+      <button class="tool" disabled title="Vẽ phòng — giai đoạn sau">4</button>
+      <button class="tool" disabled title="Nội thất — giai đoạn sau">5</button>
+      <button class="tool" disabled title="Đo — giai đoạn sau">M</button>
     </aside>
 
     <section class="canvas">
@@ -45,6 +45,7 @@
         <div class="pane-actions">
           <button id="fit2d" class="pane-btn" title="Khớp bản vẽ vào khung">khớp khung</button>
         </div>
+        <div class="pane-hint">kéo đối tượng — di chuyển · gõ số khi kéo — chốt chính xác · Alt — bỏ snap</div>
       </div>
       <div id="pane3d" class="pane pane-3d">
         <canvas id="canvas3d"></canvas>
@@ -59,7 +60,7 @@
       <section class="panel" id="panel-props">
         <h2 class="panel-title">Thuộc tính</h2>
         <div class="panel-body" id="props-body">
-          <p class="panel-empty">Chạm một đối tượng trên bản vẽ để xem thông số.<br /><span class="dim">Chỉnh trực tiếp đến ở giai đoạn 3.</span></p>
+          <p class="panel-empty">Chạm một đối tượng trên bản vẽ để xem thông số.<br /><span class="dim">Kéo để di chuyển — đang kéo thì gõ số là chốt chính xác.</span></p>
         </div>
       </section>
       <section class="panel panel-grow" id="panel-issues">
@@ -88,9 +89,16 @@
       <span class="cell-label">Claude</span>
       <span class="cell-value" id="claude-note">—</span>
     </div>
+    <div class="cell">
+      <span class="cell-label">Hoàn tác</span>
+      <span class="cell-value">
+        <button id="btn-undo" class="hist-btn" disabled title="Hoàn tác (Ctrl+Z) — chỉ thao tác của bạn">⟲</button>
+        <button id="btn-redo" class="hist-btn" disabled title="Làm lại (Ctrl+Y)">⟳</button>
+      </span>
+    </div>
     <div class="cell cell-dim">
       <span class="cell-label">Snap</span>
-      <span class="cell-value">50 <span class="dim">GĐ3</span></span>
+      <span class="cell-value"><input id="snap-input" class="snap-input" type="number" value="50" min="0" step="25" title="Bước lưới snap (mm) — 0 là tắt" /> mm</span>
     </div>
   </footer>
 

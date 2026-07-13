@@ -354,6 +354,93 @@ body[data-view="split"] .pane-2d { border-right: 1px solid var(--vien); }
 @keyframes toast-in { from { opacity: 0; transform: translateX(0.8rem); } }
 @keyframes toast-out { to { opacity: 0; transform: translateX(0.8rem); } }
 
+/* ── P3: chọn / kéo / HUD gõ số ─────────────────────────── */
+
+.paper-viewport.is-dragging { cursor: move; }
+
+/* chọn bền — nét chàm đậm giữ nguyên tới khi bỏ chọn */
+.sel-2d, .sel-2d * { stroke: var(--cham-dam); }
+
+/* tường được align tới khi snap — guide sáng lên trong lúc kéo */
+.align-2d, .align-2d * {
+  stroke: var(--cham) !important;
+  filter: drop-shadow(0 0 1.5px var(--cham));
+}
+
+#hud {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.32rem 0.55rem;
+  background: color-mix(in srgb, var(--muc) 92%, transparent);
+  border: 1px solid var(--cham-dam);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  backdrop-filter: blur(3px);
+}
+#hud .hud-value {
+  font-family: var(--font-so);
+  font-size: 0.85rem;
+  color: var(--chu);
+  white-space: nowrap;
+}
+#hud.typing .hud-value { color: var(--cham); font-weight: 700; }
+#hud .hud-hint { font-size: 0.62rem; color: var(--chu-chim); white-space: nowrap; }
+#hud .hud-hint:empty { display: none; }
+#hud.shake { animation: hud-shake 0.25s; }
+@keyframes hud-shake {
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* ô nhập trong panel thuộc tính */
+.prop-edit { display: inline-flex; align-items: center; gap: 0.15rem; }
+.prop-input {
+  width: 4.6rem;
+  padding: 0.12rem 0.3rem;
+  font-family: var(--font-so);
+  font-size: 0.78rem;
+  color: var(--chu);
+  background: var(--muc-sau);
+  border: 1px solid var(--vien);
+  border-radius: 4px;
+}
+.prop-input:focus { outline: none; border-color: var(--cham); }
+.prop-input[type="text"] { width: 9rem; }
+.prop-input::-webkit-outer-spin-button, .prop-input::-webkit-inner-spin-button { appearance: none; margin: 0; }
+.prop-input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+
+/* nút hoàn tác/làm lại + ô snap ở khung tên */
+.hist-btn {
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  color: var(--chu-mo);
+}
+.hist-btn:not(:disabled):hover { background: var(--go-noi); color: var(--chu); }
+.hist-btn:disabled { color: var(--chu-chim); opacity: 0.5; }
+.snap-input {
+  width: 3.4rem;
+  padding: 0.08rem 0.3rem;
+  font-family: var(--font-so);
+  font-size: 0.75rem;
+  color: var(--chu);
+  background: var(--muc-sau);
+  border: 1px solid var(--vien);
+  border-radius: 4px;
+}
+.snap-input:focus { outline: none; border-color: var(--cham); }
+
+.tool.is-active {
+  background: var(--cham-dam);
+  color: var(--chu);
+  border-color: var(--cham);
+}
+
 /* ── Flash entity vừa đổi (doc 09: 1.5s) ────────────────── */
 
 .flash-2d, .flash-2d * {

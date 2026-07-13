@@ -1,12 +1,12 @@
 import {
   applyOps,
-  type Issue, type Op, type PatchMsg, type Project, type SnapshotMsg, type ValidationMsg,
+  type EntityKind, type Issue, type Op, type PatchMsg, type Project, type SnapshotMsg, type ValidationMsg,
 } from "@atelier/core";
 
 export type ConnState = "connecting" | "on" | "off";
 export type ViewMode = "plan" | "3d" | "split";
 
-export type FoundEntity = { kind: string; data: Record<string, unknown> };
+export type FoundEntity = { kind: string; entity: EntityKind; data: Record<string, unknown> };
 
 type EventMap = {
   snapshot: { model: Project };
@@ -103,13 +103,14 @@ export class AppState {
   findEntity(id: string): FoundEntity | null {
     const p = this.model;
     if (!p) return null;
-    const lists: Array<[string, Array<{ id: string }>]> = [
-      ["Tường", p.walls], ["Cửa", p.openings], ["Sàn", p.slabs], ["Thang", p.stairs],
-      ["Phòng", p.rooms], ["Nội thất", p.furniture], ["Tầng", p.levels],
+    const lists: Array<[string, EntityKind, Array<{ id: string }>]> = [
+      ["Tường", "wall", p.walls], ["Cửa", "opening", p.openings], ["Sàn", "slab", p.slabs],
+      ["Thang", "stair", p.stairs], ["Phòng", "room", p.rooms],
+      ["Nội thất", "furniture", p.furniture], ["Tầng", "level", p.levels],
     ];
-    for (const [kind, list] of lists) {
+    for (const [kind, entity, list] of lists) {
       const e = list.find((x) => x.id === id);
-      if (e) return { kind, data: e as unknown as Record<string, unknown> };
+      if (e) return { kind, entity, data: e as unknown as Record<string, unknown> };
     }
     return null;
   }

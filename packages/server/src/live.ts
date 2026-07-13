@@ -45,12 +45,19 @@ export type LiveOptions = {
   webDist?: string;
   /** Timeout chờ browser trả ảnh capture (ms). */
   captureTimeoutMs?: number;
+  /** Khóa nguội sau khi thả chuột (ms) — mặc định 5000 (doc 06); test dùng số nhỏ. */
+  lockReleaseMs?: number;
 };
 
 type Peer = {
+  id: string;
   sock: WsSocket;
   kind: ClientKind;
   alive: boolean;
+  /** Token phiên peer đã sync tới — lệch với server nghĩa là mirror thuộc dự án khác. */
+  session: string | null;
+  /** Lần cuối peer CHỦ ĐỘNG nhắn (hello/ops/presence) — tab đang được dùng thật sự. */
+  lastActive: number;
   selection?: string[];
   draggingIds?: string[];
 };
@@ -74,6 +81,8 @@ export class LiveServer {
   private readonly pending = new Map<string, PendingCapture>();
   private heartbeat: NodeJS.Timeout | null = null;
   private unsubscribe: (() => void) | null = null;
+  /** Token phiên — đổi mỗi lần model thay MỚI (project_new/open) để tab cũ không tưởng nhầm còn sync. */
+  private session = randomUUID();
   url: string | null = null;
 
   constructor(
@@ -120,6 +129,7 @@ export class LiveServer {
 
     this.heartbeat = setInterval(() => this.pingPeers(), 15_000);
     this.heartbeat.unref?.();
+    if (this.opts.lockReleaseMs != null) this.store.locks.releaseMs = this.opts.lockReleaseMs;
     this.unsubscribe = this.store.subscribe((e) => this.onStoreEvent(e));
     return this.url;
   }
@@ -143,9 +153,15 @@ export class LiveServer {
     this.url = null;
   }
 
-  /** Nhờ browser mới nhất chụp canvas — trả PNG base64. */
+  /**
+   * Nhờ browser chụp canvas — trả PNG base64. Chọn tab ĐÃ SYNC đúng phiên và
+   * HOẠT ĐỘNG gần nhất (tab cũ để không nhưng reconnect muộn sẽ không cướp lượt chụp).
+   */
   capture(target: CaptureTarget, camera?: CaptureCamera): Promise<string> {
-    const peer = [...this.peers].filter((p) => p.kind === "browser" && p.sock.readyState === p.sock.OPEN).at(-1);
+    const peer = [...this.peers]
+      .filter((p) => p.kind === "browser" && p.sock.readyState === p.sock.OPEN && p.session === this.session)
+      .sort((a, b) => a.lastActive - b.lastActive)
+      .at(-1);
     if (!peer) {
       return Promise.reject(new Error("Chưa có browser nào đang mở editor — gọi editor_open trước."));
     }
@@ -216,7 +232,7 @@ export class LiveServer {
   // ── WebSocket ──────────────────────────────────────────────────
 
   private onConnection(sock: WsSocket): void {
-    const peer: Peer = { sock, kind: "browser", alive: true };
+    const peer: Peer = { id: randomUUID(), sock, kind: "browser", alive: true, session: null, lastActive: Date.now() };
     this.peers.add(peer);
     sock.on("pong", () => {
       peer.alive = true;
@@ -227,16 +243,19 @@ export class LiveServer {
     });
     sock.on("close", () => {
       this.peers.delete(peer);
+      this.store.locks.drop(peer.id); // tab đóng giữa chừng — khóa chuyển sang nguội rồi tự hết
       this.broadcastPeers();
     });
     sock.on("error", () => sock.terminate());
   }
 
   private onMessage(peer: Peer, msg: NonNullable<ReturnType<typeof parseClientMessage>>): void {
+    // capture_result là trả lời bị động — không tính là "người dùng đang dùng tab này"
+    if (msg.type !== "capture_result") peer.lastActive = Date.now();
     switch (msg.type) {
       case "hello": {
         peer.kind = msg.clientKind;
-        if (this.store.isOpen) this.syncPeer(peer, msg.lastRevision);
+        if (this.store.isOpen) this.syncPeer(peer, msg.lastRevision, msg.session);
         this.broadcastPeers();
         return;
       }
@@ -248,7 +267,8 @@ export class LiveServer {
           });
           return;
         }
-        const r = this.store.apply(msg.baseRevision, msg.ops, msg.note, "user");
+        // agent qua WS chịu chung luật với agent qua MCP (soft-lock, "người dùng luôn thắng")
+        const r = this.store.apply(msg.baseRevision, msg.ops, msg.note, peer.kind === "agent" ? "claude" : "user");
         if (!r.ok) {
           this.send(peer, { type: "reject", yourBase: msg.baseRevision, currentRevision: r.currentRevision, errors: r.errors });
         }
@@ -257,7 +277,10 @@ export class LiveServer {
       }
       case "presence": {
         if (msg.selection) peer.selection = msg.selection;
-        if (msg.draggingIds) peer.draggingIds = msg.draggingIds;
+        if (msg.draggingIds) {
+          peer.draggingIds = msg.draggingIds;
+          if (peer.kind === "browser") this.store.locks.set(peer.id, msg.draggingIds);
+        }
         this.broadcastPeers();
         return;
       }
@@ -273,11 +296,13 @@ export class LiveServer {
     }
   }
 
-  /** Đồng bộ một client mới nối: replay ops nếu gap liền mạch, ngược lại snapshot (doc 06). */
-  private syncPeer(peer: Peer, lastRevision?: number): void {
+  /** Đồng bộ một client mới nối: replay ops nếu gap liền mạch VÀ cùng phiên, ngược lại snapshot (doc 06). */
+  private syncPeer(peer: Peer, lastRevision?: number, session?: string): void {
     const p = this.store.current;
     const rev = p.meta.revision;
-    if (lastRevision != null && lastRevision <= rev) {
+    peer.session = this.session;
+    // lệch/thiếu token phiên → mirror có thể thuộc DỰ ÁN KHÁC dù số revision trùng — ép snapshot
+    if (lastRevision != null && session === this.session && lastRevision <= rev) {
       if (lastRevision === rev) {
         this.send(peer, this.validationMsg());
         return;
@@ -298,7 +323,7 @@ export class LiveServer {
         return;
       }
     }
-    this.send(peer, { type: "snapshot", model: p, revision: rev });
+    this.send(peer, { type: "snapshot", model: p, revision: rev, session: this.session });
     this.send(peer, this.validationMsg());
   }
 
@@ -312,9 +337,14 @@ export class LiveServer {
       return;
     }
     if (this.store.isOpen) {
+      // model thay MỚI toàn bộ → phiên mới; tab nào nhận snapshot này coi như đã sync
+      this.session = randomUUID();
       const p = this.store.current;
-      this.broadcast({ type: "snapshot", model: p, revision: p.meta.revision });
+      this.broadcast({ type: "snapshot", model: p, revision: p.meta.revision, session: this.session });
       this.broadcast(this.validationMsg());
+      for (const peer of this.peers) {
+        if (peer.sock.readyState === peer.sock.OPEN) peer.session = this.session;
+      }
     }
   }
 

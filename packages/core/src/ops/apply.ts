@@ -66,7 +66,7 @@ export function applyOps(project: Project, baseRevision: number, ops: Op[], opti
       return { ok: false, currentRevision: project.meta.revision, errors: all.filter((i) => i.severity === "block") };
     }
     draft.meta.revision = baseRevision + 1;
-    return { ok: true, project: draft, revision: draft.meta.revision, warnings: all, summary: summarizeOps(ops) };
+    return { ok: true, project: draft, revision: draft.meta.revision, warnings: all, summary: summarizeOps(ops, project) };
   }
 
   if (errors.length > 0) {
@@ -74,7 +74,7 @@ export function applyOps(project: Project, baseRevision: number, ops: Op[], opti
   }
 
   draft.meta.revision = baseRevision + 1;
-  return { ok: true, project: draft, revision: draft.meta.revision, warnings: [], summary: summarizeOps(ops) };
+  return { ok: true, project: draft, revision: draft.meta.revision, warnings: [], summary: summarizeOps(ops, project) };
 }
 
 /** Áp một op lên draft (mutate draft). Trả Issue nếu lỗi cấu trúc. */

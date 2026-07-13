@@ -38,6 +38,17 @@ describe("applyOps — transaction + revision", () => {
     expect(p).toEqual(before); // bất biến đầu vào
   });
 
+  it("summary của update ghi giá trị cũ → mới (nuôi get_changes_since)", () => {
+    const p = loadNhaOng4x16();
+    const w = p.walls[0]!;
+    const next = w.thickness === 110 ? 220 : 110;
+    const r = applyOps(p, p.meta.revision, [
+      { op: "update", entity: "wall", id: w.id, data: { thickness: next } },
+    ]);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.summary).toContain(`thickness: ${w.thickness} → ${next}`);
+  });
+
   it("cả batch cùng hủy khi một op lỗi (transaction)", () => {
     const p = loadNhaOng4x16();
     const r = applyOps(p, p.meta.revision, [

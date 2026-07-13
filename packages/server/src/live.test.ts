@@ -51,8 +51,12 @@ class TestClient {
     return c;
   }
 
-  hello(lastRevision?: number): void {
-    this.send({ type: "hello", clientKind: "browser", ...(lastRevision != null ? { lastRevision } : {}) });
+  hello(lastRevision?: number, session?: string): void {
+    this.send({
+      type: "hello", clientKind: "browser",
+      ...(lastRevision != null ? { lastRevision } : {}),
+      ...(session ? { session } : {}),
+    });
   }
 
   send(m: object): void {
@@ -72,6 +76,17 @@ class TestClient {
         },
       });
     });
+  }
+
+  /** Chờ tới khi có presence khớp điều kiện (broadcast presence không đánh số — phải lọc). */
+  async nextPresenceWhere(pred: (m: { peers: Array<{ draggingIds?: string[] }> }) => boolean, timeoutMs = 3000): Promise<void> {
+    const t0 = Date.now();
+    for (;;) {
+      const m = (await this.next("presence", timeoutMs - (Date.now() - t0))) as unknown as {
+        peers: Array<{ draggingIds?: string[] }>;
+      };
+      if (pred(m)) return;
+    }
   }
 }
 
@@ -149,18 +164,73 @@ describe("LiveServer", () => {
     expect(rej.errors[0]!.rule).toBe("REV-01");
   });
 
-  it("hello lastRevision liền mạch → replay patch, KHÔNG gửi snapshot", async () => {
+  it("hello lastRevision + ĐÚNG session → replay patch, KHÔNG gửi snapshot", async () => {
     const { store, url } = await boot();
+    // lấy session token từ lần nối đầu
+    const first = await TestClient.connect(url);
+    first.hello();
+    const snap0 = await first.next<SnapshotMsg>("snapshot");
+    expect(snap0.session).toBeTruthy();
+
     store.apply(0, [{ op: "update", entity: "level", id: "L2", data: { height: 3500 } }]);
     store.apply(1, [{ op: "update", entity: "level", id: "L2", data: { height: 3400 } }], "chỉnh lại");
 
     const c = await TestClient.connect(url);
-    c.hello(0);
+    c.hello(0, snap0.session);
     const p1 = await c.next<PatchMsg>("patch");
     const p2 = await c.next<PatchMsg>("patch");
     expect([p1.revision, p2.revision]).toEqual([1, 2]);
     await c.next<ValidationMsg>("validation");
     expect(c.history.some((m) => m.type === "snapshot")).toBe(false);
+  });
+
+  it("hello lastRevision nhưng LỆCH/THIẾU session → ép snapshot (tab dự án cũ không mù)", async () => {
+    const { store, url } = await boot();
+    store.apply(0, [{ op: "update", entity: "level", id: "L2", data: { height: 3500 } }]);
+
+    // thiếu session (client cũ / mirror từ process trước)
+    const a = await TestClient.connect(url);
+    a.hello(0);
+    const snapA = await a.next<SnapshotMsg>("snapshot");
+    expect(snapA.revision).toBe(1);
+
+    // lệch session (server đã đổi dự án — số revision có thể TRÙNG)
+    const b = await TestClient.connect(url);
+    b.hello(1, "phien-cu-khong-con");
+    const snapB = await b.next<SnapshotMsg>("snapshot");
+    expect(snapB.revision).toBe(1);
+  });
+
+  it("soft-lock: presence.draggingIds chặn op origin claude, op user vẫn qua, nhả theo thời gian", async () => {
+    const { store, url } = await boot({ lockReleaseMs: 150 });
+    const c = await TestClient.connect(url);
+    c.hello();
+    await c.next<SnapshotMsg>("snapshot");
+
+    const wallId = store.current.walls[0]!.id;
+    c.send({ type: "presence", draggingIds: [wallId], tool: "V" });
+    // đợi ĐÚNG broadcast phản ánh draggingIds (hello cũng phát presence — không lấy nhầm)
+    await c.nextPresenceWhere((m) => m.peers.some((p) => p.draggingIds?.includes(wallId)));
+
+    // agent (MCP) đụng entity đang kéo → LOCK-01
+    const rClaude = store.apply(0, [{ op: "update", entity: "wall", id: wallId, data: { thickness: 220 } }]);
+    expect(rClaude.ok).toBe(false);
+    if (!rClaude.ok) {
+      expect(rClaude.errors[0]!.rule).toBe("LOCK-01");
+      expect(rClaude.errors[0]!.message).toContain(wallId);
+    }
+
+    // op của CHÍNH người dùng vẫn qua (họ thả tay commit trong lúc khóa còn nguội)
+    c.send({ type: "ops", baseRevision: 0, ops: [{ op: "update", entity: "wall", id: wallId, data: { thickness: 220 } }], note: "user sửa" });
+    const patch = await c.next<PatchMsg>("patch");
+    expect(patch.origin).toBe("user");
+
+    // thả tay → khóa nguội 150ms rồi tự nhả
+    c.send({ type: "presence", draggingIds: [] });
+    await c.nextPresenceWhere((m) => m.peers.every((p) => !p.draggingIds?.length));
+    await new Promise((r) => setTimeout(r, 250));
+    const rSau = store.apply(1, [{ op: "update", entity: "wall", id: wallId, data: { thickness: 110 } }]);
+    expect(rSau.ok).toBe(true);
   });
 
   it("capture: browser trả PNG; timeout khi browser im; lỗi khi không có browser", async () => {

@@ -11,7 +11,8 @@
     "typecheck": "tsc -b && tsc -p packages/web/tsconfig.json",
     "build": "tsc -b",
     "build:web": "pnpm --filter @atelier/web build",
-    "demo:p2": "tsx packages/server/scripts/demo-p2.ts"
+    "demo:p2": "tsx packages/server/scripts/demo-p2.ts",
+    "demo:p3": "tsx packages/server/scripts/demo-p3.ts"
   },
   "devDependencies": {
     "typescript": "^5.9.0",

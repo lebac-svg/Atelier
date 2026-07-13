@@ -1,9 +1,10 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
-  applyOps, loadNhaOng4x16, summarizeOps, validateProject,
+  applyOps, loadNhaOng4x16, validateProject,
   type ApplyResult, type Issue, type Op, type OpOrigin, type Point, type Project,
 } from "@atelier/core";
+import { SoftLocks } from "./locks.js";
 
 export const PROJECT_FILE = "atelier.project.json";
 
@@ -34,6 +35,8 @@ export const TEMPLATES: Record<string, { label: string; load: () => Project }> =
 export class ProjectStore {
   private project: Project | null = null;
   private listeners = new Set<(e: StoreEvent) => void>();
+  /** Soft-lock entity đang được người dùng kéo (doc 06) — live server cập nhật qua presence. */
+  readonly locks = new SoftLocks();
 
   constructor(readonly baseDir: string) {}
 
@@ -123,8 +126,21 @@ export class ProjectStore {
     return raw;
   }
 
-  /** Cổng mutation duy nhất — validate đầy đủ, block → hủy, thành công → ghi đĩa + journal. */
+  /** Cổng mutation duy nhất — soft-lock, validate đầy đủ, block → hủy, thành công → ghi đĩa + journal. */
   apply(baseRevision: number, ops: Op[], note?: string, origin: OpOrigin = "claude"): ApplyResult {
+    if (origin !== "user") {
+      const hit = this.locks.lockedAmong(touchedIds(this.current, ops));
+      if (hit.length > 0) {
+        return {
+          ok: false,
+          currentRevision: this.current.meta.revision,
+          errors: [{
+            rule: "LOCK-01", severity: "block", entities: hit,
+            message: `${hit.join(", ")} đang được người dùng chỉnh trực tiếp — khóa tự nhả ~5s sau khi họ thả tay. Chờ rồi get_changes_since để xem họ đã đổi gì trước khi thử lại.`,
+          }],
+        };
+      }
+    }
     const result = applyOps(this.current, baseRevision, ops, {
       validate: validateProject,
       ...(note ? { note } : {}),
@@ -137,7 +153,7 @@ export class ProjectStore {
         at: new Date().toISOString(),
         origin,
         ...(note ? { note } : {}),
-        summary: summarizeOps(ops),
+        summary: result.summary,
         ops,
       });
       this.emit({
@@ -176,6 +192,22 @@ export class ProjectStore {
     mkdirSync(path.dirname(this.journalPath), { recursive: true });
     appendFileSync(this.journalPath, JSON.stringify(entry) + "\n", "utf8");
   }
+}
+
+/** Id các entity một batch ops chạm tới — kể cả openings bị cascade khi xóa tường. */
+function touchedIds(p: Project, ops: Op[]): Set<string> {
+  const ids = new Set<string>();
+  for (const op of ops) {
+    if (op.op === "add") {
+      if (typeof op.data.id === "string") ids.add(op.data.id);
+      continue;
+    }
+    ids.add(op.id);
+    if (op.op === "delete" && op.entity === "wall") {
+      for (const o of p.openings) if (o.wall === op.id) ids.add(o.id);
+    }
+  }
+  return ids;
 }
 
 export function blankProject(): Project {

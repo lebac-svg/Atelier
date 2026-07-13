@@ -15,8 +15,14 @@ const F = (v: number): string => (Math.round(v * 1000) / 1000).toString();
  */
 export function sceneToSvg(items: Scene2D, tf: PlanTransform, opts: SvgOptions = {}): string {
   const out: string[] = [];
+  // data-tf-* cho web editor đảo ngược tọa độ giấy → model (kéo thả P3)
+  const b = tf.bounds;
+  const tfAttrs =
+    ` data-tf-scale="${tf.scale}" data-tf-rotated="${tf.rotated ? 1 : 0}"` +
+    ` data-tf-ox="${F(tf.ox)}" data-tf-oy="${F(tf.oy)}"` +
+    ` data-tf-min-x="${F(b.minX)}" data-tf-min-y="${F(b.minY)}" data-tf-max-x="${F(b.maxX)}" data-tf-max-y="${F(b.maxY)}"`;
   out.push(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${PAPER.w} ${PAPER.h}" width="${PAPER.w}mm" height="${PAPER.h}mm">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${PAPER.w} ${PAPER.h}" width="${PAPER.w}mm" height="${PAPER.h}mm"${tfAttrs}>`,
   );
   out.push("<style>");
   if (opts.fontCss) out.push(opts.fontCss);

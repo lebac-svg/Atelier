@@ -1,4 +1,4 @@
-import type { Issue, Level } from "@atelier/core";
+import type { EntityKind, Issue, Level } from "@atelier/core";
 import type { ConnState, FoundEntity, ViewMode } from "./state.js";
 
 const SEVERITY_ORDER: Record<string, number> = { block: 0, error: 1, warn: 2, info: 3 };
@@ -6,12 +6,34 @@ const MM_KEYS = new Set([
   "thickness", "width", "height", "offset", "sill", "elevation", "tread", "landing", "rotation",
 ]);
 
+/** Field sửa được trong panel thuộc tính (doc 09: "mọi kích thước là ô nhập"). */
+type FieldSpec = { key: string; kind: "num" | "point" | "text" };
+const EDITABLE: Partial<Record<EntityKind, FieldSpec[]>> = {
+  wall: [
+    { key: "from", kind: "point" }, { key: "to", kind: "point" },
+    { key: "thickness", kind: "num" }, { key: "height", kind: "num" },
+  ],
+  opening: [
+    { key: "offset", kind: "num" }, { key: "width", kind: "num" },
+    { key: "height", kind: "num" }, { key: "sill", kind: "num" },
+  ],
+  furniture: [
+    { key: "at", kind: "point" }, { key: "rotation", kind: "num" }, { key: "elevation", kind: "num" },
+  ],
+  room: [{ key: "name", kind: "text" }],
+  level: [{ key: "name", kind: "text" }, { key: "height", kind: "num" }],
+};
+
 export type UICallbacks = {
   onLevel(id: string): void;
   onView(v: ViewMode): void;
   onIssueClick(entities: string[]): void;
   onFit2d(): void;
   onReset3d(): void;
+  /** Sửa số trong panel thuộc tính — value đã parse xong (number | [x,y] | string). */
+  onPropEdit(entity: EntityKind, id: string, field: string, value: unknown): void;
+  onUndo(): void;
+  onRedo(): void;
 };
 
 const $ = <T extends HTMLElement>(id: string): T => {
@@ -32,6 +54,9 @@ export class UI {
   private readonly propsBody = $("props-body");
   private readonly toasts = $("toasts");
   private readonly empty2d = $("empty2d");
+  private readonly snapInput = $<HTMLInputElement>("snap-input");
+  private readonly btnUndo = $<HTMLButtonElement>("btn-undo");
+  private readonly btnRedo = $<HTMLButtonElement>("btn-redo");
   private claudeTimer: number | null = null;
 
   constructor(private readonly cb: UICallbacks) {
@@ -46,6 +71,24 @@ export class UI {
     }
     $("fit2d").addEventListener("click", () => cb.onFit2d());
     $("reset3d").addEventListener("click", () => cb.onReset3d());
+    this.btnUndo.addEventListener("click", () => cb.onUndo());
+    this.btnRedo.addEventListener("click", () => cb.onRedo());
+  }
+
+  /** Bước lưới snap hiện tại từ ô nhập ở khung tên (mm; 0 = tắt). */
+  snapGrid(): number {
+    const v = Number(this.snapInput.value);
+    return Number.isFinite(v) && v >= 0 ? Math.round(v) : 50;
+  }
+
+  setUndoState(canUndo: boolean, canRedo: boolean): void {
+    this.btnUndo.disabled = !canUndo;
+    this.btnRedo.disabled = !canRedo;
+  }
+
+  /** Panel thuộc tính có đang được gõ dở không — tránh vẽ đè khi patch về. */
+  get propsBusy(): boolean {
+    return this.propsBody.contains(document.activeElement);
   }
 
   setProject(name: string): void {
@@ -159,7 +202,7 @@ export class UI {
       const p = document.createElement("p");
       p.className = "panel-empty";
       p.innerHTML =
-        'Chạm một đối tượng trên bản vẽ để xem thông số.<br /><span class="dim">Chỉnh trực tiếp đến ở giai đoạn 3.</span>';
+        'Chạm một đối tượng trên bản vẽ để xem thông số.<br /><span class="dim">Kéo để di chuyển — đang kéo thì gõ số là chốt chính xác.</span>';
       this.propsBody.appendChild(p);
       return;
     }
@@ -168,21 +211,99 @@ export class UI {
     chip.textContent = `${found.kind} · ${id}`;
     this.propsBody.appendChild(chip);
 
+    const specs = new Map((EDITABLE[found.entity] ?? []).map((s) => [s.key, s]));
     const table = document.createElement("table");
     table.className = "prop-table";
-    for (const [key, value] of Object.entries(found.data)) {
-      if (key === "id" || value == null) continue;
-      const rendered = renderValue(key, value);
-      if (rendered == null) continue;
+
+    const addRow = (key: string, cell: HTMLElement | string): void => {
       const tr = document.createElement("tr");
       const th = document.createElement("th");
       th.textContent = key;
       const td = document.createElement("td");
-      td.textContent = rendered;
+      if (typeof cell === "string") td.textContent = cell;
+      else td.appendChild(cell);
       tr.append(th, td);
       table.appendChild(tr);
+    };
+
+    // field sửa được luôn hiện (kể cả đang undefined, vd wall.height)
+    const shown = new Set<string>();
+    for (const spec of EDITABLE[found.entity] ?? []) {
+      shown.add(spec.key);
+      addRow(spec.key, this.buildEditor(found, id, spec));
+    }
+    for (const [key, value] of Object.entries(found.data)) {
+      if (key === "id" || value == null || shown.has(key)) continue;
+      const rendered = renderValue(key, value);
+      if (rendered == null) continue;
+      addRow(key, rendered);
     }
     this.propsBody.appendChild(table);
+  }
+
+  private buildEditor(found: FoundEntity, id: string, spec: FieldSpec): HTMLElement {
+    const wrap = document.createElement("span");
+    wrap.className = "prop-edit";
+    const value = found.data[spec.key];
+
+    const mkInput = (v: string, num: boolean): HTMLInputElement => {
+      const input = document.createElement("input");
+      input.className = "prop-input";
+      if (num) {
+        input.type = "number";
+        input.step = "10";
+      }
+      input.value = v;
+      return input;
+    };
+
+    const commit = (): void => {
+      if (spec.kind === "point") {
+        const [ix, iy] = wrap.querySelectorAll("input");
+        const x = Number(ix!.value);
+        const y = Number(iy!.value);
+        const old = value as [number, number] | undefined;
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+        if (old && Math.round(x) === old[0] && Math.round(y) === old[1]) return;
+        this.cb.onPropEdit(found.entity, id, spec.key, [Math.round(x), Math.round(y)]);
+        return;
+      }
+      const input = wrap.querySelector("input")!;
+      if (spec.kind === "num") {
+        if (input.value.trim() === "") return; // field optional bỏ trống — không đổi
+        const v = Number(input.value);
+        if (!Number.isFinite(v) || v === value) return;
+        this.cb.onPropEdit(found.entity, id, spec.key, Math.round(v));
+        return;
+      }
+      if (input.value !== value) this.cb.onPropEdit(found.entity, id, spec.key, input.value);
+    };
+
+    const hook = (input: HTMLInputElement): void => {
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          commit();
+          input.blur();
+        }
+        e.stopPropagation(); // không cho phím rơi vào shortcut toàn cục (Del, Ctrl+Z…)
+      });
+      input.addEventListener("change", commit);
+    };
+
+    if (spec.kind === "point") {
+      const pt = (value as [number, number] | undefined) ?? [0, 0];
+      const ix = mkInput(String(pt[0]), true);
+      const iy = mkInput(String(pt[1]), true);
+      hook(ix);
+      hook(iy);
+      wrap.append(ix, document.createTextNode(", "), iy);
+    } else {
+      const input = mkInput(value == null ? "" : String(value), spec.kind === "num");
+      if (spec.kind === "num" && MM_KEYS.has(spec.key) && spec.key !== "rotation") input.placeholder = "mm";
+      hook(input);
+      wrap.appendChild(input);
+    }
+    return wrap;
   }
 }
 
@@ -193,5 +314,5 @@ function renderValue(key: string, value: unknown): string | null {
     if (value.length === 2 && value.every((v) => typeof v === "number")) return `${value[0]}, ${value[1]}`;
     return `${value.length} phần tử`;
   }
-  return null; // object lồng nhau — để dành cho panel P3
+  return null; // object lồng nhau — chưa sửa trực tiếp
 }

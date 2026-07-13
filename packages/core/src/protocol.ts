@@ -24,6 +24,11 @@ export type HelloMsg = {
   clientKind: ClientKind;
   /** Revision cuối client còn giữ — server replay ops nếu gap nhỏ, ngược lại gửi snapshot. */
   lastRevision?: number;
+  /**
+   * Token phiên nhận từ snapshot gần nhất. Server đổi dự án → token đổi;
+   * lệch token thì lastRevision vô nghĩa (có thể trùng SỐ nhưng khác dự án) — server ép snapshot.
+   */
+  session?: string;
 };
 
 export type OpsMsg = {
@@ -56,6 +61,8 @@ export type SnapshotMsg = {
   type: "snapshot";
   model: Project;
   revision: number;
+  /** Token phiên — client gửi lại trong hello khi reconnect để server biết mirror còn cùng dự án. */
+  session?: string;
 };
 
 export type PatchMsg = {

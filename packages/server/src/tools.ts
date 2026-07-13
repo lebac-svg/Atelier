@@ -127,7 +127,7 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
     {
       title: "Sửa model (cổng mutation duy nhất)",
       description:
-        "Áp một batch ops như MỘT transaction: tất cả cùng áp hoặc cùng hủy. baseRevision phải bằng revision hiện tại — nếu đã lâu không đọc model (hoặc người dùng có thể vừa sửa tay), LUÔN gọi get_changes_since trước; không bao giờ ghi đè thay đổi của người dùng. Không có op thay cả model. Lỗi mức block → transaction bị hủy, đọc message rồi tự sửa và gửi lại. warnings (error/warn/info) không chặn ghi nhưng phải xử lý trước checkpoint. ID do client tự đặt theo tiền tố: W tường, D cửa đi, S cửa sổ, R phòng, F nội thất, ST thang, SL sàn, L tầng.",
+        "Áp một batch ops như MỘT transaction: tất cả cùng áp hoặc cùng hủy. baseRevision phải bằng revision hiện tại — nếu đã lâu không đọc model (hoặc người dùng có thể vừa sửa tay), LUÔN gọi get_changes_since trước; không bao giờ ghi đè thay đổi của người dùng. Entity người dùng đang kéo trên editor bị khóa mềm (LOCK-01) — chờ vài giây rồi get_changes_since xem họ đổi gì, thích nghi theo thay vì 'sửa lại cho đúng ý mình'. Không có op thay cả model. Lỗi mức block → transaction bị hủy, đọc message rồi tự sửa và gửi lại. warnings (error/warn/info) không chặn ghi nhưng phải xử lý trước checkpoint. ID do client tự đặt theo tiền tố: W tường, D cửa đi, S cửa sổ, R phòng, F nội thất, ST thang, SL sàn, L tầng.",
       inputSchema: {
         baseRevision: z.number().int().nonnegative(),
         ops: z.array(OP).min(1),

@@ -1,5 +1,5 @@
 import type {
-  CaptureRequestMsg, ClientMessage, PatchMsg, ServerMessage, SnapshotMsg, ValidationMsg,
+  CaptureRequestMsg, ClientMessage, PatchMsg, RejectMsg, ServerMessage, SnapshotMsg, ValidationMsg,
 } from "@atelier/core";
 import type { ConnState } from "./state.js";
 
@@ -9,12 +9,15 @@ export type WsHandlers = {
   onPatch(m: PatchMsg): void;
   onValidation(m: ValidationMsg): void;
   onCapture(m: CaptureRequestMsg): void;
+  onReject(m: RejectMsg): void;
 };
 
-/** WS client browser: hello + lastRevision khi nối lại, backoff, resync chủ động (doc 06). */
+/** WS client browser: hello + lastRevision/session khi nối lại, backoff, resync chủ động (doc 06). */
 export class WsClient {
   private sock: WebSocket | null = null;
   private lastRevision: number | null = null;
+  /** Token phiên từ snapshot — server đổi dự án thì token đổi, mirror cũ không được replay nhầm. */
+  private session: string | null = null;
   private retry = 0;
   private reconnectTimer: number | null = null;
 
@@ -33,6 +36,7 @@ export class WsClient {
         type: "hello",
         clientKind: "browser",
         ...(this.lastRevision != null ? { lastRevision: this.lastRevision } : {}),
+        ...(this.session ? { session: this.session } : {}),
       });
     };
     sock.onmessage = (ev) => {
@@ -45,6 +49,7 @@ export class WsClient {
       switch (msg.type) {
         case "snapshot":
           this.lastRevision = msg.revision;
+          if (msg.session) this.session = msg.session;
           return this.handlers.onSnapshot(msg);
         case "patch":
           this.lastRevision = msg.revision;
@@ -53,8 +58,10 @@ export class WsClient {
           return this.handlers.onValidation(msg);
         case "capture_request":
           return this.handlers.onCapture(msg);
+        case "reject":
+          return this.handlers.onReject(msg);
         default:
-          return; // reject/presence: browser P2 không gửi ops nên chưa cần xử lý
+          return; // presence peers: chưa hiển thị ở P3
       }
     };
     sock.onclose = () => {

@@ -20,7 +20,7 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
   beforeAll(async () => {
     store = new ProjectStore(mkdtempSync(path.join(tmpdir(), "atelier-e2e-")));
     store.newProject("Nhà anh Ba", "nha-ong-4x16-2t");
-    live = new LiveServer(store, { port: 0 });
+    live = new LiveServer(store, { port: 0, lockReleaseMs: 300 }); // khóa nguội ngắn cho test
     const url = await live.start();
     browser = await chromium.launch();
     page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -70,21 +70,154 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
     expect(pngPlan.length).toBeGreaterThan(5_000);
   }, 30_000);
 
-  it("click bản vẽ chọn entity → panel thuộc tính hiện đúng đối tượng vừa chạm", async () => {
-    const wall = page.locator('#paper [data-id="W98"]').first();
-    const box = await wall.boundingBox();
-    expect(box).not.toBeNull();
-    const pt = { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
-    // phần tử THẬT trên đỉnh tại điểm click (nhãn phòng/nội thất có thể đè lên tường)
-    const hitId = await page.evaluate(
-      (p) => document.elementFromPoint(p.x, p.y)?.closest("[data-id]")?.getAttribute("data-id") ?? null,
-      pt,
+  /**
+   * Client px của một điểm THẬT SỰ chạm được trên entity (nhãn phòng/nội thất có thể
+   * đè lên tường — quét dọc trục dài tìm chỗ elementFromPoint trả đúng id)
+   * + client px đích sau khi dịch model (dx,dy).
+   */
+  async function wallDragPoints(id: string, dModel: [number, number]): Promise<{ from: { x: number; y: number }; to: { x: number; y: number } }> {
+    return page.evaluate(
+      ({ id, dModel }) => {
+        const svg = document.querySelector("#paper svg") as SVGSVGElement;
+        const el = svg.querySelector(`[data-id="${id}"]`) as SVGGraphicsElement;
+        if (!el) throw new Error(`không thấy ${id} trong SVG`);
+        const bb = el.getBBox();
+        const ctm = svg.getScreenCTM()!;
+        let cPaper: DOMPoint | null = null;
+        for (const t of [0.5, 0.35, 0.65, 0.25, 0.75, 0.15, 0.85, 0.45, 0.55, 0.1, 0.9]) {
+          const cand = bb.width >= bb.height
+            ? new DOMPoint(bb.x + bb.width * t, bb.y + bb.height / 2)
+            : new DOMPoint(bb.x + bb.width / 2, bb.y + bb.height * t);
+          const client = cand.matrixTransform(ctm);
+          const hit = document.elementFromPoint(client.x, client.y)?.closest("[data-id]")?.getAttribute("data-id");
+          if (hit === id) {
+            cPaper = cand;
+            break;
+          }
+        }
+        if (!cPaper) throw new Error(`${id} bị phần tử khác đè kín — không có chỗ chạm`);
+        const s = Number(svg.getAttribute("data-tf-scale"));
+        const rot = svg.getAttribute("data-tf-rotated") === "1";
+        const dPaper = rot ? [dModel[1] / s, dModel[0] / s] : [dModel[0] / s, -dModel[1] / s];
+        const from = cPaper.matrixTransform(ctm);
+        const to = new DOMPoint(cPaper.x + dPaper[0]!, cPaper.y + dPaper[1]!).matrixTransform(ctm);
+        return { from: { x: from.x, y: from.y }, to: { x: to.x, y: to.y } };
+      },
+      { id, dModel },
     );
-    expect(hitId).toBeTruthy();
+  }
+
+  it("kéo tường bằng chuột → MỘT op origin user, snap lưới 50, tường dịch đúng hướng", async () => {
+    const rev0 = store.current.meta.revision;
+    const y0 = store.current.walls.find((w) => w.id === "W98")!.from[1];
+    const pts = await wallDragPoints("W98", [0, 400]);
+    await page.mouse.move(pts.from.x, pts.from.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 8; i++) {
+      await page.mouse.move(
+        pts.from.x + ((pts.to.x - pts.from.x) * i) / 8,
+        pts.from.y + ((pts.to.y - pts.from.y) * i) / 8,
+      );
+    }
+    // đọc trạng thái HUD TRƯỚC khi nhả — nhưng assert sau, để lỗi không bỏ kẹt nút chuột
+    const hudHidden = await page.$eval("#hud", (el) => (el as HTMLElement).hidden);
+    await page.mouse.up();
+    expect(hudHidden).toBe(false); // HUD phải nổi trong lúc kéo
+
+    await page.waitForFunction((r) => document.getElementById("rev-seal")?.textContent === `r ${r}`, rev0 + 1, { timeout: 10_000 });
+    const entry = store.changesSince(rev0).entries.at(-1)!;
+    expect(entry.origin).toBe("user");
+    expect(entry.ops).toHaveLength(1);
+    const w = store.current.walls.find((x) => x.id === "W98")!;
+    expect(w.from[1]).not.toBe(y0);
+    expect(w.from[1] % 50).toBe(0); // snap lưới mặc định 50
+    expect(w.from[0]).toBe(220); // không trôi dọc tường
+  }, 30_000);
+
+  it("HUD gõ số ⏎ → chốt ĐÚNG khoảng cách tới tường song song neo (demo DoD: gõ 4200)", async () => {
+    const rev0 = store.current.meta.revision;
+    const w0 = store.current.walls.find((x) => x.id === "W98")!;
+    const y0 = w0.from[1];
+    // neo = tường song song (ngang, L1) gần nhất không cùng tim — như wallDragSession chọn
+    const anchor = store.current.walls
+      .filter((x) => x.id !== "W98" && x.level === "L1" && x.from[1] === x.to[1] && Math.abs(x.from[1] - y0) > w0.thickness)
+      .reduce((a, b) => (Math.abs(a.from[1] - y0) <= Math.abs(b.from[1] - y0) ? a : b));
+    const side = Math.sign(y0 - anchor.from[1]) || 1;
+
+    // nhích về phía đang đứng — đủ lớn để vượt ngưỡng nhận drag (~4px màn hình)
+    const pts = await wallDragPoints("W98", [0, side * 300]);
+    await page.mouse.move(pts.from.x, pts.from.y);
+    await page.mouse.down();
+    await page.mouse.move(pts.to.x, pts.to.y, { steps: 5 });
+    await page.keyboard.type("4200");
+    await page.keyboard.press("Enter");
+    await page.mouse.up(); // đã commit bằng Enter — up chỉ dọn trạng thái
+
+    await page.waitForFunction((r) => document.getElementById("rev-seal")?.textContent === `r ${r}`, rev0 + 1, { timeout: 10_000 });
+    const wNew = store.current.walls.find((x) => x.id === "W98")!;
+    expect(Math.abs(wNew.from[1] - anchor.from[1])).toBe(4200);
+    expect(store.changesSince(rev0).entries.at(-1)!.summary).toContain("→"); // tóm tắt old → new
+  }, 30_000);
+
+  it("Ctrl+Z hoàn tác thao tác của chính mình — op nghịch đảo origin user", async () => {
+    const rev0 = store.current.meta.revision;
+    const yBefore = store.current.walls.find((x) => x.id === "W98")!.from[1];
+    // kéo thêm một nhịp để chắc chắn stack có entry mới nhất là của mình
+    const pts = await wallDragPoints("W98", [0, 200]);
+    await page.mouse.move(pts.from.x, pts.from.y);
+    await page.mouse.down();
+    await page.mouse.move(pts.to.x, pts.to.y, { steps: 5 });
+    await page.mouse.up();
+    await page.waitForFunction((r) => document.getElementById("rev-seal")?.textContent === `r ${r}`, rev0 + 1, { timeout: 10_000 });
+
+    await page.keyboard.press("Control+z");
+    await page.waitForFunction((r) => document.getElementById("rev-seal")?.textContent === `r ${r}`, rev0 + 2, { timeout: 10_000 });
+    const w = store.current.walls.find((x) => x.id === "W98")!;
+    expect(w.from[1]).toBe(yBefore);
+    expect(store.changesSince(rev0 + 1).entries.at(-1)!.origin).toBe("user");
+  }, 30_000);
+
+  it("soft-lock: đang kéo thì op của Claude bị LOCK-01; thả tay + hết khóa nguội thì qua", async () => {
+    const pts = await wallDragPoints("W98", [0, 300]);
+    await page.mouse.move(pts.from.x, pts.from.y);
+    await page.mouse.down();
+    await page.mouse.move(pts.to.x, pts.to.y, { steps: 5 });
+    // presence draggingIds đã lên server → agent phải bị chặn
+    await page.waitForTimeout(150);
+    const rev = store.current.meta.revision;
+    const rLocked = store.apply(rev, [{ op: "update", entity: "wall", id: "W98", data: { thickness: 220 } }]);
+
+    await page.keyboard.press("Escape"); // hủy kéo — không sinh op
+    await page.mouse.up();
+    expect(rLocked.ok).toBe(false);
+    if (!rLocked.ok) expect(rLocked.errors[0]!.rule).toBe("LOCK-01");
+    await page.waitForTimeout(500); // 300ms khóa nguội + dư
+    const rFree = store.apply(store.current.meta.revision, [{ op: "update", entity: "wall", id: "W98", data: { thickness: 110 } }]);
+    expect(rFree.ok).toBe(true);
+  }, 30_000);
+
+  it("panel thuộc tính: sửa số trong ô nhập → op update", async () => {
+    // chọn W98 bằng click vào điểm chắc chắn chạm tường (không dính nhãn đè)
+    const pt = (await wallDragPoints("W98", [0, 0])).from;
+    await page.mouse.click(pt.x, pt.y);
+    await page.waitForFunction(() => !!document.querySelector("#props-body .prop-input"), undefined, { timeout: 5_000 });
+    expect(await page.textContent("#props-body .prop-id")).toContain("W98");
+
+    const rev0 = store.current.meta.revision;
+    const thick = page.locator("#props-body tr", { hasText: "thickness" }).locator("input");
+    await thick.fill("220");
+    await thick.press("Enter");
+    await page.waitForFunction((r) => document.getElementById("rev-seal")?.textContent === `r ${r}`, rev0 + 1, { timeout: 10_000 });
+    expect(store.current.walls.find((x) => x.id === "W98")!.thickness).toBe(220);
+  }, 30_000);
+
+  it("click bản vẽ chọn entity → panel thuộc tính hiện đúng đối tượng vừa chạm", async () => {
+    // điểm hit-verified (nhãn phòng/nội thất có thể đè lên tường — phải né)
+    const pt = (await wallDragPoints("W98", [0, 0])).from;
     await page.mouse.click(pt.x, pt.y);
     await page.waitForFunction(
-      (id) => !!id && !!document.getElementById("props-body")?.textContent?.includes(id),
-      hitId,
+      () => !!document.getElementById("props-body")?.textContent?.includes("W98"),
+      undefined,
       { timeout: 5_000 },
     );
   }, 15_000);
