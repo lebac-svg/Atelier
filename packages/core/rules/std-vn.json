@@ -14,9 +14,9 @@
       "title": "Bề rộng thông thủy phòng ở",
       "severity": "warn",
       "params": { "min": 2100 },
-      "source": { "vanBan": "thực hành thiết kế (chưa thấy trong TCVN 13967:2024)", "verified": false },
+      "source": { "vanBan": "khuyến nghị tiện nghi Atelier — đã rà TCVN 13967:2024 (13/07/2026): chuẩn KHÔNG quy định bề rộng phòng", "verified": true },
       "message": "Phòng {ten} ({room}) bề rộng {width}mm < {min}mm.",
-      "note": "v1 đo theo OBB nhỏ nhất — phòng chữ L lấy bề rộng bao, v2 dùng trục trung tuyến."
+      "note": "Không phải số bắt buộc theo chuẩn — ngưỡng tiện nghi (giường 2m + lối đi tối thiểu). v1 đo theo OBB nhỏ nhất — phòng chữ L lấy bề rộng bao, v2 dùng trục trung tuyến."
     },
     {
       "id": "STD-03",
@@ -40,7 +40,7 @@
       "title": "Bề rộng cửa đi",
       "severity": "error",
       "params": { "chinh": 800, "chinh_khuyen": 900, "phong": 700, "wc": 600 },
-      "source": { "vanBan": "TCVN 13967:2024 (cửa chính = lối ra thoát nạn ≥800 đã đối chiếu; cửa phòng/WC theo thực hành)", "verified": false },
+      "source": { "vanBan": "TCVN 13967:2024 (lối ra thoát nạn ≥800); cửa phòng 700/WC 600 = khuyến nghị thực hành — đã rà 13967: không quy định riêng (13/07/2026)", "verified": true },
       "message": "Cửa {opening} ({loai}) rộng {width}mm < {min}mm."
     },
     {
@@ -57,18 +57,19 @@
       "title": "Chiều cao lan can",
       "severity": "error",
       "status": "planned",
-      "params": { "lan_can": 900, "khe_ho_max": 100 },
-      "source": { "vanBan": "TCVN 13967:2024", "dieu": "5.11", "verified": true },
+      "params": { "cau_thang": 900, "ban_cong_hanh_lang_mai": 1100, "lo_gia_san_thuong_tu_tang_9": 1400, "khe_ho_max": 100 },
+      "source": { "vanBan": "QCXDVN 05:2008/BXD (bảng lan can: thang/dốc ≥900, vị trí khác ≥1100, lô gia+sân thượng từ tầng 9 ≥1400, khe không lọt cầu ⌀100, không tạo chỗ trèo) + TCVN 13967:2024 5.11 (thang ≥900)", "verified": true },
       "message": "Lan can {entity} cao {height}mm < {min}mm.",
-      "note": "Số đã chốt (≥900, khe ≤100) nhưng schema v1 chưa có thực thể lan can — bật ở P4 cùng mặt đứng/mặt cắt. Cửa sổ tầng cao đã có STD-08 đỡ."
+      "note": "Số đã chốt đủ nhưng schema v1 chưa có thực thể lan can — bật ở P4 cùng mặt đứng/mặt cắt. Cửa sổ tầng cao đã có STD-08 đỡ."
     },
     {
       "id": "STD-08",
       "title": "Cửa sổ bậu thấp ở tầng cao — an toàn trẻ em",
       "severity": "warn",
       "params": { "sill_min": 900 },
-      "source": { "vanBan": "QCVN 05:2008/BXD (dự thảo — chưa đối chiếu được văn bản gốc)", "verified": false },
-      "message": "Cửa sổ {opening} bậu {sill}mm < {min}mm ở {level} (tầng cao) mà chưa có lan can bảo vệ."
+      "source": { "vanBan": "QCXDVN 05:2008/BXD — bộ phận mở được phải có rào chắn/lan can ≥900 (đối chiếu 13/07/2026)", "verified": true },
+      "message": "Cửa sổ {opening} bậu {sill}mm < {min}mm ở {level} (tầng cao) mà chưa có lan can bảo vệ.",
+      "note": "Schema v1 chưa mô tả được lan can cửa sổ nên bậu <900 ở tầng cao luôn nhắc — người dùng tự kiểm nếu đã có rào chắn rời."
     },
     {
       "id": "STD-09",
@@ -89,7 +90,7 @@
       "title": "Lối đi tối thiểu quanh nội thất",
       "severity": "info",
       "params": { "giuong": 600, "bep_truoc": 900, "bon_cau_truoc": 500 },
-      "source": { "vanBan": "thực hành thiết kế nội thất", "verified": false },
+      "source": { "vanBan": "quy ước công thái học nội thất (Neufert) — TCVN không quy định, mức advisory", "verified": true },
       "message": "{item}: {detail}."
     },
     {

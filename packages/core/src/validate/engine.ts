@@ -5,7 +5,7 @@ import type { Finding } from "./finding.js";
 import { activeRules, getRule, type RuleDef } from "./rules.js";
 import { geo01, geo02, geo03, geo04, geo05, geo06, geo07, geo08 } from "./evaluators-geo.js";
 import { std01, std02, std03, std04, std05, std06, std08, std09, std10, std11, std12 } from "./evaluators-std.js";
-import { lbb01, lbb02 } from "./evaluators-lbb.js";
+import { lbb01, lbb02, lbb04 } from "./evaluators-lbb.js";
 
 type Evaluator = (p: Project, def: RuleDef) => Finding[];
 
@@ -31,7 +31,8 @@ const EVALUATORS: Record<string, Evaluator> = {
   "STD-12": std12,
   "LBB-01": lbb01,
   "LBB-02": lbb02,
-  // LBB-03 được phát từ bên trong LBB-01/02 (gợi ý số đẹp đi kèm phát hiện xấu)
+  "LBB-04": lbb04,
+  // LBB-03 được phát từ bên trong LBB-01/02/04 (gợi ý số đẹp đi kèm phát hiện xấu)
 };
 
 export function formatMessage(tpl: string, values: Record<string, string | number>): string {

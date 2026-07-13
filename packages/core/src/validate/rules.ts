@@ -25,7 +25,7 @@ const std = stdJson as { rules: RuleDef[] };
 const loban = lobanJson as { rulers: Record<string, RulerDef>; rules: RuleDef[] };
 
 export const ALL_RULES: RuleDef[] = [...geo.rules, ...std.rules, ...loban.rules];
-export const RULERS: { thong_thuy: RulerDef; khoi_xay: RulerDef } = loban.rulers as never;
+export const RULERS: { thong_thuy: RulerDef; khoi_xay: RulerDef; ban_tho: RulerDef } = loban.rulers as never;
 
 const byId = new Map(ALL_RULES.map((r) => [r.id, r]));
 

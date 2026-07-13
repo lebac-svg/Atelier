@@ -38,10 +38,10 @@ describe("renderer 2D — mặt bằng", () => {
     expect(svg).toContain(">16000<");
     // thang: mũi tên LÊN + số bậc
     expect(svg).toContain("LÊN 21 BẬC");
-    // khung tên + tỷ lệ + cờ ⚠ khi còn rule chưa verify
+    // khung tên + tỷ lệ; mọi rule đã verified nên KHÔNG còn dòng ⚠ tham khảo
     expect(svg).toContain("TỶ LỆ 1:50");
     expect(svg).toContain("MẶT BẰNG TẦNG 1");
-    expect(svg).toContain("⚠");
+    expect(svg).not.toContain("⚠");
     expect(svg).toContain("Bản vẽ concept");
   });
 

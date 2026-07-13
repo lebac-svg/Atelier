@@ -1,8 +1,8 @@
 {
   "rulers": {
     "thong_thuy": {
-      "label": "Thước Lỗ Ban 52.2cm (thông thủy cửa)",
-      "cycle": 522,
+      "label": "Thước Lỗ Ban 52.2cm (thông thủy cửa, lỗ rỗng)",
+      "cycle": 520,
       "cungs": [
         { "name": "Quý Nhân", "good": true },
         { "name": "Hiểm Họa", "good": false },
@@ -15,7 +15,7 @@
       ]
     },
     "khoi_xay": {
-      "label": "Thước Lỗ Ban 42.9cm (khối xây: bệ bếp, bàn thờ)",
+      "label": "Thước Lỗ Ban 42.9cm (khối xây: bệ bếp, bậc, khối đặc)",
       "cycle": 429,
       "cungs": [
         { "name": "Tài", "good": true },
@@ -27,6 +27,22 @@
         { "name": "Hại", "good": false },
         { "name": "Bản", "good": true }
       ]
+    },
+    "ban_tho": {
+      "label": "Thước Lỗ Ban 38.8cm/39 (Đinh Lan — bàn thờ, đồ thờ, âm phần)",
+      "cycle": 390,
+      "cungs": [
+        { "name": "Đinh", "good": true },
+        { "name": "Hại", "good": false },
+        { "name": "Vượng", "good": true },
+        { "name": "Khổ", "good": false },
+        { "name": "Nghĩa", "good": true },
+        { "name": "Quan", "good": true },
+        { "name": "Tử", "good": false },
+        { "name": "Hưng", "good": true },
+        { "name": "Thất", "good": false },
+        { "name": "Tài", "good": true }
+      ]
     }
   },
   "rules": [
@@ -34,22 +50,31 @@
       "id": "LBB-01",
       "title": "Thông thủy cửa theo thước Lỗ Ban 52.2cm",
       "severity": "info",
-      "source": { "vanBan": "thước Lỗ Ban 52.2 lưu truyền — tên cung & biên cần đối chiếu nguồn tin cậy", "verified": false },
-      "message": "Thông thủy {dim} cửa {opening} = {value}mm rơi cung {cung} (xấu) theo thước 52.2cm."
+      "source": { "vanBan": "thước cuộn Lỗ Ban lưu hành — đối chiếu chéo 3 nguồn 13/07/2026: chu kỳ 520mm, 8 cung × 65mm", "verified": true },
+      "message": "Thông thủy {dim} cửa {opening} = {value}mm rơi cung {cung} (xấu) theo thước 52.2cm.",
+      "note": "Cung thứ 5 'Nhân Lộc' — một số nguồn ghi 'Phúc Lộc' (cùng cung, cùng nghĩa tốt)."
     },
     {
       "id": "LBB-02",
-      "title": "Khối xây quan trọng theo thước Lỗ Ban 42.9cm",
+      "title": "Khối xây (bệ/tủ bếp, bậc) theo thước Lỗ Ban 42.9cm",
       "severity": "info",
-      "source": { "vanBan": "thước Lỗ Ban 42.9 lưu truyền — cần đối chiếu", "verified": false },
-      "message": "{item} cạnh {value}mm rơi cung {cung} (xấu) theo thước 42.9cm."
+      "source": { "vanBan": "thước cuộn Lỗ Ban lưu hành — chu kỳ 429mm, 8 cung; đối chiếu 13/07/2026", "verified": true },
+      "message": "{item} cạnh {value}mm rơi cung {cung} (xấu) theo thước 42.9cm.",
+      "note": "Biến thể tên cung 6/8 ở vài nguồn: Kiếp/Nạn, Bản/Mạng — cùng vị trí, cùng tốt-xấu."
     },
     {
       "id": "LBB-03",
       "title": "Gợi ý kích thước vào cung đẹp gần nhất",
       "severity": "info",
-      "source": { "vanBan": "dẫn xuất từ LBB-01/02", "verified": false },
+      "source": { "vanBan": "dẫn xuất từ LBB-01/02/04", "verified": true },
       "message": "{item}: {value}mm → {suggest}mm vào cung {cungTot} (chênh {delta}mm)."
+    },
+    {
+      "id": "LBB-04",
+      "title": "Bàn thờ, đồ thờ theo thước Lỗ Ban 38.8cm",
+      "severity": "info",
+      "source": { "vanBan": "thước cuộn Đinh Lan 38.8/39cm lưu hành — 10 cung × 39mm; tốt: Đinh, Vượng, Nghĩa, Quan, Hưng, Tài; đối chiếu 13/07/2026", "verified": true },
+      "message": "{item} cạnh {value}mm rơi cung {cung} (xấu) theo thước 38.8cm — đồ thờ nên vào cung đỏ."
     }
   ]
 }

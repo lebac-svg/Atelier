@@ -30,8 +30,8 @@ describe("bộ rule — tổng quan", () => {
     expect(validateProject(loadNhaOng4x16())).toEqual([]);
   });
 
-  it("số liệu chưa đối chiếu văn bản gốc được đánh dấu ⚠", () => {
-    expect(unverifiedRules().length).toBeGreaterThan(0);
+  it("toàn bộ rule đã đối chiếu nguồn (verified) — hết cờ ⚠ từ 13/07/2026", () => {
+    expect(unverifiedRules()).toEqual([]);
   });
 });
 
@@ -200,12 +200,25 @@ describe("LBB — thước Lỗ Ban (advisory, bật qua brief)", () => {
     expect(goiY.message).toContain("750");
   });
 
-  it("LBB-02: khối xây (bàn thờ) cạnh rơi cung xấu", () => {
-    registerAsset({ id: "ban-tho-xau", label: "Bàn thờ thử", category: "ban-tho", footprint: { w: 1000, d: 500, h: 1200 } });
+  it("LBB-02: khối xây (tủ bếp) cạnh rơi cung xấu theo 42.9", () => {
+    registerAsset({ id: "tu-bep-xau", label: "Tủ bếp thử", category: "tu-bep-duoi", footprint: { w: 1000, d: 500, h: 850 } });
+    const issues = violate((p) => {
+      p.furniture.push({ id: "F96", level: "L1", asset: "tu-bep-xau", at: [1500, 6900], rotation: 0 });
+    });
+    const i = expectRule(issues, "LBB-02", "info");
+    expect(i.message).toContain("42.9");
+  });
+
+  it("LBB-04: bàn thờ đo bằng thước 38.8 (Đinh Lan), cạnh xấu → info; bàn thờ catalog thì đẹp", () => {
+    expect(cungAt(1070, RULERS.ban_tho)).toMatchObject({ name: "Hưng", good: true });
+    expect(cungAt(610, RULERS.ban_tho)).toMatchObject({ name: "Quan", good: true });
+    registerAsset({ id: "ban-tho-xau", label: "Bàn thờ thử", category: "ban-tho", footprint: { w: 830, d: 460, h: 1200 } });
     const issues = violate((p) => {
       p.furniture.push({ id: "F97", level: "L2", asset: "ban-tho-xau", at: [2200, 6400], rotation: 90 });
     });
-    expectRule(issues, "LBB-02", "info");
+    const i = expectRule(issues, "LBB-04", "info");
+    expect(i.message).toContain("38.8");
+    expectRule(issues, "LBB-03", "info");
   });
 
   it("tắt Lỗ Ban trong brief → LBB im lặng tuyệt đối", () => {

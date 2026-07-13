@@ -309,7 +309,6 @@ text{font-family:'Be Vietnam Pro','Segoe UI',Arial,sans-serif;fill:#000;stroke:n
 <text x="266" y="286.6" font-size="2.4" text-anchor="start" dominant-baseline="middle">Kiểm: ................</text>
 <text x="370" y="286.6" font-size="2.4" text-anchor="start" dominant-baseline="middle">atelier/0.1</text>
 <text x="10" y="284.6" font-size="2" text-anchor="start" dominant-baseline="middle">Bản vẽ concept — không thay thế hồ sơ thiết kế có chữ ký KTS hành nghề.</text>
-<text x="10" y="287.4" font-size="2" text-anchor="start" dominant-baseline="middle">⚠ Một số số liệu tiêu chuẩn đang ở mức tham khảo (chưa đối chiếu văn bản gốc).</text>
 <circle cx="401" cy="19" r="6.5" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="round" stroke-linejoin="round"/>
 <line x1="404.677" y1="22.677" x2="397.323" y2="15.323" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon points="397.323,15.323 400.859,16.596 398.596,18.859" fill="#000"/>

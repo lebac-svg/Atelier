@@ -78,6 +78,8 @@ Mỗi rule:
 
 ⚠ Tên cung và biên chính xác từng cung cần chốt theo nguồn đáng tin trước khi bật mặc định (task P1, cùng đợt tra TCVN). Cơ chế mod-cung thì chốt ngay từ giờ.
 
+> ✅ **Đã đối chiếu chéo 3+ nguồn thước cuộn lưu hành (13/07/2026):** thước 52.2cm chu kỳ **520mm** (8 cung × 65mm — không phải 65.25), cung 5 tên *Nhân Lộc* (nguồn khác ghi *Phúc Lộc*, cùng cung tốt); 42.9cm = khối xây (bệ/tủ bếp, bậc); **bàn thờ đo bằng thước 38.8/39cm (Đinh Lan, 10 cung × 39mm)** → tách thành rule **LBB-04**, tốt: Đinh, Vượng, Nghĩa, Quan, Hưng, Tài. Số cụ thể xem `packages/core/rules/loban.json`.
+
 ## PLN — quy hoạch địa phương (🔭 Giai đoạn 4)
 
 Rule pack nhập theo dự án: khoảng lùi, mật độ xây dựng tối đa, cao độ/tầng cao, ô văng vươn ra hẻm. Cấu trúc giống STD nhưng `params` lấy từ `brief.quy_hoach` do người dùng khai (Atelier không tự tra quy hoạch — ngoài phạm vi).

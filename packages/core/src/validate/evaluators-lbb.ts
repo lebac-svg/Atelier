@@ -29,15 +29,12 @@ export function lbb01(p: Project): Finding[] {
   return out;
 }
 
-const KHOI_XAY = new Set(["ban-tho", "tu-bep-duoi"]);
-
-export function lbb02(p: Project): Finding[] {
-  if (!enabled(p)) return [];
+/** Đo phần thô theo category: khối xây 42.9; bàn thờ/đồ thờ 38.8 (thước Đinh Lan). */
+function checkFurnitureRuler(p: Project, categories: Set<string>, ruler: typeof RULERS.khoi_xay): Finding[] {
   const out: Finding[] = [];
-  const ruler = RULERS.khoi_xay;
   for (const f of p.furniture) {
     const asset = getAsset(f.asset);
-    if (!asset || !KHOI_XAY.has(asset.category)) continue;
+    if (!asset || !categories.has(asset.category)) continue;
     const dims: Array<[string, number]> = [["ngang", asset.footprint.w], ["sâu", asset.footprint.d]];
     for (const [dim, value] of dims) {
       const cung = cungAt(value, ruler);
@@ -53,4 +50,14 @@ export function lbb02(p: Project): Finding[] {
     }
   }
   return out;
+}
+
+export function lbb02(p: Project): Finding[] {
+  if (!enabled(p)) return [];
+  return checkFurnitureRuler(p, new Set(["tu-bep-duoi"]), RULERS.khoi_xay);
+}
+
+export function lbb04(p: Project): Finding[] {
+  if (!enabled(p)) return [];
+  return checkFurnitureRuler(p, new Set(["ban-tho"]), RULERS.ban_tho);
 }
