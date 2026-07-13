@@ -35,7 +35,7 @@ Cỡ M/L là tương đối giữa các giai đoạn — ước lượng thô, c
 
 | Hạng mục | Ghi chú | Khi nào |
 |---|---|---|
-| Dự toán sơ bộ | m² sàn, khối lượng ước lệ × bảng đơn giá (file người dùng sửa được) → `estimate_cost` | v2 |
+| ~~Dự toán sơ bộ~~ | ✅ 13/07/2026 — `estimate_cost` (diện tích quy đổi móng/sàn/mái × `rules/don-gia.json`, so ngân sách brief) + tờ DỰ TOÁN SƠ BỘ KT-06 trong bộ hồ sơ | ~~v2~~ xong |
 | So sánh phương án A/B | 2 revision/branch cạnh nhau trên editor | v2 |
 | Link chia sẻ chỉ-xem | token + read-only client (giao thức đã sẵn) | v2 |
 | Rule pack quy hoạch địa phương | PLN — khoảng lùi/mật độ/tầng cao nhập theo dự án | P4 |

@@ -1,0 +1,26 @@
+{
+  "version": "2026-H2",
+  "ghi_chu": "Đơn giá THAM KHẢO thị trường xây nhà phố Việt Nam nửa cuối 2026 — chưa đối chiếu báo giá thầu thật (tham_khao=true). Dự toán sơ bộ sai số ±15–20%. SỬA FILE NÀY theo địa phương và thời điểm của bạn: đơn giá vnd là đồng/m² sàn quy đổi.",
+  "tham_khao": true,
+  "don_gia_m2": {
+    "xay_tho": {
+      "label": "Phần thô + nhân công hoàn thiện",
+      "vnd": 3800000
+    },
+    "hoan_thien": {
+      "co-ban": { "label": "Hoàn thiện cơ bản", "vnd": 2800000 },
+      "trung-binh-kha": { "label": "Hoàn thiện trung bình khá", "vnd": 3500000 },
+      "cao-cap": { "label": "Hoàn thiện cao cấp", "vnd": 5500000 }
+    }
+  },
+  "he_so_quy_doi": {
+    "mong": { "label": "Móng (băng/đơn, gia cố thường)", "he_so": 0.4 },
+    "san": { "label": "Sàn các tầng có mái che", "he_so": 1.0 },
+    "mai_btct": { "label": "Mái BTCT / sân thượng", "he_so": 0.5 },
+    "o_trong_lon": {
+      "label": "Ô trống thông tầng/giếng trời ≥ ngưỡng — phần vượt tính nửa",
+      "he_so": 0.5,
+      "nguong_m2": 8
+    }
+  }
+}

@@ -21,7 +21,7 @@ Mô tả (description) của từng tool sẽ nhúng luôn quy tắc hành vi ch
 | 11 | `assets_search` | `(query, category?, maxFootprint?)` | ✅ P5 — danh sách asset (id, tên VN, footprint, khe hở) + MỘT ảnh contact-sheet thumbnail |
 | 12 | `brief_get` / `brief_set` | `() / (patch)` | brief hiện tại |
 | 13 | `standards_lookup` | `(query)` | rule + số liệu + nguồn trích dẫn (để Claude trả lời "vì sao phải ≥900?") |
-| 14 | `estimate_cost` | `(level: "so-bo")` | 🔭 v2 — khối lượng từ model × bảng đơn giá |
+| 14 | `estimate_cost` | `(muc?: "co-ban"\|"trung-binh-kha"\|"cao-cap")` | ✅ 13/07/2026 — diện tích quy đổi + khối lượng từ model × bảng đơn giá `rules/don-gia.json` (người dùng sửa được), tự so ngân sách brief; kèm tờ `estimate` (KT-06) trong bộ export |
 | 15 | `history_restore` | `(revision)` | ⚠ chỉ khi người dùng yêu cầu rõ ràng |
 | 16 | `render_view` | `(kind: "elevation"\|"section", scale?)` | **ảnh PNG** mặt đứng chính / mặt cắt A-A — bổ sung ở P4 để Claude tự soi trước checkpoint E |
 

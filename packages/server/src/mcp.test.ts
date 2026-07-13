@@ -31,14 +31,29 @@ const textOf = (r: Awaited<ReturnType<Client["callTool"]>>): string =>
     .join("\n");
 
 describe("MCP server — tools DoD P1 + P2 + P4", () => {
-  it("liệt kê đúng 12 tools", async () => {
+  it("liệt kê đúng 13 tools", async () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();
     expect(names).toEqual([
-      "apply_ops", "assets_search", "capture_view", "editor_open", "export", "get_changes_since",
-      "model_query", "project_new", "project_open", "render_plan", "render_view", "validate",
+      "apply_ops", "assets_search", "capture_view", "editor_open", "estimate_cost", "export",
+      "get_changes_since", "model_query", "project_new", "project_open", "render_plan",
+      "render_view", "validate",
     ].sort());
+  });
+
+  it("estimate_cost: tổng tiền + so ngân sách brief + override mức hoàn thiện", async () => {
+    const { client } = await connect();
+    await client.callTool({ name: "project_new", arguments: { name: "Nhà anh Ba", template: "nha-ong-4x16-2t" } });
+    const r = await client.callTool({ name: "estimate_cost", arguments: {} });
+    const msg = textOf(r);
+    expect(msg).toContain("TỔNG QUY ĐỔI");
+    expect(msg).toContain("➤ TỔNG:");
+    expect(msg).toContain("CÒN DƯ"); // brief fixture ~1.8 tỷ > dự toán TB khá
+    expect(msg).toContain("don-gia.json");
+
+    const sang = await client.callTool({ name: "estimate_cost", arguments: { muc: "cao-cap" } });
+    expect(textOf(sang)).toContain("cao cấp");
   });
 
   it("assets_search: lọc theo maxFootprint, catalog ≥100, không cần mở dự án", async () => {

@@ -14,6 +14,8 @@ export * from "./geometry/wall.js";
 export * from "./geometry/obb.js";
 export * from "./geometry/stair.js";
 
+export * from "./estimate.js";
+
 export * from "./ops/ops.js";
 export * from "./ops/apply.js";
 export * from "./ops/summary.js";

@@ -3,8 +3,9 @@ import path from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
-  areaM2, ASSET_CATEGORIES, getLevel, searchAssets, stairLayout, validateProject,
-  type AssetCategory, type CaptureCamera, type Issue, type Op, type Project,
+  areaM2, ASSET_CATEGORIES, DON_GIA, estimateCost, formatVnd, getLevel, searchAssets,
+  stairLayout, validateProject,
+  type AssetCategory, type CaptureCamera, type FinishLevel, type Issue, type Op, type Project,
 } from "@atelier/core";
 import { buildAssetsSheetSvg, SHEET_CAPACITY } from "./render/assets-sheet.js";
 import { DEFAULT_WEB_DIST, LiveServer, openInBrowser } from "./live.js";
@@ -415,11 +416,61 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
   );
 
   server.registerTool(
+    "estimate_cost",
+    {
+      title: "Dự toán chi phí sơ bộ",
+      description:
+        "Ước tính chi phí xây từ model: diện tích quy đổi (sàn 100%, móng ~40%, mái ~50%) × đơn giá phần thô + sàn thực × đơn giá hoàn thiện theo mức trong brief (muc để override: co-ban | trung-binh-kha | cao-cap). Tự so với ngân sách brief. Sai số ±15–20%, KHÔNG thay báo giá thầu — đơn giá là data người dùng sửa được ở packages/core/rules/don-gia.json. Tờ DỰ TOÁN SƠ BỘ cũng nằm trong bộ export (id 'estimate').",
+      inputSchema: {
+        muc: z.enum(["co-ban", "trung-binh-kha", "cao-cap"]).optional(),
+      },
+    },
+    (args) => {
+      try {
+        const p = store.current;
+        const e = estimateCost(p, args.muc as FinishLevel | undefined);
+        const q = e.quantities;
+        const lines: string[] = [];
+        lines.push(`DỰ TOÁN SƠ BỘ — "${p.meta.name}" (revision ${p.meta.revision})`);
+        lines.push("");
+        lines.push("Diện tích tính phí:");
+        for (const l of q.dien_tich) {
+          lines.push(`  ${l.label}${l.uoc_le ? " (ước lệ)" : ""}: ${l.dien_tich_m2}m² × ${l.he_so} = ${l.quy_doi_m2}m²`);
+        }
+        lines.push(`  TỔNG QUY ĐỔI: ${q.tong_quy_doi_m2}m² · sàn thực ${q.san_thuc_m2}m²`);
+        lines.push("");
+        lines.push("Chi phí:");
+        for (const i of e.items) {
+          lines.push(`  ${i.label}: ${i.don_gia_vnd.toLocaleString("vi-VN")}đ/m² → ${i.thanh_tien_vnd.toLocaleString("vi-VN")}đ`);
+        }
+        lines.push(`  ➤ TỔNG: ${e.tong_vnd.toLocaleString("vi-VN")}đ (~${formatVnd(e.tong_vnd)})`);
+        if (e.ngan_sach) {
+          const ns = e.ngan_sach;
+          lines.push(
+            ns.vnd == null
+              ? `Ngân sách brief "${ns.text}" — chưa quy được ra số.`
+              : ns.chenh_lech_vnd! >= 0
+                ? `Ngân sách brief ${formatVnd(ns.vnd)} → CÒN DƯ ~${formatVnd(ns.chenh_lech_vnd!)}.`
+                : `Ngân sách brief ${formatVnd(ns.vnd)} → VƯỢT ~${formatVnd(-ns.chenh_lech_vnd!)} — cân nhắc giảm mức hoàn thiện hoặc diện tích.`,
+          );
+        }
+        lines.push("");
+        lines.push(`Khối lượng tham khảo: tường xây ${q.tuong_xay_m2}m², cửa ${q.cua_bo} bộ (${q.cua_m2}m²), thang ${q.bac_thang} bậc.`);
+        for (const g of e.ghi_chu) lines.push(`⚠ ${g}`);
+        lines.push(`(Bảng đơn giá ${DON_GIA.version} — sửa theo địa phương tại packages/core/rules/don-gia.json.)`);
+        return text(lines.join("\n"));
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
     "export",
     {
       title: "Xuất hồ sơ bản vẽ",
       description:
-        "Xuất BỘ hồ sơ concept vào .atelier/exports/ho-so/: mặt bằng từng tầng + mặt đứng chính + mặt cắt A-A + bảng thống kê phòng/cửa, đánh số KT-01… format: 'pdf' = MỘT file A3 ngang nhiều trang (bàn giao); 'svg' = mỗi tờ một file; 'dxf' = mỗi tờ hình học một file mm thật (mở CAD đo được; tờ thống kê không có DXF). sheets để lọc: plan-<levelId> | elevation | section | schedule. LUÔN validate + tự soi render trước khi bàn giao (checkpoint 5). gltf/ifc chưa hỗ trợ (backlog).",
+        "Xuất BỘ hồ sơ concept vào .atelier/exports/ho-so/: mặt bằng từng tầng + mặt đứng chính + mặt cắt A-A + thống kê phòng/cửa + dự toán sơ bộ, đánh số KT-01… format: 'pdf' = MỘT file A3 ngang nhiều trang (bàn giao); 'svg' = mỗi tờ một file; 'dxf' = mỗi tờ hình học một file mm thật (mở CAD đo được; tờ bảng không có DXF). sheets để lọc: plan-<levelId> | elevation | section | schedule | estimate. LUÔN validate + tự soi render trước khi bàn giao (checkpoint 5). gltf/ifc chưa hỗ trợ (backlog).",
       inputSchema: {
         format: z.enum(["pdf", "svg", "dxf", "gltf", "ifc"]),
         sheets: z.array(z.string()).optional(),
@@ -436,7 +487,7 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
           ...(args.sheets?.length ? { sheets: args.sheets } : {}),
         });
         if (set.sheets.length === 0) {
-          const known = ["plan-<levelId>", "elevation", "section", "schedule"].join(" | ");
+          const known = ["plan-<levelId>", "elevation", "section", "schedule", "estimate"].join(" | ");
           return fail(new Error(`Không tờ nào khớp bộ lọc — id hợp lệ: ${known}.`));
         }
         const dir = path.join(store.exportDir, "ho-so");

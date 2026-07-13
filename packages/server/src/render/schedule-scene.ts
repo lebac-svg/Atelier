@@ -34,10 +34,10 @@ const USE_LABEL: Record<RoomUse, string> = {
   "ban-cong": "Ban công",
 };
 
-type Col = { w: number; label: string; anchor?: "start" | "middle" | "end" };
+export type Col = { w: number; label: string; anchor?: "start" | "middle" | "end" };
 
-/** Vẽ một bảng paper-space, trả y đáy. Row = mảng ô theo cột; null = ô trống. */
-function drawTable(
+/** Vẽ một bảng paper-space, trả y đáy. Row = mảng ô theo cột; null = ô trống. Dùng chung KT-05/KT-06. */
+export function drawTable(
   push: Push,
   x: number,
   y: number,

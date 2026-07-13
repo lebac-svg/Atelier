@@ -134,13 +134,17 @@ describe("P4 — DXF writer (ADR-08: TS thuần)", () => {
 });
 
 describe("P4 — bộ tờ hồ sơ", () => {
-  it("trọn bộ: KT-01..KT-05 đúng thứ tự pha E", () => {
+  it("trọn bộ: KT-01..KT-06 đúng thứ tự pha E (kèm dự toán)", () => {
     const set = buildSheetSet(p, { date: "13/07/2026" });
     expect(set.sheets.map((s) => `${s.no} ${s.id}`)).toEqual([
-      "KT-01 plan-L1", "KT-02 plan-L2", "KT-03 elevation", "KT-04 section", "KT-05 schedule",
+      "KT-01 plan-L1", "KT-02 plan-L2", "KT-03 elevation", "KT-04 section", "KT-05 schedule", "KT-06 estimate",
     ]);
     expect(set.skipped).toEqual([]);
     for (const s of set.sheets) expect(sheetSvg(s, false)).toContain(s.no);
+    // tờ dự toán nói được tổng tiền + đối chiếu ngân sách brief
+    const duToan = sheetSvg(set.sheets.find((s) => s.id === "estimate")!, false);
+    expect(duToan).toContain("TỔNG DỰ TOÁN");
+    expect(duToan).toContain("CÒN DƯ");
   });
 
   it("lọc tờ vẫn giữ đúng số trong bộ; model không thang → section vào skipped", () => {
@@ -152,8 +156,9 @@ describe("P4 — bộ tờ hồ sơ", () => {
     noStair.stairs = [];
     const set = buildSheetSet(noStair);
     expect(set.skipped.map((s) => s.id)).toContain("section");
-    // thống kê dồn số lên thay chỗ mặt cắt
+    // thống kê + dự toán dồn số lên thay chỗ mặt cắt
     expect(set.sheets.find((s) => s.id === "schedule")!.no).toBe("KT-04");
+    expect(set.sheets.find((s) => s.id === "estimate")!.no).toBe("KT-05");
   });
 
   it("sheetDxf chỉ dành cho tờ có hình học model", () => {
@@ -177,9 +182,9 @@ describe("P4 — PDF hồ sơ (Chromium print)", () => {
     }
     const buf = readFileSync(out);
     expect(buf.subarray(0, 5).toString()).toBe("%PDF-");
-    expect(buf.length).toBeGreaterThan(50_000); // 5 trang có font nhúng
+    expect(buf.length).toBeGreaterThan(50_000); // 6 trang có font nhúng
     // đếm trang qua marker /Type /Page (không /Pages)
     const pages = buf.toString("latin1").match(/\/Type\s*\/Page[^s]/g)?.length ?? 0;
-    expect(pages).toBe(5);
+    expect(pages).toBe(6);
   }, 60_000);
 });

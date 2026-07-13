@@ -1,5 +1,6 @@
 import type { Project } from "@atelier/core";
 import { buildElevationScene } from "./elevation-scene.js";
+import { buildEstimateScene } from "./estimate-scene.js";
 import { buildPlanScene } from "./plan-scene.js";
 import { buildScheduleScene } from "./schedule-scene.js";
 import { buildSectionScene } from "./section-scene.js";
@@ -15,7 +16,7 @@ import type { PlanTransform } from "./transform.js";
  */
 
 export type Sheet = {
-  /** id chọn lọc qua tool export: "plan-L1" | "elevation" | "section" | "schedule". */
+  /** id chọn lọc qua tool export: "plan-L1" | "elevation" | "section" | "schedule" | "estimate". */
   id: string;
   no: string;
   title: string;
@@ -78,6 +79,10 @@ export function buildSheetSet(p: Project, opts: SheetSetOptions = {}): SheetSet 
   });
   tryBuild("schedule", "thong-ke", (no) => {
     const b = buildScheduleScene(p, { ...common, sheetNo: no });
+    return { items: b.items, tf: b.tf, ...b.meta };
+  }, false);
+  tryBuild("estimate", "du-toan", (no) => {
+    const b = buildEstimateScene(p, { ...common, sheetNo: no });
     return { items: b.items, tf: b.tf, ...b.meta };
   }, false);
 
