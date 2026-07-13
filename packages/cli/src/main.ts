@@ -14,6 +14,13 @@ import { createAtelierServer, LiveServer, ProjectStore } from "@atelier/server";
  * ATELIER_DIR (mặc định: cwd) = một căn nhà. KHÔNG được ghi ra stdout — stdio là kênh MCP.
  */
 
+// `atelier-mcp setup` — một lệnh đăng ký cho MỌI client trên máy rồi thoát
+if (process.argv[2] === "setup") {
+  const { runSetup } = await import("./setup.js");
+  const results = runSetup(path.resolve(process.env.ATELIER_DIR ?? "."));
+  process.exit(results.some((r) => r.status === "error") ? 1 : 0);
+}
+
 const pkgRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 process.env.ATELIER_FONT_DIR ??= path.join(pkgRoot, "assets", "fonts");
 

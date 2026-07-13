@@ -6,19 +6,19 @@ Bản gốc tiếng Việt + toàn bộ tài liệu thiết kế: [github.com/le
 
 ## Install
 
-Atelier is a standard MCP server, not tied to Claude. The server is always `npx -y atelier-mcp`; register it with whichever client you use, standing in your house folder (one folder = one house — the model lives there):
+Atelier is a standard MCP server, not tied to Claude. Stand in your house folder (one folder = one house — the model lives there) and run ONE command — it detects every MCP client on your machine (Claude Code, Codex CLI, Gemini CLI, Claude Desktop, Cursor) and registers with each:
 
 ```bash
 cd my-house
+npx -y atelier-mcp setup
+```
 
-# Claude Code
-claude mcp add atelier -- npx -y atelier-mcp
+Or register manually with your client of choice:
 
-# OpenAI Codex CLI
-codex mcp add atelier -- npx -y atelier-mcp
-
-# Gemini CLI
-gemini mcp add atelier npx -y atelier-mcp
+```bash
+claude mcp add atelier -- npx -y atelier-mcp   # Claude Code
+codex mcp add atelier -- npx -y atelier-mcp    # OpenAI Codex CLI
+gemini mcp add atelier npx -y atelier-mcp      # Gemini CLI
 ```
 
 That's it. Open your agent in that folder and say *"design me a 4×16m tube house, 2 floors, 3 bedrooms"*. Works best with a model that reads Vietnamese well (tool descriptions are Vietnamese-first) and a client that shows images from tool results — the agent inspects its own drawings.

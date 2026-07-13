@@ -24,21 +24,22 @@ Claude Code ──MCP──► Server (model + validator + renderer) ◄──We
 
 Không cần clone gì cả — Atelier phát hành dạng gói npm ([`atelier-mcp`](https://www.npmjs.com/package/atelier-mcp)), và là **MCP server chuẩn** nên KHÔNG buộc vào Claude: client MCP nào cũng chạy được. Server luôn là một lệnh duy nhất — `npx -y atelier-mcp` — chỉ khác bước đăng ký tùy client.
 
-Đứng trong thư mục dự án nhà CỦA BẠN (một thư mục = một căn nhà) và đăng ký với client BẠN dùng:
+Đứng trong thư mục dự án nhà CỦA BẠN (một thư mục = một căn nhà) và chạy MỘT lệnh — nó tự dò mọi MCP client có trên máy và đăng ký với từng cái:
 
 ```bash
 mkdir nha-cua-toi && cd nha-cua-toi
-
-# Claude Code
-claude mcp add atelier -- npx -y atelier-mcp
-
-# OpenAI Codex CLI
-codex mcp add atelier -- npx -y atelier-mcp
-
-# Gemini CLI
-gemini mcp add atelier npx -y atelier-mcp
-
+npx -y atelier-mcp setup          # tự tìm Claude Code / Codex CLI / Gemini CLI /
+                                  # Claude Desktop / Cursor và đăng ký Atelier
 npx playwright install chromium   # tùy chọn, một lần — xuất PNG/PDF
+```
+
+<details>
+<summary>Đăng ký tay (hoặc cho client MCP khác)</summary>
+
+```bash
+claude mcp add atelier -- npx -y atelier-mcp   # Claude Code
+codex mcp add atelier -- npx -y atelier-mcp    # OpenAI Codex CLI
+gemini mcp add atelier npx -y atelier-mcp      # Gemini CLI
 ```
 
 Client dạng GUI (Claude Desktop, Cursor…) không có "thư mục đang đứng" — trỏ `ATELIER_DIR` tới thư mục nhà trong JSON cấu hình MCP:
@@ -48,6 +49,8 @@ Client dạng GUI (Claude Desktop, Cursor…) không có "thư mục đang đứ
     "command": "npx", "args": ["-y", "atelier-mcp"],
     "env": { "ATELIER_DIR": "C:\\duong-dan\\nha-cua-toi" } } } }
 ```
+
+</details>
 
 Rồi mở agent và nói *"thiết kế cho tôi nhà ống 4×16m"*. Chạy tốt nhất với model đọc tiếng Việt vững (description tools + thông báo validator là tiếng Việt) và client hiển thị được ảnh trong kết quả tool — agent cần tự soi bản vẽ của mình.
 

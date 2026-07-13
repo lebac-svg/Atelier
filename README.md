@@ -26,21 +26,22 @@ Claude Code ──MCP──► Server (model + validator + renderer) ◄──We
 
 You don't clone anything — Atelier ships as an npm package ([`atelier-mcp`](https://www.npmjs.com/package/atelier-mcp)), and it's a **standard MCP server**, so it is not tied to Claude: any MCP client can run it. The server is always the same one command — `npx -y atelier-mcp` — only the registration step differs per client.
 
-Stand in your own house folder (one folder = one house) and register with YOUR client:
+Stand in your own house folder (one folder = one house) and run ONE command — it detects every MCP client on your machine and registers with each:
 
 ```bash
 mkdir my-house && cd my-house
-
-# Claude Code
-claude mcp add atelier -- npx -y atelier-mcp
-
-# OpenAI Codex CLI
-codex mcp add atelier -- npx -y atelier-mcp
-
-# Gemini CLI
-gemini mcp add atelier npx -y atelier-mcp
-
+npx -y atelier-mcp setup          # finds Claude Code / Codex CLI / Gemini CLI /
+                                  # Claude Desktop / Cursor and registers Atelier
 npx playwright install chromium   # optional, once — PNG/PDF export
+```
+
+<details>
+<summary>Registering manually instead (or for other MCP clients)</summary>
+
+```bash
+claude mcp add atelier -- npx -y atelier-mcp   # Claude Code
+codex mcp add atelier -- npx -y atelier-mcp    # OpenAI Codex CLI
+gemini mcp add atelier npx -y atelier-mcp      # Gemini CLI
 ```
 
 GUI clients (Claude Desktop, Cursor, …) have no "current folder" — point `ATELIER_DIR` at your house folder in their MCP config JSON:
@@ -50,6 +51,8 @@ GUI clients (Claude Desktop, Cursor, …) have no "current folder" — point `AT
     "command": "npx", "args": ["-y", "atelier-mcp"],
     "env": { "ATELIER_DIR": "C:\\path\\to\\my-house" } } } }
 ```
+
+</details>
 
 Then start your agent and say *"design me a 4×16m tube house"*. Works best with a model that reads Vietnamese well (tool descriptions and validator messages are Vietnamese-first) and a client that shows images from tool results — the agent inspects its own drawings.
 
