@@ -1,0 +1,535 @@
+{
+  "_ghi_chu": "Nguồn gốc từng asset trong catalog — sạch bản quyền từ ngày 1 (doc 10). Asset hiện là HÌNH HỌC THAM SỐ do Atelier tự sinh (builder 3D + ký hiệu 2D trong repo) — CC0 by construction. Khi thay bằng glTF tải về (Poly Haven/ambientCG/Sketchfab CC0), cập nhật entry tương ứng: source + url + license.",
+  "assets": {
+    "giuong-1m": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "giuong-1m2": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "giuong-1m4": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "giuong-1m6": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "giuong-1m8": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "giuong-2m": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "giuong-tang-1m": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "giuong-tang-1m2": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "noi-em-be": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-dau-giuong-40": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-dau-giuong-50": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-ao-1m": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-ao-1m2": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-ao-1m6": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-ao-2m": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-ao-2m4": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-trang-diem": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "sofa-don": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "sofa-2s": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "sofa-3s-01": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "sofa-3s-22": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "sofa-goc-l": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-tra-vuong": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-tra-chu-nhat": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-tra-tron": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ke-tv-1200": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ke-tv-1600": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ke-tv-2000": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-giay-800": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-giay-1200": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-an-2": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-an-4": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-an-6": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-an-8": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-an-tron-1m": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ghe-an": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ghe-bang-an": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-duoi-06": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-duoi-12": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-duoi-18": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-duoi-24": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-duoi-30": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-goc": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-tren-06": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-tren-12": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-tren-18": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-tren-24": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-lanh-mini": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-lanh": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-lanh-sbs": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-hoc": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-lam-viec-1m2": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-lam-viec-1m4": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ghe-xoay": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ke-sach-600": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ke-sach-800": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ke-sach-1200": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "bon-cau": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "bon-cau-1-khoi": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "lavabo": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "lavabo-tu": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "lavabo-doi": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "voi-sen": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "voi-sen-80": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "bon-tam-15": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "bon-tam-17": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "guong-wc": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "binh-nong-lanh": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "may-giat": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "may-giat-cua-tren": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "may-say": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "may-lanh-treo": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "may-lanh-dung": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "quat-cay": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "den-cay": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "cay-canh-nho": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "cay-canh-lon": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "guong-toan-than": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "xe-may": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "xe-may-so": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "xe-dap": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "o-to-hatchback": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "o-to-sedan": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-tho": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-tho-1m53": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-tho-treo": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "giuong-1m6-go-soi": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "giuong-1m6-go-oc-cho": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "giuong-1m8-go-soi": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-ao-2m-trang": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-ao-2m-go-oc-cho": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-ao-1m6-trang": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "sofa-3s-01-xam": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "sofa-3s-01-da-nau": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "sofa-goc-l-xam": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-an-4-go-soi": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-an-6-go-soi": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ghe-an-den": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ke-tv-1600-trang": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ke-tv-2000-go-oc-cho": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-lam-viec-1m2-trang": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ke-sach-800-trang": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-duoi-24-trang": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-duoi-30-xanh-reu": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "tu-bep-tren-18-trang": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    },
+    "ban-tra-chu-nhat-da": {
+      "license": "CC0-1.0",
+      "source": "Atelier parametric (tự sinh)",
+      "model": "parametric"
+    }
+  }
+}

@@ -18,7 +18,7 @@ Mô tả (description) của từng tool sẽ nhúng luôn quy tắc hành vi ch
 | 8 | `capture_view` | `(target: "3d"\|"plan", camera?)` | **ảnh PNG** — browser đang mở chụp canvas gửi về |
 | 9 | `editor_open` | `()` | URL + tự mở trình duyệt mặc định |
 | 10 | `export` | `(format: "pdf"\|"svg"\|"dxf"\|"gltf"\|"ifc", sheets?)` | đường dẫn file trong `.atelier/exports/` |
-| 11 | `assets_search` | `(query, category?, maxFootprint?)` | danh sách asset: id, tên, kích thước footprint, ảnh thumbnail |
+| 11 | `assets_search` | `(query, category?, maxFootprint?)` | ✅ P5 — danh sách asset (id, tên VN, footprint, khe hở) + MỘT ảnh contact-sheet thumbnail |
 | 12 | `brief_get` / `brief_set` | `() / (patch)` | brief hiện tại |
 | 13 | `standards_lookup` | `(query)` | rule + số liệu + nguồn trích dẫn (để Claude trả lời "vì sao phải ≥900?") |
 | 14 | `estimate_cost` | `(level: "so-bo")` | 🔭 v2 — khối lượng từ model × bảng đơn giá |

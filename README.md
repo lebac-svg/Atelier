@@ -22,7 +22,10 @@ Từ fixture nhà ống 4×16m: validator 22 rules (số liệu đối chiếu *
 Chọn/kéo tường-cửa-nội thất ngay trên mặt bằng (tường neo khoảng cách tới tường song song gần nhất, cửa hiện khoảng cách hai đầu, nội thất hít mặt tường); **HUD gõ số** cạnh con trỏ — đang kéo gõ `4200 ⏎` là chốt đúng 4200mm; snap lưới đổi được; undo/redo per-origin (Ctrl+Z/Y — chỉ hoàn tác thao tác của mình); soft-lock "người dùng luôn thắng" (`LOCK-01`, khóa nguội 5s); panel thuộc tính thành ô nhập; `get_changes_since` tóm tắt cũ → mới cho Claude bắt kịp. Demo vòng lặp cộng tác người ↔ Claude: `pnpm demo:p3`.
 ✅ **Giai đoạn 4 — Hồ sơ bản vẽ: hoàn thành 13/07/2026.**
 Bộ hồ sơ concept trọn vẹn đánh số KT-01…: mặt bằng từng tầng (thêm dim thông thủy trong phòng + vết cắt A-A), **mặt đứng chính**, **mặt cắt A-A qua thang** (poché, lỗ cửa, profile bậc, chiếu nghỉ), **bảng thống kê phòng & cửa**; xuất **PDF A3 một file nhiều trang**, **DXF** (TS thuần, mm thật — mở CAD đo được) và SVG. Tools mới: `export`, `render_view`. Demo: `pnpm demo:p4`.
-🔜 **Giai đoạn 5 — Nội thất & trải nghiệm:** catalog ≥100 asset CC0, vật liệu, đi bộ WASD, sun study.
+✅ **Giai đoạn 5 — Nội thất & trải nghiệm: hoàn thành 13/07/2026.**
+**Demo 60 giây chạy trọn** (`pnpm demo:p5`): dựng live → kéo tường gõ `4200` → Claude thích nghi → **đi bộ WASD** xuyên nhà có nội thất → **sun study** theo giờ/tháng. Catalog **106 asset** chuẩn hóa mm thật (hình học tham số CC0 tự sinh + license manifest; glTF photoreal để dành P5+), 3D nội thất dựng theo category, sàn tô theo vật liệu hoàn thiện; editor có panel catalog (tool 5, click đặt, R xoay); MCP thêm `assets_search` trả contact-sheet.
+
+**Lộ trình 6 giai đoạn P0–P5 đã hoàn thành.** Backlog kế tiếp (doc 10): dự toán sơ bộ, so sánh phương án A/B, link chia sẻ chỉ-xem, rule pack quy hoạch, IFC, render photoreal.
 
 ## Bộ tài liệu
 

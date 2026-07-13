@@ -176,6 +176,77 @@ body[data-view="split"] .pane-2d { border-right: 1px solid var(--vien); }
   pointer-events: none;
 }
 
+.pane-btn.is-active { color: var(--muc-sau); background: var(--cham); border-color: var(--cham); }
+
+/* ── Catalog nội thất (P5, tool 5) ──────────────────────── */
+.paper-viewport.is-placing { cursor: crosshair; }
+#catalog-panel {
+  position: absolute;
+  left: 0.6rem;
+  top: 0.6rem;
+  bottom: 0.6rem;
+  width: 15.5rem;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--vien);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--go) 94%, transparent);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+#catalog-panel[hidden] { display: none; }
+.cat-head { padding: 0.55rem 0.6rem 0.45rem; border-bottom: 1px solid var(--vien); display: flex; flex-direction: column; gap: 0.4rem; }
+.cat-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--chu-mo); }
+.cat-search {
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--chu);
+  background: var(--muc-sau);
+  border: 1px solid var(--vien);
+  border-radius: 5px;
+}
+.cat-search:focus { outline: none; border-color: var(--cham); }
+.cat-list { overflow: auto; padding: 0.35rem; display: flex; flex-direction: column; gap: 2px; }
+.cat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  text-align: left;
+  padding: 0.32rem 0.45rem;
+  border-radius: 5px;
+  color: var(--chu);
+}
+.cat-item:hover { background: var(--go-noi); }
+.cat-item.is-picked { background: var(--cham-dam); }
+.cat-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat-dims { font-family: var(--font-so); font-size: 0.68rem; color: var(--chu-mo); flex: none; }
+
+/* ── Sun study (P5) ─────────────────────────────────────── */
+.sun-controls {
+  position: absolute;
+  right: 0.6rem;
+  top: 2.6rem;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--vien);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--go) 90%, transparent);
+  backdrop-filter: blur(4px);
+  font-size: 0.72rem;
+  color: var(--chu-mo);
+}
+.sun-controls label { display: flex; align-items: center; gap: 0.45rem; }
+.sun-controls input[type="range"] { width: 9rem; accent-color: var(--cham); }
+.sun-controls span { font-family: var(--font-so); min-width: 2.8rem; color: var(--chu); }
+
 /* ── Panel phải ─────────────────────────────────────────── */
 
 .side {

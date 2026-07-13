@@ -3,9 +3,10 @@ import path from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
-  areaM2, getLevel, stairLayout, validateProject,
-  type CaptureCamera, type Issue, type Op, type Project,
+  areaM2, ASSET_CATEGORIES, getLevel, searchAssets, stairLayout, validateProject,
+  type AssetCategory, type CaptureCamera, type Issue, type Op, type Project,
 } from "@atelier/core";
+import { buildAssetsSheetSvg, SHEET_CAPACITY } from "./render/assets-sheet.js";
 import { DEFAULT_WEB_DIST, LiveServer, openInBrowser } from "./live.js";
 import { renderElevationSvg, renderPlanFiles, renderSectionSvg } from "./render/render.js";
 import { buildSheetSet, sheetDxf, sheetSvg } from "./render/sheets.js";
@@ -310,6 +311,60 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
           };
         }
         return fail(new Error("Chưa có browser nào mở editor — gọi editor_open trước (3d chỉ chụp được từ browser)."));
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    "assets_search",
+    {
+      title: "Tìm asset nội thất trong catalog",
+      description:
+        `Tìm trong catalog ${"≥100"} asset chuẩn hóa (kích thước mm THẬT, tên VN, khe hở khuyến nghị) — dùng id trả về cho apply_ops add furniture. Trả kèm MỘT ảnh contact sheet để nhìn hình dáng + cỡ. maxFootprint {w,d} lọc đồ vừa chỗ trống (vd hốc 900mm). Category: ${ASSET_CATEGORIES.join(", ")}. Đồ treo tường có "treo <mm>" — đặt bằng field elevation của furniture.`,
+      inputSchema: {
+        query: z.string().optional().describe("Từ khóa, vd 'giường', 'sofa góc'"),
+        category: z.string().optional(),
+        maxFootprint: z.object({ w: z.number().optional(), d: z.number().optional() }).optional(),
+      },
+    },
+    async (args) => {
+      try {
+        if (args.category && !ASSET_CATEGORIES.includes(args.category as AssetCategory)) {
+          return fail(new Error(`Category "${args.category}" không tồn tại — hợp lệ: ${ASSET_CATEGORIES.join(", ")}.`));
+        }
+        const found = searchAssets(args.query ?? "", args.category as AssetCategory | undefined, args.maxFootprint);
+        if (found.length === 0) return text("Không có asset nào khớp — thử từ khóa rộng hơn hoặc bỏ bộ lọc.");
+        const lines = found.slice(0, 40).map((a) => {
+          const cl = a.clearance
+            ? ` — khe hở${a.clearance.front ? ` trước ${a.clearance.front}` : ""}${a.clearance.sides ? ` bên ${a.clearance.sides}` : ""}`
+            : "";
+          const treo = a.mountHeight != null ? ` — treo cao ${a.mountHeight}` : "";
+          return `${a.id} · ${a.label} · ${a.footprint.w}×${a.footprint.d}, cao ${a.footprint.h}${cl}${treo}`;
+        });
+        if (found.length > 40) lines.push(`… và ${found.length - 40} asset nữa — lọc thêm bằng category/maxFootprint.`);
+        const note = `${found.length} asset khớp:\n${lines.join("\n")}`;
+        try {
+          const svg = buildAssetsSheetSvg(
+            found.slice(0, SHEET_CAPACITY),
+            args.query || args.category ? `KẾT QUẢ: ${args.query ?? args.category}` : "CATALOG NỘI THẤT — ATELIER",
+          );
+          const { svgToPng } = await import("./render/png.js");
+          const { mkdtempSync } = await import("node:fs");
+          const os = await import("node:os");
+          const fp = path.join(mkdtempSync(path.join(os.tmpdir(), "atelier-assets-")), "sheet.png");
+          await svgToPng(svg, fp);
+          const png = readFileSync(fp).toString("base64");
+          return {
+            content: [
+              { type: "image" as const, data: png, mimeType: "image/png" },
+              { type: "text" as const, text: note },
+            ],
+          };
+        } catch {
+          return text(note); // không có Chromium vẫn dùng được bằng chữ
+        }
       } catch (e) {
         return fail(e);
       }

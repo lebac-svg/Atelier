@@ -12,6 +12,8 @@ export type Plan2DDeps = {
   onDragIds(ids: string[]): void;
   /** Thả chuột/Enter — gửi MỘT op (doc 09). Preview giữ nguyên tới khi patch/reject về. */
   onCommit(op: Op, label: string): void;
+  /** Click đặt nội thất khi đang ở chế độ đặt (tool 5, P5) — pt là mm model đã snap. */
+  onPlace(assetId: string, pt: Point): void;
 };
 
 /** Ngưỡng hít tính theo px màn hình — quy về mm model theo zoom lúc kéo. */
@@ -35,6 +37,8 @@ export class Plan2D {
   private readonly hud: Hud;
   /** Đang có phiên kéo entity — phím tắt toàn cục (Del, Ctrl+Z…) phải đứng ngoài. */
   dragging = false;
+  /** Chế độ đặt nội thất (tool 5): id asset đang chờ click, null = tool chọn. */
+  private placing: string | null = null;
 
   constructor(
     private readonly viewport: HTMLElement,
@@ -106,6 +110,16 @@ export class Plan2D {
     for (const el of this.paper.querySelectorAll(`[data-id="${CSS.escape(this.selection)}"]`)) {
       el.classList.add("sel-2d");
     }
+  }
+
+  /** Vào/ra chế độ đặt nội thất — con trỏ chữ thập, click là đặt. */
+  setPlacing(assetId: string | null): void {
+    this.placing = assetId;
+    this.viewport.classList.toggle("is-placing", assetId != null);
+  }
+
+  get placingAsset(): string | null {
+    return this.placing;
   }
 
   /** Bỏ preview đang treo (op bị reject) — phần tử bật về chỗ cũ. */
@@ -312,8 +326,8 @@ export class Plan2D {
       lastClient = [ev.clientX, ev.clientY];
       if (!moved && Math.abs(dx) + Math.abs(dy) > DRAG_PX) {
         moved = true;
-        // chạm entity kéo được → phiên kéo; không thì pan như cũ
-        if (hitId && !sessionTried) {
+        // chạm entity kéo được → phiên kéo; không thì pan như cũ (đang đặt nội thất: chỉ pan)
+        if (hitId && !sessionTried && !this.placing) {
           sessionTried = true;
           const m = startModel();
           if (m) session = this.sessionFor(hitId, m);
@@ -354,7 +368,22 @@ export class Plan2D {
         return;
       }
       cleanup();
-      if (!moved && hitId) this.deps.onSelect(hitId);
+      if (moved) return;
+      // chế độ đặt nội thất: click = đặt tại điểm model (snap lưới)
+      if (this.placing) {
+        const g = geo();
+        if (g) {
+          const paperPt = clientToPaper(g.svg, startX, startY);
+          if (paperPt) {
+            const m = paperToModel(g.tf, paperPt);
+            const grid = this.deps.getGrid();
+            const snap = (v: number): number => (grid > 0 ? Math.round(v / grid) * grid : Math.round(v));
+            this.deps.onPlace(this.placing, [snap(m[0]), snap(m[1])]);
+          }
+        }
+        return;
+      }
+      if (hitId) this.deps.onSelect(hitId);
     };
 
     const onCancel = (): void => {

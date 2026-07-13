@@ -25,6 +25,8 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
     browser = await chromium.launch();
     page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await page.goto(url);
+    // chờ snapshot dựng xong — test chạy đơn lẻ (-t) cũng phải có model sẵn
+    await page.waitForSelector("#paper svg", { timeout: 15_000 });
   }, 90_000);
 
   afterAll(async () => {
@@ -76,23 +78,42 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
    * + client px đích sau khi dịch model (dx,dy).
    */
   async function wallDragPoints(id: string, dModel: [number, number]): Promise<{ from: { x: number; y: number }; to: { x: number; y: number } }> {
+    // patch vừa về thì svg đang được thay giữa chừng (innerHTML swap) — retry ngắn
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        return await wallDragPointsOnce(id, dModel);
+      } catch {
+        await page.waitForTimeout(250);
+      }
+    }
+    return wallDragPointsOnce(id, dModel);
+  }
+
+  async function wallDragPointsOnce(id: string, dModel: [number, number]): Promise<{ from: { x: number; y: number }; to: { x: number; y: number } }> {
     return page.evaluate(
       ({ id, dModel }) => {
         const svg = document.querySelector("#paper svg") as SVGSVGElement;
-        const el = svg.querySelector(`[data-id="${id}"]`) as SVGGraphicsElement;
-        if (!el) throw new Error(`không thấy ${id} trong SVG`);
-        const bb = el.getBBox();
+        const els = [...svg.querySelectorAll(`[data-id="${id}"]`)] as SVGGraphicsElement[];
+        if (els.length === 0) throw new Error(`không thấy ${id} trong SVG`);
         const ctm = svg.getScreenCTM()!;
         let cPaper: DOMPoint | null = null;
-        for (const t of [0.5, 0.35, 0.65, 0.25, 0.75, 0.15, 0.85, 0.45, 0.55, 0.1, 0.9]) {
-          const cand = bb.width >= bb.height
-            ? new DOMPoint(bb.x + bb.width * t, bb.y + bb.height / 2)
-            : new DOMPoint(bb.x + bb.width / 2, bb.y + bb.height * t);
-          const client = cand.matrixTransform(ctm);
-          const hit = document.elementFromPoint(client.x, client.y)?.closest("[data-id]")?.getAttribute("data-id");
-          if (hit === id) {
-            cPaper = cand;
-            break;
+        // quét MỌI mảnh của entity, dọc trục dài, ở 3 làn (tim ± lệch) — dim/nhãn P4
+        // có thể đè vài điểm nhưng không thể đè kín cả tường
+        outer: for (const el of els) {
+          const bb = el.getBBox();
+          if (bb.width < 0.5 && bb.height < 0.5) continue;
+          for (const t of [0.5, 0.35, 0.65, 0.2, 0.8, 0.27, 0.73, 0.42, 0.58, 0.12, 0.88, 0.05, 0.95]) {
+            for (const lane of [0.5, 0.28, 0.72]) {
+              const cand = bb.width >= bb.height
+                ? new DOMPoint(bb.x + bb.width * t, bb.y + bb.height * lane)
+                : new DOMPoint(bb.x + bb.width * lane, bb.y + bb.height * t);
+              const client = cand.matrixTransform(ctm);
+              const hit = document.elementFromPoint(client.x, client.y)?.closest("[data-id]")?.getAttribute("data-id");
+              if (hit === id) {
+                cPaper = cand;
+                break outer;
+              }
+            }
           }
         }
         if (!cPaper) throw new Error(`${id} bị phần tử khác đè kín — không có chỗ chạm`);
@@ -209,6 +230,117 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
     await thick.press("Enter");
     await page.waitForFunction((r) => document.getElementById("rev-seal")?.textContent === `r ${r}`, rev0 + 1, { timeout: 10_000 });
     expect(store.current.walls.find((x) => x.id === "W98")!.thickness).toBe(220);
+  }, 30_000);
+
+  it("P5 tool 5: mở catalog, chọn xe máy, click đặt 2 lần liên tiếp → 2 op add origin user", async () => {
+    const rev0 = store.current.meta.revision;
+    const nBefore = store.current.furniture.length;
+    await page.click("#tool-furniture");
+    expect(await page.$eval("#catalog-panel", (el) => (el as HTMLElement).hidden)).toBe(false);
+    await page.fill("#catalog-panel .cat-search", "xe máy tay ga");
+    await page.click("#catalog-panel .cat-item");
+
+    // hai điểm trống trong hành lang L1 (model ~[720, 8200] và [720, 9400])
+    for (const [i, my] of [8200, 9400].entries()) {
+      const pt = await page.evaluate((yModel) => {
+        const svg = document.querySelector("#paper svg") as SVGSVGElement;
+        const s = Number(svg.getAttribute("data-tf-scale"));
+        const rot = svg.getAttribute("data-tf-rotated") === "1";
+        const ox = Number(svg.getAttribute("data-tf-ox"));
+        const oy = Number(svg.getAttribute("data-tf-oy"));
+        const minX = Number(svg.getAttribute("data-tf-min-x"));
+        const minY = Number(svg.getAttribute("data-tf-min-y"));
+        const maxY = Number(svg.getAttribute("data-tf-max-y"));
+        const m: [number, number] = [720, yModel];
+        const paper = rot
+          ? [ox + (m[1] - minY) / s, oy + (m[0] - minX) / s]
+          : [ox + (m[0] - minX) / s, oy + (maxY - m[1]) / s];
+        const client = new DOMPoint(paper[0], paper[1]).matrixTransform(svg.getScreenCTM()!);
+        return { x: client.x, y: client.y };
+      }, my);
+      await page.mouse.click(pt.x, pt.y);
+      await page.waitForFunction(
+        (r) => document.getElementById("rev-seal")?.textContent === `r ${r}`,
+        rev0 + i + 1,
+        { timeout: 10_000 },
+      );
+    }
+    const placed = store.current.furniture.slice(nBefore);
+    expect(placed).toHaveLength(2);
+    expect(placed.every((f) => f.asset === "xe-may" && f.level === "L1")).toBe(true);
+    expect(placed[0]!.at[0] % 50).toBe(0); // snap lưới
+    expect(store.changesSince(rev0).entries.every((e) => e.origin === "user")).toBe(true);
+
+    // Esc thoát chế độ đặt
+    await page.keyboard.press("Escape");
+    expect(await page.$eval("#catalog-panel", (el) => (el as HTMLElement).hidden)).toBe(true);
+  }, 40_000);
+
+  it("P5: R xoay nội thất đang chọn 90°", async () => {
+    const f = store.current.furniture.at(-1)!;
+    const rev0 = store.current.meta.revision;
+    const pts = await wallDragPoints(f.id, [0, 0]);
+    await page.mouse.click(pts.from.x, pts.from.y);
+    await page.waitForFunction(
+      (id) => !!document.getElementById("props-body")?.textContent?.includes(id),
+      f.id,
+      { timeout: 5_000 },
+    );
+    await page.keyboard.press("r");
+    await page.waitForFunction((r) => document.getElementById("rev-seal")?.textContent === `r ${r}`, rev0 + 1, { timeout: 10_000 });
+    expect(store.current.furniture.find((x) => x.id === f.id)!.rotation).toBe(90);
+  }, 30_000);
+
+  it("P5: đi bộ WASD — vào chế độ, W tiến về phía trước, thoát bằng nút", async () => {
+    try {
+      await page.click('[data-view-btn="3d"]');
+      await page.click("#walk3d");
+      expect(await page.$eval("#walk3d", (el) => el.classList.contains("is-active"))).toBe(true);
+      expect(await page.textContent("#hint3d")).toContain("WASD");
+
+      const shot1 = await live.capture("3d");
+      await page.keyboard.down("w");
+      await page.waitForTimeout(600);
+      await page.keyboard.up("w");
+      const shot2 = await live.capture("3d");
+      expect(shot2).not.toBe(shot1); // camera đã di chuyển — khung hình đổi
+
+      // thoát bằng Esc — pointer lock đang nuốt chuột nên click nút không tới nơi (hành vi thật)
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(
+        () => !document.getElementById("walk3d")?.classList.contains("is-active"),
+        undefined,
+        { timeout: 5_000 },
+      );
+    } finally {
+      // dọn sạch dù fail — không để pointer lock/chế độ đi bộ rò sang test sau
+      await page.evaluate(() => {
+        document.exitPointerLock?.();
+        const btn = document.getElementById("walk3d");
+        if (btn?.classList.contains("is-active")) (btn as HTMLButtonElement).click();
+      });
+      await page.click('[data-view-btn="split"]');
+    }
+  }, 40_000);
+
+  it("P5: sun study — bật nắng, kéo giờ, canvas vẫn chụp được", async () => {
+    try {
+      await page.click('[data-view-btn="3d"]');
+      await page.click("#sun3d");
+      expect(await page.$eval("#sun-controls", (el) => (el as HTMLElement).hidden)).toBe(false);
+      await page.$eval("#sun-hour", (el) => {
+        (el as HTMLInputElement).value = "16";
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      const png = Buffer.from(await live.capture("3d"), "base64");
+      expect(png.subarray(0, 8)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+    } finally {
+      await page.evaluate(() => {
+        const btn = document.getElementById("sun3d");
+        if (btn?.classList.contains("is-active")) (btn as HTMLButtonElement).click();
+      });
+      await page.click('[data-view-btn="split"]');
+    }
   }, 30_000);
 
   it("click bản vẽ chọn entity → panel thuộc tính hiện đúng đối tượng vừa chạm", async () => {

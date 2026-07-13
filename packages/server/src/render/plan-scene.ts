@@ -314,78 +314,168 @@ function drawFurniture(p: Project, levelId: string, push: Push): void {
     const asset = getAsset(f.asset);
     if (!asset) continue;
     const corners = obbCorners(furnitureObb(f, asset));
-    push("NOI-THAT", { kind: "polyline", pts: corners, close: true, weight: W.thin }, f.id);
-    drawGlyph(p, f, asset.category, asset.footprint, push);
+    // đồ treo (tủ bếp trên, máy lạnh…) — nét đứt theo quy ước "trên cao"
+    const hung = asset.mountHeight != null || (f.elevation ?? 0) > 0;
+    push("NOI-THAT", { kind: "polyline", pts: corners, close: true, weight: W.thin, ...(hung ? { dash: "2 1" } : {}) }, f.id);
+    for (const prim of furnitureGlyphPrims(asset.category, asset.footprint)) {
+      push("NOI-THAT", transformPrim(prim, f.at, f.rotation), f.id);
+    }
   }
 }
 
-function drawGlyph(
-  p: Project,
-  f: Furniture,
-  category: string,
-  fp: { w: number; d: number },
-  push: Push,
-): void {
-  const L = (x: number, y: number): Point => add(f.at, rotate([x, y], f.rotation));
-  const line = (x0: number, y0: number, x1: number, y1: number, weight: number = W.hair) =>
-    push("NOI-THAT", { kind: "line", a: L(x0, y0), b: L(x1, y1), weight }, f.id);
+/** Dời prim local (tâm footprint, rotation 0) ra thế giới — nuôi cả plan lẫn thumbnail. */
+export function transformPrim(prim: Prim, at: Point, rotation: number): Prim {
+  const T = (pt: Point): Point => add(at, rotate(pt, rotation));
+  switch (prim.kind) {
+    case "line":
+      return { ...prim, a: T(prim.a), b: T(prim.b) };
+    case "polyline":
+    case "polygon":
+      return { ...prim, pts: prim.pts.map(T) };
+    case "circle":
+      return { ...prim, c: T(prim.c) };
+    case "ellipse":
+      return { ...prim, c: T(prim.c), rot: prim.rot + rotation };
+    case "arc":
+      return { ...prim, c: T(prim.c), a0: prim.a0 + rotation, a1: prim.a1 + rotation };
+    case "text":
+      return { ...prim, at: T(prim.at) };
+    default:
+      return prim;
+  }
+}
+
+/**
+ * Ký hiệu 2D của asset trong hệ LOCAL (tâm footprint, rotation 0, mm) —
+ * một nguồn cho mặt bằng + thumbnail catalog + contact sheet assets_search.
+ */
+export function furnitureGlyphPrims(category: string, fp: { w: number; d: number }, weightOverride?: number): Prim[] {
+  const prims: Prim[] = [];
+  const hair = weightOverride ?? W.hair;
+  const line = (x0: number, y0: number, x1: number, y1: number, weight: number = hair) =>
+    prims.push({ kind: "line", a: [x0, y0], b: [x1, y1], weight });
   const circle = (x: number, y: number, r: number) =>
-    push("NOI-THAT", { kind: "circle", c: L(x, y), r, weight: W.hair }, f.id);
+    prims.push({ kind: "circle", c: [x, y], r, weight: hair });
   const rect = (x0: number, y0: number, x1: number, y1: number) =>
-    push("NOI-THAT", { kind: "polyline", pts: [L(x0, y0), L(x1, y0), L(x1, y1), L(x0, y1)], close: true, weight: W.hair }, f.id);
+    prims.push({ kind: "polyline", pts: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], close: true, weight: hair });
+  const ellipse = (x: number, y: number, rx: number, ry: number) =>
+    prims.push({ kind: "ellipse", c: [x, y], rx, ry, rot: 0, weight: hair });
   const hw = fp.w / 2, hd = fp.d / 2;
 
   switch (category) {
     case "giuong":
+    case "giuong-tang":
       rect(-hw + 70, -hd + 70, hw - 70, -hd + fp.d * 0.2); // gối
       line(-hw, -hd + fp.d * 0.32, hw, -hd + fp.d * 0.32); // mép chăn
+      if (category === "giuong-tang") line(-hw, -hd, hw, hd, hair); // chéo = 2 tầng
       break;
     case "sofa":
       line(-hw, -hd + 140, hw, -hd + 140);
       line(-hw + 140, -hd + 140, -hw + 140, hd);
       line(hw - 140, -hd + 140, hw - 140, hd);
       break;
+    case "ban-tra":
+      rect(-hw + 50, -hd + 50, hw - 50, hd - 50);
+      break;
     case "ke-tv":
       rect(-fp.w * 0.3, -45, fp.w * 0.3, 45);
       break;
     case "ban-an":
     case "ban-lam-viec":
+    case "ban-trang-diem":
       rect(-hw + 60, -hd + 60, hw - 60, hd - 60);
+      if (category === "ban-trang-diem") circle(0, -hd + 90, Math.min(180, fp.w * 0.18));
+      break;
+    case "ghe-an":
+      line(-hw, -hd + 80, hw, -hd + 80); // tựa lưng
+      break;
+    case "ghe-xoay":
+      circle(0, 0, Math.min(hw, hd) * 0.7);
+      line(-hw + 60, -hd + 90, hw - 60, -hd + 90);
       break;
     case "tu-ao":
       line(0, -hd, 0, hd);
       line(-hw, -hd, 0, hd);
       break;
-    case "tu-bep-duoi": {
-      rect(-hw + fp.w * 0.12, -170, -hw + fp.w * 0.12 + 460, 170); // chậu rửa
-      circle(-hw + fp.w * 0.12 + 230, 0, 55);
-      circle(hw - fp.w * 0.3, -105, 105); // 2 họng bếp
-      circle(hw - fp.w * 0.3, 115, 105);
+    case "tu-dau-giuong":
+      break; // outline là đủ
+    case "ke-sach": {
+      const n = Math.max(2, Math.round(fp.w / 400));
+      for (let i = 1; i < n; i++) line(-hw + (fp.w * i) / n, -hd, -hw + (fp.w * i) / n, hd);
       break;
     }
+    case "tu-giay":
+      line(-hw, -hd, hw, hd);
+      break;
+    case "tu-bep-duoi": {
+      if (fp.w >= 1500) {
+        rect(-hw + fp.w * 0.12, -170, -hw + fp.w * 0.12 + 460, 170); // chậu rửa
+        circle(-hw + fp.w * 0.12 + 230, 0, 55);
+      }
+      if (fp.w >= 2200) {
+        circle(hw - fp.w * 0.3, -105, 105); // 2 họng bếp
+        circle(hw - fp.w * 0.3, 115, 105);
+      }
+      break;
+    }
+    case "tu-bep-tren":
+      break; // nét đứt outline là đủ
     case "tu-lanh":
       line(-hw, -hd + fp.d * 0.33, hw, -hd + fp.d * 0.33);
       break;
     case "bon-cau":
       rect(-hw, -hd, hw, -hd + 170); // két nước
-      push("NOI-THAT", { kind: "ellipse", c: L(0, fp.d * 0.12), rx: fp.w * 0.42, ry: fp.d * 0.3, rot: f.rotation, weight: W.hair }, f.id);
+      ellipse(0, fp.d * 0.12, fp.w * 0.42, fp.d * 0.3);
       break;
     case "lavabo":
-      push("NOI-THAT", { kind: "ellipse", c: L(0, 20), rx: hw - 60, ry: hd - 70, rot: f.rotation, weight: W.hair }, f.id);
+      ellipse(0, 20, hw - 60, hd - 70);
       circle(0, -hd + 60, 26);
       break;
     case "voi-sen":
       line(-hw, -hd, hw, hd);
       circle(0, 0, 52);
       break;
+    case "bon-tam":
+      rect(-hw + 60, -hd + 60, hw - 60, hd - 60);
+      circle(-hw + 200, 0, 40); // thoát nước
+      break;
+    case "guong":
+      line(-hw, 0, hw, 0, W.thin);
+      break;
+    case "binh-nong-lanh":
+      circle(0, 0, Math.min(hw, hd) * 0.7);
+      break;
     case "may-giat":
       circle(0, 0, Math.min(hw, hd) * 0.62);
+      break;
+    case "may-lanh":
+      line(-hw + 40, hd - 70, hw - 40, hd - 70);
+      break;
+    case "quat-cay":
+    case "den-cay":
+      circle(0, 0, Math.min(hw, hd) * 0.55);
+      line(-Math.min(hw, hd) * 0.55, 0, Math.min(hw, hd) * 0.55, 0);
+      break;
+    case "cay-canh":
+      circle(0, 0, Math.min(hw, hd) * 0.85);
+      circle(-fp.w * 0.15, -fp.d * 0.1, fp.w * 0.22);
+      circle(fp.w * 0.12, fp.d * 0.15, fp.w * 0.18);
       break;
     case "xe-may":
       circle(0, -hd + 240, 95);
       circle(0, hd - 240, 95);
       line(0, -hd + 240, 0, hd - 240);
       line(-hw + 60, -hd + 430, hw - 60, -hd + 430, W.thin); // ghi đông
+      break;
+    case "xe-dap":
+      circle(0, -hd + 320, 320);
+      circle(0, hd - 320, 320);
+      line(0, -hd + 320, 0, hd - 320);
+      break;
+    case "o-to":
+      rect(-hw + 80, -hd + 80, hw - 80, hd - 80);
+      line(-hw + 80, -hd + fp.d * 0.28, hw - 80, -hd + fp.d * 0.28); // kính lái
+      line(-hw + 80, hd - fp.d * 0.22, hw - 80, hd - fp.d * 0.22);
       break;
     case "ban-tho":
       line(-hw, 0, hw, 0);
@@ -396,6 +486,7 @@ function drawGlyph(
     default:
       break;
   }
+  return prims;
 }
 
 /* ---------------- dim 3 chuỗi ---------------- */

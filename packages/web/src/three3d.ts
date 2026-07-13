@@ -5,6 +5,8 @@ import {
   type CaptureCamera, type Furniture, type Level, type Op, type Project, type Room, type Slab, type Stair, type Wall,
 } from "@atelier/core";
 import { wallPieces } from "./geo3d.js";
+import { buildFurnitureLocal } from "./furniture3d.js";
+import { sunPosition } from "./sun.js";
 
 const MM = 1 / 1000; // model mm → three mét
 const DEG = Math.PI / 180;
@@ -30,12 +32,7 @@ const ROOM_TINT: Record<string, number> = {
   "cau-thang": 0xb8b0a0, san: 0xaab89e, "gieng-troi": 0xa5c8d8, kho: 0xb0a898, "ban-cong": 0xa9c0af,
 };
 
-const FURN_COLOR: Record<string, number> = {
-  giuong: 0x8fa3bf, "tu-ao": 0xa98963, sofa: 0x7f94ad, "ke-tv": 0xa98963,
-  "ban-an": 0xb59a72, "ban-lam-viec": 0xb59a72, "tu-bep-duoi": 0x96876f, "tu-bep-tren": 0xa89a82,
-  "tu-lanh": 0xd4d9de, "bon-cau": 0xe9e9e6, lavabo: 0xe9e9e6, "voi-sen": 0xc9d6dc,
-  "may-giat": 0xd0d3d6, "xe-may": 0x9a5a4a, "ban-tho": 0x8a5a3a,
-};
+// màu nội thất theo category/biến thể: xem furniture3d.ts (P5)
 
 const lambert = (color: number, opts: Partial<THREE.MeshLambertMaterialParameters> = {}): THREE.MeshLambertMaterial =>
   new THREE.MeshLambertMaterial({ color, ...opts });
@@ -59,9 +56,25 @@ export class Scene3D {
   private dirty = true;
   private disposed = false;
 
+  // ── đi bộ (P5) ─────────────────────────────────────────────
+  private walk: {
+    pos: THREE.Vector3; // KHÔNG GIAN MODEL (mét)
+    yaw: number;
+    pitch: number;
+    keys: Set<string>;
+    onEnd?: () => void;
+  } | null = null;
+  private lastTick = 0;
+
+  // ── sun study (P5) ─────────────────────────────────────────
+  private readonly hemi = new THREE.HemisphereLight(0xe8eef5, 0x3a3f47, 1.05);
+  private readonly sun = new THREE.DirectionalLight(0xfff4e0, 0.9);
+  private sunMode = false;
+
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.scene.background = new THREE.Color(C.bg);
 
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.05, 500);
@@ -70,10 +83,11 @@ export class Scene3D {
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.addEventListener("change", () => this.invalidate());
 
-    this.scene.add(new THREE.HemisphereLight(0xe8eef5, 0x3a3f47, 1.05));
-    const sun = new THREE.DirectionalLight(0xfff4e0, 0.9);
-    sun.position.set(12, 18, 8);
-    this.scene.add(sun);
+    this.scene.add(this.hemi);
+    this.sun.position.set(12, 18, 8);
+    this.sun.target.position.set(0, 0, 0);
+    this.scene.add(this.sun);
+    this.scene.add(this.sun.target);
 
     this.root.rotation.x = -Math.PI / 2;
     this.scene.add(this.root);
@@ -83,9 +97,27 @@ export class Scene3D {
     new ResizeObserver(() => this.resize(pane)).observe(pane);
     this.resize(pane);
 
-    const tick = (): void => {
+    canvas.addEventListener("mousemove", (e) => this.onWalkLook(e));
+    // chỉ tự thoát khi ĐÃ TỪNG có pointer lock rồi mất (Esc) — môi trường không cấp
+    // lock (headless/e2e) vẫn đi bộ được bằng phím, thoát bằng nút
+    let hadLock = false;
+    document.addEventListener("pointerlockchange", () => {
+      const locked = document.pointerLockElement === this.renderer.domElement;
+      if (locked) hadLock = true;
+      else if (this.walk && hadLock) {
+        hadLock = false;
+        this.exitWalk();
+      }
+    });
+    window.addEventListener("keydown", (e) => this.onWalkKey(e, true));
+    window.addEventListener("keyup", (e) => this.onWalkKey(e, false));
+
+    const tick = (now?: number): void => {
       if (this.disposed) return;
       requestAnimationFrame(tick);
+      const dt = Math.min(0.05, ((now ?? 0) - this.lastTick) / 1000 || 0.016);
+      this.lastTick = now ?? 0;
+      if (this.walk) this.stepWalk(dt);
       if (this.dirty) {
         this.dirty = false;
         this.renderer.render(this.scene, this.camera);
@@ -119,9 +151,10 @@ export class Scene3D {
       for (const s of p.slabs) if (s.level === level.id) this.setGroup(s.id, this.buildSlab(s, level));
       for (const st of p.stairs) if (st.level === level.id) this.setGroup(st.id, this.buildStair(st, level));
       for (const f of p.furniture) if (f.level === level.id) this.setGroup(f.id, this.buildFurniture(f, level));
-      for (const r of p.rooms) if (r.level === level.id) this.setGroup(r.id, this.buildRoom(r, level));
+      for (const r of p.rooms) if (r.level === level.id) this.setGroup(r.id, this.buildRoom(p, r, level));
     }
     this.buildEnv(p);
+    if (this.sunMode) this.applyShadowFlags(true);
     this.fitHome();
     this.invalidate();
   }
@@ -181,6 +214,7 @@ export class Scene3D {
       }
     }
     if (!this.home) this.fitHome(); // snapshot đầu có thể là dự án trống — fit ở nhịp đầu tiên có hình
+    if (this.sunMode) this.applyShadowFlags(true); // mesh mới dựng chưa có cờ bóng
     this.invalidate();
     return [...affected];
   }
@@ -208,7 +242,7 @@ export class Scene3D {
     const g =
       entity === "slab" ? this.buildSlab(e as Slab, level)
       : entity === "stair" ? this.buildStair(e as Stair, level)
-      : entity === "room" ? this.buildRoom(e as Room, level)
+      : entity === "room" ? this.buildRoom(model, e as Room, level)
       : this.buildFurniture(e as Furniture, level);
     this.setGroup(id, g);
   }
@@ -307,25 +341,23 @@ export class Scene3D {
     const g = new THREE.Group();
     const asset = getAsset(f.asset);
     if (!asset) return g;
-    const { w, d, h } = asset.footprint;
-    const color = FURN_COLOR[asset.category] ?? 0xb0aa9c;
-    const geo = new THREE.BoxGeometry(w * MM, d * MM, h * MM);
-    const mesh = new THREE.Mesh(geo, lambert(color));
-    mesh.position.z = (h / 2) * MM;
-    g.add(mesh);
-    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: C.edge }));
-    edges.position.copy(mesh.position);
-    g.add(edges);
-    g.position.set(f.at[0] * MM, f.at[1] * MM, (level.elevation + (f.elevation ?? 0)) * MM);
+    g.add(buildFurnitureLocal(asset, f.asset));
+    // đồ treo tường: mountHeight của asset là cao độ mặc định khi instance chưa đặt
+    const elevation = f.elevation ?? asset.mountHeight ?? 0;
+    g.position.set(f.at[0] * MM, f.at[1] * MM, (level.elevation + elevation) * MM);
     g.rotation.z = f.rotation * DEG;
     return g;
   }
 
-  private buildRoom(r: Room, level: Level): THREE.Group {
+  private buildRoom(p: Project, r: Room, level: Level): THREE.Group {
     const g = new THREE.Group();
+    // sàn theo vật liệu hoàn thiện (P5) — chưa gán thì tint theo công năng như cũ
+    const finish = r.finish?.floor ? p.finishes[r.finish.floor] : undefined;
     const tint = new THREE.Mesh(
       new THREE.ShapeGeometry(shapeFrom(r.polygon)),
-      lambert(ROOM_TINT[r.use] ?? 0xb8b0a0, { transparent: true, opacity: 0.5, side: THREE.DoubleSide }),
+      finish?.color
+        ? lambert(new THREE.Color(finish.color).getHex(), { side: THREE.DoubleSide })
+        : lambert(ROOM_TINT[r.use] ?? 0xb8b0a0, { transparent: true, opacity: 0.5, side: THREE.DoubleSide }),
     );
     g.add(tint);
 
@@ -422,6 +454,160 @@ export class Scene3D {
       }, 1500);
     }
     this.invalidate();
+  }
+
+  // ── Đi bộ WASD (doc 09: pointer-lock, cao mắt 1600mm) ────────
+
+  get walking(): boolean {
+    return this.walk != null;
+  }
+
+  /**
+   * Vào chế độ đi bộ tại tầng `level`, xuất phát `spawn` (mm model, bỏ trống =
+   * tâm nhà). onEnd gọi khi thoát (Esc/pointer lock mất) để UI cập nhật nút.
+   */
+  enterWalk(level: Level, spawn?: [number, number], onEnd?: () => void): void {
+    if (this.walk) return;
+    const at = spawn ?? this.modelCenterXY();
+    const eye = (level.elevation + 1600) * MM;
+    const center = this.modelCenterXY();
+    const yaw = Math.atan2(center[0] * MM - at[0] * MM, center[1] * MM - at[1] * MM) || 0;
+    this.walk = {
+      pos: new THREE.Vector3(at[0] * MM, at[1] * MM, eye),
+      yaw,
+      pitch: 0,
+      keys: new Set(),
+      ...(onEnd ? { onEnd } : {}),
+    };
+    this.controls.enabled = false;
+    this.camera.fov = 60;
+    this.camera.updateProjectionMatrix();
+    this.renderer.domElement.requestPointerLock?.();
+    this.applyWalkCamera();
+  }
+
+  exitWalk(): void {
+    if (!this.walk) return;
+    const onEnd = this.walk.onEnd;
+    this.walk = null;
+    if (document.pointerLockElement === this.renderer.domElement) document.exitPointerLock();
+    this.controls.enabled = true;
+    this.camera.fov = 45;
+    this.camera.updateProjectionMatrix();
+    this.controls.update();
+    this.invalidate();
+    onEnd?.();
+  }
+
+  private modelCenterXY(): [number, number] {
+    const box = new THREE.Box3();
+    for (const g of this.groups.values()) box.expandByObject(g);
+    if (box.isEmpty()) return [0, 0];
+    const c = box.getCenter(new THREE.Vector3()); // children nằm trong không gian model của root
+    return [c.x / MM, c.y / MM];
+  }
+
+  private onWalkKey(e: KeyboardEvent, down: boolean): void {
+    if (!this.walk) return;
+    const k = e.key.toLowerCase();
+    if (k === "escape" && down) {
+      // tự thoát — không dựa vào trình duyệt nhả pointer lock (headless không có lock)
+      this.exitWalk();
+      return;
+    }
+    if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", "shift"].includes(k)) {
+      if (down) this.walk.keys.add(k);
+      else this.walk.keys.delete(k);
+      e.preventDefault();
+    }
+  }
+
+  private onWalkLook(e: MouseEvent): void {
+    if (!this.walk || document.pointerLockElement !== this.renderer.domElement) return;
+    this.walk.yaw += e.movementX * 0.0022;
+    this.walk.pitch = Math.min(1.35, Math.max(-1.35, this.walk.pitch - e.movementY * 0.0022));
+    this.applyWalkCamera();
+  }
+
+  private stepWalk(dt: number): void {
+    const w = this.walk!;
+    if (w.keys.size === 0) return;
+    const speed = (w.keys.has("shift") ? 4.2 : 2.1) * dt; // m/s — bước đi người thật
+    const fwd = [Math.sin(w.yaw), Math.cos(w.yaw)];
+    const right = [Math.cos(w.yaw), -Math.sin(w.yaw)];
+    let dx = 0, dy = 0;
+    if (w.keys.has("w") || w.keys.has("arrowup")) { dx += fwd[0]!; dy += fwd[1]!; }
+    if (w.keys.has("s") || w.keys.has("arrowdown")) { dx -= fwd[0]!; dy -= fwd[1]!; }
+    if (w.keys.has("d") || w.keys.has("arrowright")) { dx += right[0]!; dy += right[1]!; }
+    if (w.keys.has("a") || w.keys.has("arrowleft")) { dx -= right[0]!; dy -= right[1]!; }
+    const len = Math.hypot(dx, dy);
+    if (len === 0) return;
+    w.pos.x += (dx / len) * speed;
+    w.pos.y += (dy / len) * speed;
+    this.applyWalkCamera();
+  }
+
+  private applyWalkCamera(): void {
+    const w = this.walk;
+    if (!w) return;
+    this.root.updateWorldMatrix(true, false);
+    const eye = this.root.localToWorld(w.pos.clone());
+    const dir = new THREE.Vector3(
+      Math.sin(w.yaw) * Math.cos(w.pitch),
+      Math.cos(w.yaw) * Math.cos(w.pitch),
+      Math.sin(w.pitch),
+    );
+    const target = this.root.localToWorld(w.pos.clone().add(dir));
+    this.camera.position.copy(eye);
+    this.camera.up.set(0, 1, 0);
+    this.camera.lookAt(target);
+    this.invalidate();
+  }
+
+  // ── Sun study (doc 09: slider giờ + tháng) ───────────────────
+
+  /** Bật/tắt chế độ nắng. null = về ánh sáng studio mặc định. */
+  setSun(opts: { hour: number; month: number; lat: number; north: number } | null): void {
+    this.sunMode = opts != null;
+    if (!opts) {
+      this.renderer.shadowMap.enabled = false;
+      this.hemi.intensity = 1.05;
+      this.sun.intensity = 0.9;
+      this.sun.castShadow = false;
+      this.sun.position.set(12, 18, 8);
+      this.applyShadowFlags(false);
+      this.invalidate();
+      return;
+    }
+    const s = sunPosition(opts.hour, opts.month, opts.lat, opts.north);
+    const up = s.altitude > 0;
+    this.renderer.shadowMap.enabled = up;
+    this.hemi.intensity = up ? 0.45 : 0.22;
+    this.sun.intensity = up ? 1.25 : 0;
+    this.sun.castShadow = up;
+    // dir model (z lên) → world của root (y lên): (x, z, -y)
+    const R = 40;
+    this.sun.position.set(s.dir[0] * R, s.dir[2] * R, -s.dir[1] * R);
+    const box = new THREE.Box3();
+    for (const g of this.groups.values()) box.expandByObject(g);
+    const radius = box.isEmpty() ? 15 : box.getSize(new THREE.Vector3()).length() / 2 + 2;
+    const cam = this.sun.shadow.camera;
+    cam.left = -radius; cam.right = radius; cam.top = radius; cam.bottom = -radius;
+    cam.near = 1; cam.far = R * 2 + radius;
+    cam.updateProjectionMatrix();
+    this.sun.shadow.mapSize.set(2048, 2048);
+    this.applyShadowFlags(up);
+    this.invalidate();
+  }
+
+  /** Gắn cờ đổ bóng cho mọi mesh hiện có — gọi lại sau mỗi lần dựng khi đang bật nắng. */
+  private applyShadowFlags(on: boolean): void {
+    this.root.traverse((obj) => {
+      if ((obj as THREE.Mesh).isMesh) {
+        obj.castShadow = on;
+        obj.receiveShadow = on;
+      }
+    });
   }
 
   /** Chụp canvas — camera mm không gian model, bỏ trống giữ góc người dùng. Trả base64 PNG. */

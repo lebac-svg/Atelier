@@ -31,14 +31,24 @@ const textOf = (r: Awaited<ReturnType<Client["callTool"]>>): string =>
     .join("\n");
 
 describe("MCP server — tools DoD P1 + P2 + P4", () => {
-  it("liệt kê đúng 11 tools", async () => {
+  it("liệt kê đúng 12 tools", async () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();
     expect(names).toEqual([
-      "apply_ops", "capture_view", "editor_open", "export", "get_changes_since",
+      "apply_ops", "assets_search", "capture_view", "editor_open", "export", "get_changes_since",
       "model_query", "project_new", "project_open", "render_plan", "render_view", "validate",
     ].sort());
+  });
+
+  it("assets_search: lọc theo maxFootprint, catalog ≥100, không cần mở dự án", async () => {
+    const { client } = await connect();
+    const r = await client.callTool({ name: "assets_search", arguments: { query: "giường", maxFootprint: { w: 1200 } } });
+    const msg = textOf(r);
+    expect(msg).toContain("giuong-1m2");
+    expect(msg).not.toContain("giuong-1m8");
+    const bad = await client.callTool({ name: "assets_search", arguments: { category: "khong-co" } });
+    expect(bad.isError).toBe(true);
   });
 
   it("export dxf: xuất tờ hình học, bỏ tờ thống kê; ifc chưa hỗ trợ", async () => {

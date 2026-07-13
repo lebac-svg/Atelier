@@ -166,6 +166,8 @@ export type Brief = {
   dat?: {
     ranh_gioi?: Polygon;
     huong_truoc?: string;
+    /** Vĩ độ (độ, dương = Bắc) — nuôi sun study P5; bỏ trống = 10.8 (TP.HCM). */
+    vi_do?: number;
     tiep_giap?: { truoc?: string; sau?: string; trai?: string; phai?: string };
     quy_hoach?: {
       khoang_lui_truoc?: number;

@@ -1,5 +1,6 @@
-import type { EntityKind, Op } from "@atelier/core";
+import { areaM2, getAsset, nextId, type EntityKind, type Op } from "@atelier/core";
 import { AppState } from "./state.js";
+import { CatalogPanel } from "./catalog-panel.js";
 import { Plan2D } from "./plan2d.js";
 import { Scene3D } from "./three3d.js";
 import { UI } from "./ui.js";
@@ -85,6 +86,18 @@ const plan = new Plan2D(document.getElementById("paper-viewport")!, document.get
   getGrid: () => ui.snapGrid(),
   onDragIds: (ids) => ws.send({ type: "presence", draggingIds: ids, tool: "V" }),
   onCommit: (op, label) => sendOps([op], label, "edit"),
+  onPlace: (assetId, at) => {
+    const m = state.model;
+    if (!m || !state.activeLevel) return;
+    const asset = getAsset(assetId);
+    const id = nextId(m, "F");
+    sendOps(
+      [{ op: "add", entity: "furniture", data: { id, level: state.activeLevel, asset: assetId, at, rotation: 0 } }],
+      `đặt ${asset?.label ?? assetId}`,
+      "edit",
+    );
+    // giữ chế độ đặt — đặt liên tiếp tới khi Esc/V
+  },
 });
 
 const scene3d = new Scene3D(document.getElementById("canvas3d") as HTMLCanvasElement);
@@ -180,6 +193,112 @@ state.on("select", ({ id }) => {
 
 state.on("resync", () => ws.resync());
 
+// ── P5: tool 5 — catalog nội thất, click đặt, R xoay ──────────
+const toolSelect = document.getElementById("tool-select") as HTMLButtonElement;
+const toolFurniture = document.getElementById("tool-furniture") as HTMLButtonElement;
+
+const catalog = new CatalogPanel(document.getElementById("pane2d")!, (assetId) => {
+  plan.setPlacing(assetId);
+  toolFurniture.classList.add("is-active");
+  toolSelect.classList.remove("is-active");
+});
+
+function exitPlacing(): void {
+  plan.setPlacing(null);
+  catalog.hide();
+  toolFurniture.classList.remove("is-active");
+  toolSelect.classList.add("is-active");
+}
+
+toolFurniture.addEventListener("click", () => {
+  if (catalog.visible) {
+    exitPlacing();
+    return;
+  }
+  catalog.show();
+  toolFurniture.classList.add("is-active");
+});
+toolSelect.addEventListener("click", exitPlacing);
+
+function rotateSelection(): void {
+  const id = state.selection;
+  if (!id || !state.model) return;
+  const f = state.model.furniture.find((x) => x.id === id);
+  if (!f) return;
+  sendOps(
+    [{ op: "update", entity: "furniture", id, data: { rotation: (f.rotation + 90) % 360 } }],
+    `xoay ${id}`,
+    "edit",
+  );
+}
+
+// ── P5: đi bộ WASD + sun study ─────────────────────────────────
+const walkBtn = document.getElementById("walk3d") as HTMLButtonElement;
+const sunBtn = document.getElementById("sun3d") as HTMLButtonElement;
+const sunPanel = document.getElementById("sun-controls") as HTMLElement;
+const sunHour = document.getElementById("sun-hour") as HTMLInputElement;
+const sunMonth = document.getElementById("sun-month") as HTMLInputElement;
+const sunHourVal = document.getElementById("sun-hour-val")!;
+const sunMonthVal = document.getElementById("sun-month-val")!;
+const hint3d = document.getElementById("hint3d")!;
+const HINT_ORBIT = hint3d.textContent ?? "";
+
+/** Điểm xuất phát đi bộ: tâm phòng lớn nhất của tầng đang xem. */
+function walkSpawn(): [number, number] | undefined {
+  const m = state.model;
+  if (!m || !state.activeLevel) return undefined;
+  let best: { at: [number, number]; area: number } | null = null;
+  for (const r of m.rooms) {
+    if (r.level !== state.activeLevel || r.use === "gieng-troi") continue;
+    const area = areaM2(r.polygon);
+    if (!best || area > best.area) {
+      const c = r.polygon.reduce<[number, number]>((s, pt) => [s[0] + pt[0], s[1] + pt[1]], [0, 0]);
+      best = { at: [c[0] / r.polygon.length, c[1] / r.polygon.length], area };
+    }
+  }
+  return best?.at;
+}
+
+walkBtn.addEventListener("click", () => {
+  if (scene3d.walking) {
+    scene3d.exitWalk();
+    return;
+  }
+  const m = state.model;
+  if (!m) return;
+  const level = m.levels.find((l) => l.id === state.activeLevel) ?? m.levels[0];
+  if (!level) return;
+  scene3d.enterWalk(level, walkSpawn(), () => {
+    walkBtn.classList.remove("is-active");
+    hint3d.textContent = HINT_ORBIT;
+  });
+  walkBtn.classList.add("is-active");
+  hint3d.textContent = "WASD — di chuyển · chuột — nhìn · Shift — chạy · Esc — thoát";
+});
+
+let sunOn = false;
+function applySun(): void {
+  if (!sunOn || !state.model) return;
+  const hour = Number(sunHour.value);
+  const month = Number(sunMonth.value);
+  sunHourVal.textContent = `${Math.floor(hour)}:${hour % 1 ? "30" : "00"}`;
+  sunMonthVal.textContent = String(month);
+  scene3d.setSun({
+    hour, month,
+    lat: state.model.brief?.dat?.vi_do ?? 10.8, // mặc định TP.HCM khi brief chưa có vĩ độ
+    north: state.model.site.north,
+  });
+}
+sunBtn.addEventListener("click", () => {
+  sunOn = !sunOn;
+  sunBtn.classList.toggle("is-active", sunOn);
+  sunPanel.hidden = !sunOn;
+  if (sunOn) applySun();
+  else scene3d.setSun(null);
+});
+sunHour.addEventListener("input", applySun);
+sunMonth.addEventListener("input", applySun);
+
 // ── Phím tắt toàn cục (doc 09) ─────────────────────────────────
 window.addEventListener("keydown", (e) => {
   if (plan.dragging) return; // phiên kéo tự xử lý bàn phím (HUD)
@@ -193,8 +312,16 @@ window.addEventListener("keydown", (e) => {
     doRedo();
   } else if (e.key === "Delete") {
     deleteSelection();
+  } else if (e.key.toLowerCase() === "r" && !e.ctrlKey && !e.metaKey) {
+    rotateSelection();
+  } else if (e.key === "5") {
+    catalog.show();
+    toolFurniture.classList.add("is-active");
+  } else if (e.key.toLowerCase() === "v") {
+    exitPlacing();
   } else if (e.key === "Escape") {
-    state.select(null);
+    if (plan.placingAsset || catalog.visible) exitPlacing();
+    else state.select(null);
   }
 });
 

@@ -27,12 +27,12 @@
 
   <main class="work">
     <aside class="rail" aria-label="Công cụ">
-      <button class="tool is-active" id="tool-select" title="Chọn / di chuyển — kéo tường, cửa, nội thất; đang kéo gõ số để chốt chính xác; Alt bỏ snap">V</button>
+      <button class="tool is-active" id="tool-select" title="Chọn / di chuyển — kéo tường, cửa, nội thất; đang kéo gõ số để chốt chính xác; Alt bỏ snap; R xoay nội thất đang chọn">V</button>
       <button class="tool" disabled title="Vẽ tường — giai đoạn sau">1</button>
       <button class="tool" disabled title="Đặt cửa đi — giai đoạn sau">2</button>
       <button class="tool" disabled title="Đặt cửa sổ — giai đoạn sau">3</button>
       <button class="tool" disabled title="Vẽ phòng — giai đoạn sau">4</button>
-      <button class="tool" disabled title="Nội thất — giai đoạn sau">5</button>
+      <button class="tool" id="tool-furniture" title="Nội thất — mở catalog, chọn món rồi click vào mặt bằng để đặt; Esc/V để thôi">5</button>
       <button class="tool" disabled title="Đo — giai đoạn sau">M</button>
     </aside>
 
@@ -50,9 +50,15 @@
       <div id="pane3d" class="pane pane-3d">
         <canvas id="canvas3d"></canvas>
         <div class="pane-actions">
+          <button id="walk3d" class="pane-btn" title="Đi bộ trong nhà — WASD di chuyển, chuột nhìn, Shift chạy, Esc thoát">đi bộ</button>
+          <button id="sun3d" class="pane-btn" title="Xem nắng theo giờ + tháng (vĩ độ lấy từ brief)">nắng</button>
           <button id="reset3d" class="pane-btn" title="Về góc nhìn mặc định">về góc chuẩn</button>
         </div>
-        <div class="pane-hint">kéo — xoay · lăn — zoom · chuột phải — trượt</div>
+        <div id="sun-controls" class="sun-controls" hidden>
+          <label>giờ <input id="sun-hour" type="range" min="6" max="18" step="0.5" value="9" /> <span id="sun-hour-val">9:00</span></label>
+          <label>tháng <input id="sun-month" type="range" min="1" max="12" step="1" value="6" /> <span id="sun-month-val">6</span></label>
+        </div>
+        <div class="pane-hint" id="hint3d">kéo — xoay · lăn — zoom · chuột phải — trượt</div>
       </div>
     </section>
 
