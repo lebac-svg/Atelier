@@ -24,17 +24,24 @@ const AVAIL = { w: A3.w - 14, h: A3.h - 14 };
  * Cả hai nhánh transform đều là phép ĐẲNG CỰ trên giấy (kèm y-down của SVG)
  * nên góc và ký hiệu không méo.
  */
-export function planTransform(b: Bounds): PlanTransform {
+export function planTransform(b: Bounds, preferScale?: number): PlanTransform {
   const w = b.maxX - b.minX;
   const h = b.maxY - b.minY;
   const rotated = h > w;
   const effW = rotated ? h : w;
   const effH = rotated ? w : h;
 
+  const fits = (s: number): boolean =>
+    effW / s + 2 * PAD <= AVAIL.w && effH / s + 2 * PAD <= AVAIL.h;
+
   let scale = 50;
-  for (const s of [50, 100, 200]) {
-    scale = s;
-    if (effW / s + 2 * PAD <= AVAIL.w && effH / s + 2 * PAD <= AVAIL.h) break;
+  if (preferScale && [50, 100, 200].includes(preferScale) && fits(preferScale)) {
+    scale = preferScale;
+  } else {
+    for (const s of [50, 100, 200]) {
+      scale = s;
+      if (fits(s)) break;
+    }
   }
 
   const paperW = effW / scale + 2 * PAD;

@@ -1,0 +1,173 @@
+import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import {
+  applyOps, loadNhaOng4x16, summarizeOps, validateProject,
+  type ApplyResult, type Op, type OpOrigin, type Point, type Project,
+} from "@atelier/core";
+
+export const PROJECT_FILE = "atelier.project.json";
+
+export type JournalEntry = {
+  revision: number;
+  at: string;
+  origin: OpOrigin;
+  note?: string;
+  summary: string;
+  ops: Op[];
+};
+
+/** Template có sẵn ở P1 (Q5/Q6: chỉ nhà ống). */
+export const TEMPLATES: Record<string, { label: string; load: () => Project }> = {
+  "nha-ong-4x16-2t": { label: "Nhà ống 4×16m, 2 tầng, 3PN", load: loadNhaOng4x16 },
+};
+
+/**
+ * Model store: một dự án tại một thư mục (doc 03).
+ * - atelier.project.json — NGUỒN SỰ THẬT, ghi atomic (tmp + rename)
+ * - .atelier/history.jsonl — journal ops (append-only)
+ */
+export class ProjectStore {
+  private project: Project | null = null;
+
+  constructor(readonly baseDir: string) {}
+
+  get filePath(): string {
+    return path.join(this.baseDir, PROJECT_FILE);
+  }
+
+  get exportDir(): string {
+    return path.join(this.baseDir, ".atelier", "exports");
+  }
+
+  private get journalPath(): string {
+    return path.join(this.baseDir, ".atelier", "history.jsonl");
+  }
+
+  get isOpen(): boolean {
+    return this.project != null;
+  }
+
+  get current(): Project {
+    if (!this.project) {
+      throw new Error("Chưa mở dự án nào — gọi project_new (tạo mới) hoặc project_open trước.");
+    }
+    return this.project;
+  }
+
+  newProject(name: string, template?: string, siteBoundary?: Point[]): Project {
+    if (existsSync(this.filePath)) {
+      throw new Error(`Đã có dự án tại ${this.filePath} — dùng project_open, hoặc xóa file nếu muốn làm lại từ đầu.`);
+    }
+    let p: Project;
+    if (template) {
+      const t = TEMPLATES[template];
+      if (!t) {
+        throw new Error(`Không có template "${template}" — hiện có: ${Object.keys(TEMPLATES).join(", ")}.`);
+      }
+      p = t.load();
+    } else {
+      p = blankProject();
+    }
+    p.meta = { ...p.meta, id: slugify(name), name, revision: 0 };
+    if (siteBoundary) {
+      p.site.boundary = siteBoundary;
+      p.brief.dat = { ...(p.brief.dat ?? {}), ranh_gioi: siteBoundary };
+    }
+    this.project = p;
+    this.persist();
+    this.appendJournal({
+      revision: 0,
+      at: new Date().toISOString(),
+      origin: "system",
+      summary: template ? `khởi tạo từ template ${template}` : "khởi tạo dự án trống",
+      ops: [],
+    });
+    return p;
+  }
+
+  openProject(file?: string): Project {
+    const fp = file ? path.resolve(this.baseDir, file) : this.filePath;
+    if (!existsSync(fp)) {
+      throw new Error(`Không thấy ${fp} — kiểm tra đường dẫn hoặc tạo mới bằng project_new.`);
+    }
+    const raw = JSON.parse(readFileSync(fp, "utf8")) as Project;
+    if (typeof raw?.meta?.revision !== "number" || raw.meta.unit !== "mm") {
+      throw new Error(`${fp} không phải file dự án Atelier hợp lệ (thiếu meta.revision / unit mm).`);
+    }
+    this.project = raw;
+    return raw;
+  }
+
+  /** Cổng mutation duy nhất — validate đầy đủ, block → hủy, thành công → ghi đĩa + journal. */
+  apply(baseRevision: number, ops: Op[], note?: string, origin: OpOrigin = "claude"): ApplyResult {
+    const result = applyOps(this.current, baseRevision, ops, {
+      validate: validateProject,
+      ...(note ? { note } : {}),
+    });
+    if (result.ok) {
+      this.project = result.project;
+      this.persist();
+      this.appendJournal({
+        revision: result.revision,
+        at: new Date().toISOString(),
+        origin,
+        ...(note ? { note } : {}),
+        summary: summarizeOps(ops),
+        ops,
+      });
+    }
+    return result;
+  }
+
+  changesSince(revision: number): { entries: JournalEntry[]; currentRevision: number } {
+    const entries: JournalEntry[] = [];
+    if (existsSync(this.journalPath)) {
+      for (const line of readFileSync(this.journalPath, "utf8").split("\n")) {
+        if (!line.trim()) continue;
+        const e = JSON.parse(line) as JournalEntry;
+        if (e.revision > revision) entries.push(e);
+      }
+    }
+    return { entries, currentRevision: this.current.meta.revision };
+  }
+
+  private persist(): void {
+    mkdirSync(path.dirname(this.filePath), { recursive: true });
+    const tmp = `${this.filePath}.tmp`;
+    writeFileSync(tmp, JSON.stringify(this.current, null, 2) + "\n", "utf8");
+    renameSync(tmp, this.filePath);
+  }
+
+  private appendJournal(entry: JournalEntry): void {
+    mkdirSync(path.dirname(this.journalPath), { recursive: true });
+    appendFileSync(this.journalPath, JSON.stringify(entry) + "\n", "utf8");
+  }
+}
+
+export function blankProject(): Project {
+  return {
+    meta: { id: "du-an-moi", name: "Dự án mới", revision: 0, unit: "mm", app: "atelier/0.1" },
+    brief: {},
+    site: { boundary: [[0, 0], [4000, 0], [4000, 16000], [0, 16000]], north: 0, front: 0 },
+    axes: { x: [], y: [] },
+    levels: [{ id: "L1", name: "Tầng 1", elevation: 0, height: 3600 }],
+    walls: [],
+    openings: [],
+    slabs: [],
+    stairs: [],
+    rooms: [],
+    furniture: [],
+    styles: { openings: {} },
+    finishes: {},
+  };
+}
+
+export function slugify(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/đ/gi, "d")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "du-an";
+}

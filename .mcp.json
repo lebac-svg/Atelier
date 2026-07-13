@@ -5,6 +5,17 @@
       "args": [
         "serve"
       ]
+    },
+    "atelier": {
+      "command": "node",
+      "args": [
+        "--import",
+        "tsx",
+        "packages/server/src/mcp.ts"
+      ],
+      "env": {
+        "ATELIER_DIR": "sandbox/demo"
+      }
     }
   }
 }

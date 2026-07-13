@@ -13,7 +13,7 @@ export type PlanBuild = {
   meta: { levelName: string; scaleLabel: string; projectName: string };
 };
 
-export type PlanOptions = { date?: string; designer?: string };
+export type PlanOptions = { date?: string; designer?: string; scale?: number; layers?: string[] };
 
 export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = {}): PlanBuild {
   const level = getLevel(p, levelId);
@@ -23,12 +23,17 @@ export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = 
   }
 
   const items: Scene2D = [];
-  const push = (layer: LayerName, prim: Prim, dataId?: string, space?: "model" | "paper") =>
+  const keep = opts.layers?.length
+    ? new Set([...opts.layers.map((l) => l.toUpperCase()), "KHUNG"]) // khung tên luôn giữ
+    : null;
+  const push = (layer: LayerName, prim: Prim, dataId?: string, space?: "model" | "paper") => {
+    if (keep && !keep.has(layer)) return;
     items.push({ layer, prim, ...(dataId ? { dataId } : {}), ...(space ? { space } : {}) });
+  };
 
   const walls = p.walls.filter((w) => w.level === levelId);
   const bounds = computeBounds(p, walls);
-  const tf = planTransform(bounds);
+  const tf = planTransform(bounds, opts.scale);
   const S = tf.scale;
   const mm = (paperMm: number): number => paperMm * S; // mm giấy → mm model
 
@@ -303,7 +308,7 @@ function drawGlyph(
   push: Push,
 ): void {
   const L = (x: number, y: number): Point => add(f.at, rotate([x, y], f.rotation));
-  const line = (x0: number, y0: number, x1: number, y1: number, weight = W.hair) =>
+  const line = (x0: number, y0: number, x1: number, y1: number, weight: number = W.hair) =>
     push("NOI-THAT", { kind: "line", a: L(x0, y0), b: L(x1, y1), weight }, f.id);
   const circle = (x: number, y: number, r: number) =>
     push("NOI-THAT", { kind: "circle", c: L(x, y), r, weight: W.hair }, f.id);
