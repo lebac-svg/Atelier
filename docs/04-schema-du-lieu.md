@@ -30,6 +30,7 @@ type Project = {
   furniture: Furniture[];
   styles: { openings: Record<string, OpeningStyle> };  // "D1", "S1"…
   finishes: Record<string, Finish>;                    // vật liệu hoàn thiện
+  underlay?: Underlay;             // bản vẽ cũ/ảnh đồ lại (giàn giáo, không vào hồ sơ xuất)
 };
 
 type Site = {
@@ -97,6 +98,15 @@ type Furniture = {
 type OpeningStyle = { label: string; kind: "door" | "window";
                      leaf: "1-canh" | "2-canh" | "truot" | "xep";
                      material?: string; note?: string };
+
+type Underlay = {                                  // SINGLETON — id luôn "U1"
+  id: string; kind: "dxf" | "image";
+  source: string;                                  // file trong .atelier/underlay/ (server copy khi import)
+  origin: [number, number];                        // mm model nơi gốc (0,0) nguồn được đặt; ảnh: góc DƯỚI-TRÁI
+  scale: number;                                   // mm model / một đơn vị nguồn (DXF unit hoặc pixel)
+  rotation?: number; opacity?: number;             // độ CCW; độ hiện 0..1 (mặc định 0.35)
+  level?: string;                                  // chỉ hiện ở tầng này
+};
 ```
 
 ## Bất biến "đúng-theo-cấu-trúc" (không cần validator vẫn không thể sai)

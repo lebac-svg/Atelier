@@ -12,6 +12,7 @@ export const ID_PREFIX: Record<Exclude<EntityKind, "axis" | "style" | "finish">,
   stair: "ST",
   room: "R",
   furniture: "F",
+  underlay: "U", // singleton — luôn là U1
 };
 
 export function idPrefixForOpening(kind: "door" | "window"): string {
@@ -28,6 +29,7 @@ export function collectIds(p: Project): Set<string> {
   for (const a of p.axes.y) ids.add(a.id);
   for (const k of Object.keys(p.styles.openings)) ids.add(k);
   for (const k of Object.keys(p.finishes)) ids.add(k);
+  if (p.underlay) ids.add(p.underlay.id);
   return ids;
 }
 

@@ -21,6 +21,19 @@ export type PlanOptions = {
   layers?: string[];
   /** Số hiệu tờ trong bộ hồ sơ (P4) — mặc định KT-01. */
   sheetNo?: string;
+  /**
+   * Underlay đồ lại (server nạp sẵn qua loadUnderlay) — vẽ MỜ dưới cùng và
+   * nới bounds cho thấy trọn bản cũ. Chỉ truyền ở plan live/render_plan;
+   * bộ tờ hồ sơ (sheets) KHÔNG truyền — giàn giáo không vào bản vẽ bàn giao.
+   */
+  underlay?: PlanUnderlay;
+};
+
+export type PlanUnderlay = {
+  polylines: Point[][];
+  image?: { href: string; wpx: number; hpx: number; origin: Point; scale: number; rot: number };
+  opacity: number;
+  level?: string;
 };
 
 export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = {}): PlanBuild {
@@ -40,7 +53,10 @@ export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = 
   };
 
   const walls = p.walls.filter((w) => w.level === levelId);
-  const bounds = computeBounds(p, walls);
+  const underlay = opts.underlay && (!opts.underlay.level || opts.underlay.level === levelId)
+    ? opts.underlay
+    : undefined;
+  const bounds = computeBounds(p, walls, underlay);
   const tf = planTransform(bounds, opts.scale);
   const S = tf.scale;
   const mm = (paperMm: number): number => paperMm * S; // mm giấy → mm model
@@ -49,6 +65,7 @@ export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = 
   const paperVec = (dx: number, dy: number): Point =>
     tf.rotated ? [dy * S, dx * S] : [dx * S, -dy * S];
 
+  if (underlay) drawUnderlay(underlay, items);
   drawSite(p, push);
   drawAxes(p, bounds, mm, push);
   drawWallsAndOpenings(p, walls, mm, push);
@@ -77,15 +94,44 @@ export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = 
   };
 }
 
-function computeBounds(p: Project, walls: Wall[]): Bounds {
+function computeBounds(p: Project, walls: Wall[], underlay?: PlanUnderlay): Bounds {
   const pts: Point[] = [...p.site.boundary];
   for (const w of walls) pts.push(...wallBand(w));
+  if (underlay) pts.push(...underlayCorners(underlay));
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const [x, y] of pts) {
     minX = Math.min(minX, x); minY = Math.min(minY, y);
     maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
   }
   return { minX, minY, maxX, maxY };
+}
+
+/* ---------------- underlay đồ lại ---------------- */
+
+function underlayCorners(u: PlanUnderlay): Point[] {
+  const pts: Point[] = u.polylines.flat();
+  if (u.image) {
+    const { origin, scale, rot, wpx, hpx } = u.image;
+    for (const [cx, cy] of [[0, 0], [wpx, 0], [wpx, hpx], [0, hpx]] as Point[]) {
+      pts.push(add(origin, rotate([cx * scale, cy * scale], rot)));
+    }
+  }
+  return pts;
+}
+
+function drawUnderlay(u: PlanUnderlay, items: Scene2D): void {
+  // đẩy thẳng vào items (không qua push/keep) — lọc layers không được giấu giàn giáo đồ lại
+  if (u.image) {
+    items.push({ layer: "UNDERLAY", prim: { kind: "image", ...u.image }, opacity: u.opacity });
+  }
+  for (const pts of u.polylines) {
+    if (pts.length < 2) continue;
+    items.push({
+      layer: "UNDERLAY",
+      prim: { kind: "polyline", pts, weight: W.thin, color: "#3a6ea5" },
+      opacity: u.opacity,
+    });
+  }
 }
 
 /* ---------------- ranh đất ---------------- */

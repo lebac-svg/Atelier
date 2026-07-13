@@ -43,7 +43,7 @@ Cỡ M/L là tương đối giữa các giai đoạn — ước lượng thô, c
 | ~~Rule pack quy hoạch địa phương~~ | ✅ 13/07/2026 — pack `pln.json` 6 rules (lùi trước/sau tổng quát mọi hình lô, mật độ, tầng, chiều cao, ô văng vươn hẻm) chạy từ `brief.quy_hoach`, không khai không kiểm; thay STD-12 + đuôi GEO-08 | ~~P4~~ xong |
 | ~~Xuất IFC~~ | ✅ 13/07/2026 — writer IFC4 SPF **thuần TS** (`export ifc`, không cần sidecar IfcOpenShell): tường + lỗ cửa đúng quan hệ voids/fills, sàn có lỗ thật (profile-with-voids), vế thang + chiếu nghỉ gộp dưới IfcStair, phòng thành IfcSpace theo tầng, GlobalId deterministic (chạy lại diff được); mức CONCEPT bàn giao KTS/BIM viewer — KHÔNG thay hồ sơ thi công | ~~P4+~~ xong |
 | ~~Render photoreal~~ | ✅ 13/07/2026 — `export gltf` ra MỘT file GLB (mét thật, mỗi entity một node theo id, tường tách mảnh quanh cửa, kính blend) + `scripts/render-photoreal.py`: Blender headless nhập GLB, nắng đúng giờ/tháng cùng công thức sun study, trời Nishita, camera tự đóng khung, Cycles — cần cài Blender, chạy nền ngoài editor | ~~P5+~~ xong |
-| Import DXF/ảnh mặt bằng cũ | bài toán nhận dạng riêng, khó | xa |
+| ~~Import DXF/ảnh mặt bằng cũ~~ | ✅ 14/07/2026 — hướng UNDERLAY ĐỒ LẠI thay vì nhận dạng tự động toàn phần: `underlay_import` đặt DXF (parser thuần TS: LINE/LWPOLYLINE/POLYLINE/CIRCLE/ARC, tỷ lệ từ $INSUNITS hoặc calibrate 2 điểm) hoặc ảnh PNG/JPEG (bắt buộc calibrate) làm nền MỜ dưới mặt bằng — hiện ở editor live + render_plan, nới khung nhìn, KHÔNG vào bộ tờ xuất; `underlay_trace` dò cặp nét song song thành ứng viên tường (đường tim + bề dày), trả ops ĐỀ XUẤT để duyệt tay — nhận dạng full ảnh raster vẫn là bài toán xa | ~~xa~~ xong |
 | Kết cấu/MEP | ngoài phạm vi sản phẩm hiện tại | xa |
 
 ## Rủi ro chính & cách giảm

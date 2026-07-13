@@ -39,8 +39,9 @@ export function sceneToSvg(items: Scene2D, tf: PlanTransform, opts: SvgOptions =
     out.push(`<g id="layer-${layer}" data-layer="${layer}">`);
     for (const item of layerItems) {
       const map = item.space === "paper" ? (p: Point): Point => p : tf.toPaper;
-      const el = primToSvg(item.prim, map, tf, item.space === "paper");
+      let el = primToSvg(item.prim, map, tf, item.space === "paper");
       if (!el) continue;
+      if (item.opacity != null && item.opacity < 1) el = el.replace(/^<(\w+)/, `<$1 opacity="${F(item.opacity)}"`);
       out.push(item.dataId ? el.replace(/^<(\w+)/, `<$1 data-id="${esc(item.dataId)}"`) : el);
     }
     out.push("</g>");
@@ -55,12 +56,30 @@ function primToSvg(prim: Prim, map: (p: Point) => Point, tf: PlanTransform, isPa
     case "line": {
       const a = map(prim.a);
       const b = map(prim.b);
-      return `<line x1="${F(a[0])}" y1="${F(a[1])}" x2="${F(b[0])}" y2="${F(b[1])}"${stroke(prim.weight, prim.dash)}/>`;
+      return `<line x1="${F(a[0])}" y1="${F(a[1])}" x2="${F(b[0])}" y2="${F(b[1])}"${stroke(prim.weight, prim.dash, prim.color)}/>`;
     }
     case "polyline": {
       const pts = prim.pts.map(map).map((p) => `${F(p[0])},${F(p[1])}`).join(" ");
       const tag = prim.close ? "polygon" : "polyline";
-      return `<${tag} points="${pts}" fill="none"${stroke(prim.weight, prim.dash)}/>`;
+      return `<${tag} points="${pts}" fill="none"${stroke(prim.weight, prim.dash, prim.color)}/>`;
+    }
+    case "image": {
+      // pixel (u,v) → model = origin + R(rot)·(u·s, (hpx−v)·s) → giấy. Ảnh gốc y-XUỐNG,
+      // model y-LÊN — hàng pixel 0 nằm ở đỉnh ảnh nên v đảo qua hpx−v.
+      const rad = (prim.rot * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      const s = prim.scale;
+      const px = (u: number, v: number): Point => {
+        const mx = u * s;
+        const my = (prim.hpx - v) * s;
+        return map([prim.origin[0] + mx * cos - my * sin, prim.origin[1] + mx * sin + my * cos]);
+      };
+      const p00 = px(0, 0);
+      const pu = px(1, 0);
+      const pv = px(0, 1);
+      const m = [pu[0] - p00[0], pu[1] - p00[1], pv[0] - p00[0], pv[1] - p00[1], p00[0], p00[1]];
+      return `<image href="${prim.href}" x="0" y="0" width="${prim.wpx}" height="${prim.hpx}" preserveAspectRatio="none" transform="matrix(${m.map(F).join(" ")})"/>`;
     }
     case "polygon": {
       const pts = prim.pts.map(map).map((p) => `${F(p[0])},${F(p[1])}`).join(" ");
@@ -129,10 +148,10 @@ function paperAngle(modelDeg: number, tf: PlanTransform, isPaper: boolean): numb
   return (Math.atan2(v[1], v[0]) * 180) / Math.PI;
 }
 
-function stroke(weight?: number, dash?: string): string {
+function stroke(weight?: number, dash?: string, color?: string): string {
   if (weight == null) return "";
   const d = dash ? ` stroke-dasharray="${dash}"` : "";
-  return ` stroke="#000" stroke-width="${F(weight)}" stroke-linecap="round" stroke-linejoin="round"${d}`;
+  return ` stroke="${color ?? "#000"}" stroke-width="${F(weight)}" stroke-linecap="round" stroke-linejoin="round"${d}`;
 }
 
 function esc(s: string): string {

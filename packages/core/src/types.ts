@@ -28,6 +28,7 @@ export type Project = {
   furniture: Furniture[];
   styles: { openings: Record<string, OpeningStyle> };
   finishes: Record<string, Finish>;
+  underlay?: Underlay;
 };
 
 export type ProjectMeta = {
@@ -199,6 +200,29 @@ export type Brief = {
   phong_thuy?: { lo_ban?: boolean };
 };
 
+/**
+ * Underlay đồ lại — bản vẽ cũ (DXF) hoặc ảnh mặt bằng đặt MỜ dưới plan
+ * để dựng model theo. SINGLETON (id luôn "U1"), đi qua ops như mọi entity.
+ * Model chỉ lưu THAM CHIẾU file (đã copy vào .atelier/underlay/) + phép đặt;
+ * hình học nguồn không vào model — underlay là giàn giáo, không phải nhà.
+ */
+export type Underlay = {
+  id: string; // "U1"
+  kind: "dxf" | "image";
+  /** Tên file trong <dự án>/.atelier/underlay/ (server copy khi import). */
+  source: string;
+  /** Điểm model (mm) nơi gốc (0,0) của nguồn được đặt. Ảnh: gốc = góc DƯỚI-TRÁI. */
+  origin: Point;
+  /** mm model trên MỘT đơn vị nguồn (DXF unit / pixel ảnh). */
+  scale: number;
+  /** Độ CCW quanh origin (cùng quy ước model). */
+  rotation?: number;
+  /** 0..1, mặc định 0.35. */
+  opacity?: number;
+  /** Chỉ hiện ở tầng này; bỏ trống = mọi tầng. */
+  level?: string;
+};
+
 /** Các loại thực thể đi qua ops (docs/05). */
 export type EntityKind =
   | "level"
@@ -210,4 +234,5 @@ export type EntityKind =
   | "furniture"
   | "axis"
   | "style"
-  | "finish";
+  | "finish"
+  | "underlay";

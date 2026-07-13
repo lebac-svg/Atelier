@@ -31,14 +31,15 @@ const textOf = (r: Awaited<ReturnType<Client["callTool"]>>): string =>
     .join("\n");
 
 describe("MCP server — tools DoD P1 + P2 + P4", () => {
-  it("liệt kê đúng 16 tools", async () => {
+  it("liệt kê đúng 18 tools", async () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();
     expect(names).toEqual([
       "apply_ops", "assets_search", "capture_view", "editor_open", "estimate_cost", "export",
       "get_changes_since", "model_query", "project_new", "project_open", "render_plan",
-      "render_view", "validate", "variant_compare", "variant_open", "variant_save",
+      "render_view", "underlay_import", "underlay_trace", "validate", "variant_compare",
+      "variant_open", "variant_save",
     ].sort());
   });
 
@@ -124,6 +125,57 @@ describe("MCP server — tools DoD P1 + P2 + P4", () => {
     expect(textOf(ifc)).toContain("IFC4");
     const ifcFile = readdirSync(hoSo).find((f) => f.endsWith(".ifc"))!;
     expect(readFileSync(path.join(hoSo, ifcFile), "utf8")).toContain("FILE_SCHEMA(('IFC4'));");
+  });
+
+  it("underlay: import DXF tự lấy tỷ lệ $INSUNITS → trace đề xuất tường → apply được", async () => {
+    const { client, store } = await connect();
+    await client.callTool({ name: "project_new", arguments: { name: "Nhà anh Ba", template: "nha-ong-4x16-2t" } });
+
+    // DXF hai cặp nét song song (tường 110 nằm ngang + dọc), mm
+    const dxf = [
+      "0", "SECTION", "2", "HEADER", "9", "$INSUNITS", "70", "4", "0", "ENDSEC",
+      "0", "SECTION", "2", "ENTITIES",
+      "0", "LINE", "10", "0", "20", "0", "11", "3500", "21", "0",
+      "0", "LINE", "10", "0", "20", "110", "11", "3500", "21", "110",
+      "0", "LINE", "10", "0", "20", "0", "11", "0", "21", "2800",
+      "0", "LINE", "10", "110", "20", "0", "11", "110", "21", "2800",
+      "0", "ENDSEC", "0", "EOF",
+    ].join("\n");
+    const { mkdtempSync, writeFileSync: wf } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const src = path.join(mkdtempSync(path.join(tmpdir(), "atelier-dxf-")), "nha-cu.dxf");
+    wf(src, dxf, "utf8");
+
+    const imp = await client.callTool({ name: "underlay_import", arguments: { path: src } });
+    expect(imp.isError).not.toBe(true);
+    expect(textOf(imp)).toContain("$INSUNITS");
+    expect(store.current.underlay).toMatchObject({ id: "U1", kind: "dxf", scale: 1 });
+
+    const trace = await client.callTool({ name: "underlay_trace", arguments: { level: "L1" } });
+    expect(trace.isError).not.toBe(true);
+    const msg = textOf(trace);
+    const ops = JSON.parse(msg.slice(msg.indexOf("["), msg.lastIndexOf("]") + 1)) as Array<{ data: { thickness: number } }>;
+    expect(ops).toHaveLength(2);
+    expect(ops[0]!.data.thickness).toBe(110);
+
+    const applied = await client.callTool({
+      name: "apply_ops",
+      arguments: { baseRevision: store.current.meta.revision, ops, note: "đồ lại từ underlay" },
+    });
+    expect(textOf(applied)).toContain("✅");
+
+    // ảnh không có tỷ lệ phải bị chặn kèm chỉ đường calibrate
+    const png = path.join(path.dirname(src), "anh.png");
+    wf(png, Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64"));
+    const noScale = await client.callTool({ name: "underlay_import", arguments: { path: png } });
+    expect(noScale.isError).toBe(true);
+    expect(textOf(noScale)).toContain("calibrate");
+    const withCal = await client.callTool({
+      name: "underlay_import",
+      arguments: { path: png, calibrate: { a: [0, 0], b: [1, 0], mm: 4000 } },
+    });
+    expect(withCal.isError).not.toBe(true);
+    expect(store.current.underlay).toMatchObject({ kind: "image", scale: 4000 });
   });
 
   it("export svg lọc theo sheets giữ đúng số KT trong bộ", async () => {

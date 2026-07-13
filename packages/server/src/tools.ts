@@ -14,10 +14,14 @@ import { renderElevationSvg, renderPlanFiles, renderSectionSvg } from "./render/
 import { buildSheetSet, sheetDxf, sheetSvg } from "./render/sheets.js";
 import { modelToGlb } from "./render/gltf-writer.js";
 import { modelToIfc } from "./render/ifc-writer.js";
+import { detectWalls } from "./import/detect.js";
+import { parseDxf } from "./import/dxf.js";
+import { imageSize } from "./import/image-size.js";
+import { loadUnderlay, placedPolylines, underlayDir } from "./import/underlay.js";
 import { ProjectStore, TEMPLATES } from "./store.js";
 
 const ENTITY = z.enum([
-  "level", "wall", "opening", "slab", "stair", "room", "furniture", "axis", "style", "finish",
+  "level", "wall", "opening", "slab", "stair", "room", "furniture", "axis", "style", "finish", "underlay",
 ]);
 
 const OP = z.discriminatedUnion("op", [
@@ -222,10 +226,12 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
     async (args) => {
       try {
         const p = store.current;
+        const underlay = loadUnderlay(p, store.baseDir);
         const r = await renderPlanFiles(p, args.level, store.exportDir, {
           date: new Date().toLocaleDateString("vi-VN"),
           ...(args.scale ? { scale: args.scale } : {}),
           ...(args.layers ? { layers: args.layers } : {}),
+          ...(underlay ? { underlay } : {}),
         });
         const issues = validateProject(p);
         const note = `Đã render ${r.levelName} (${r.scaleLabel}) → ${r.svgPath}\nValidator: ${issues.length === 0 ? "sạch" : `${issues.length} vấn đề — chạy validate để xem`}.`;
@@ -650,6 +656,161 @@ ${vNote}`);
     },
   );
 
+  server.registerTool(
+    "underlay_import",
+    {
+      title: "Nhập bản vẽ cũ / ảnh mặt bằng làm underlay đồ lại",
+      description:
+        "Đặt DXF (bản CAD cũ) hoặc ảnh PNG/JPEG (chụp/scan mặt bằng) làm lớp MỜ dưới mặt bằng để dựng model theo — underlay là giàn giáo, KHÔNG vào bản vẽ xuất. Tỷ lệ: DXF thường tự suy từ $INSUNITS; nếu không (và luôn luôn với ảnh) hỏi người dùng MỘT đoạn đã biết chiều dài thật rồi truyền calibrate {a,b,mm} — a/b theo đơn vị nguồn (DXF unit / pixel ảnh; chỉ dùng KHOẢNG CÁCH nên đo hệ trục nào cũng được). Sau import: render_plan soi vị trí, chỉnh chỗ đặt bằng apply_ops update underlay U1 (origin/rotation/scale/opacity/level; origin ảnh = góc dưới-trái), DXF thì underlay_trace để dò tường. Xóa: apply_ops delete underlay U1.",
+      inputSchema: {
+        path: z.string().describe("Đường dẫn file .dxf/.png/.jpg (tuyệt đối, hoặc tương đối thư mục dự án)"),
+        scale: z.number().positive().optional().describe("mm model trên MỘT đơn vị nguồn (DXF unit / pixel). Bỏ trống = calibrate hoặc $INSUNITS"),
+        calibrate: z
+          .object({
+            a: z.tuple([z.number(), z.number()]),
+            b: z.tuple([z.number(), z.number()]),
+            mm: z.number().positive(),
+          })
+          .optional()
+          .describe("Hai điểm theo đơn vị NGUỒN + khoảng cách thật mm giữa chúng — tự tính scale"),
+        origin: z.tuple([z.number(), z.number()]).optional().describe("Điểm model mm nơi gốc (0,0) nguồn được đặt — mặc định [0,0]"),
+        rotation: z.number().optional().describe("Độ CCW quanh origin"),
+        opacity: z.number().min(0.05).max(1).optional().describe("Độ hiện 0..1, mặc định 0.35"),
+        level: z.string().optional().describe("Chỉ hiện ở tầng này (vd L1) — bỏ trống = mọi tầng"),
+      },
+    },
+    (args) => {
+      try {
+        const p = store.current;
+        const src = path.isAbsolute(args.path) ? args.path : path.resolve(store.baseDir, args.path);
+        if (!existsSync(src)) return fail(new Error(`Không thấy file: ${src}`));
+        const ext = path.extname(src).toLowerCase();
+        const kind = ext === ".dxf" ? "dxf" : [".png", ".jpg", ".jpeg"].includes(ext) ? "image" : null;
+        if (!kind) return fail(new Error(`Chỉ nhận .dxf / .png / .jpg — nhận được "${ext}". PDF thì chụp/scan ra ảnh trước.`));
+
+        const info: string[] = [];
+        let autoScale: number | null = null;
+        if (kind === "dxf") {
+          const d = parseDxf(readFileSync(src, "utf8"));
+          if (d.polylines.length === 0) {
+            return fail(new Error("DXF không có nét đọc được (LINE/LWPOLYLINE/POLYLINE/CIRCLE/ARC) — file toàn block/INSERT thì explode ra entity thường trước."));
+          }
+          autoScale = d.mmPerUnit;
+          const nSkip = Object.entries(d.skipped).map(([k, v]) => `${k}×${v}`).join(", ");
+          info.push(`Nét đọc được: ${Object.entries(d.counts).map(([k, v]) => `${k}×${v}`).join(", ")}${nSkip ? ` (bỏ qua: ${nSkip})` : ""}`);
+          if (d.bounds) info.push(`Khung nguồn: ${Math.round(d.bounds.maxX - d.bounds.minX)}×${Math.round(d.bounds.maxY - d.bounds.minY)} đơn vị`);
+        } else {
+          const im = imageSize(readFileSync(src));
+          info.push(`Ảnh ${im.width}×${im.height}px`);
+        }
+
+        let scale = args.scale ?? null;
+        let scaleFrom = "khai báo";
+        if (!scale && args.calibrate) {
+          const { a, b, mm } = args.calibrate;
+          const d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+          if (d < 1e-6) return fail(new Error("calibrate: hai điểm a/b trùng nhau."));
+          scale = mm / d;
+          scaleFrom = `calibrate (${Math.round(d)} đơn vị = ${args.calibrate.mm}mm)`;
+        }
+        if (!scale && autoScale) {
+          scale = autoScale;
+          scaleFrom = "$INSUNITS của DXF";
+        }
+        if (!scale) {
+          return fail(new Error(
+            kind === "dxf"
+              ? "DXF không khai $INSUNITS — hỏi người dùng một đoạn đã biết chiều dài thật rồi truyền calibrate {a,b,mm}, hoặc scale trực tiếp."
+              : "Ảnh bắt buộc có tỷ lệ — hỏi người dùng một đoạn đã biết chiều dài thật trên ảnh (đo pixel) rồi truyền calibrate {a,b,mm}, hoặc scale = mm/pixel.",
+          ));
+        }
+
+        const dir = underlayDir(store.baseDir);
+        mkdirSync(dir, { recursive: true });
+        const source = path.basename(src);
+        const dst = path.join(dir, source);
+        if (path.resolve(dst) !== path.resolve(src)) writeFileSync(dst, readFileSync(src));
+
+        const data = {
+          id: "U1",
+          kind,
+          source,
+          origin: args.origin ?? [0, 0],
+          scale,
+          ...(args.rotation ? { rotation: args.rotation } : {}),
+          ...(args.opacity ? { opacity: args.opacity } : {}),
+          ...(args.level ? { level: args.level } : {}),
+        };
+        const op: Op = p.underlay
+          ? { op: "update", entity: "underlay", id: "U1", data }
+          : { op: "add", entity: "underlay", data };
+        const r = store.apply(p.meta.revision, [op], `import underlay ${source}`);
+        if (!r.ok) return fail(new Error(r.errors.map((e) => e.message).join("; ")));
+
+        return text([
+          `✅ Underlay ${kind} "${source}" (revision ${r.revision}) — tỷ lệ ${scale.toFixed(4)} mm/đơn vị (${scaleFrom}).`,
+          ...info,
+          `Hiện MỜ dưới mặt bằng (editor + render_plan; bản vẽ XUẤT không có). Soi bằng render_plan rồi chỉnh chỗ đặt: apply_ops update underlay U1 (origin/rotation/scale/opacity/level).`,
+          ...(kind === "dxf" ? ["Dò tường từ nét DXF: underlay_trace."] : []),
+        ].join("\n"));
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    "underlay_trace",
+    {
+      title: "Dò tường từ underlay DXF (đề xuất, không tự áp)",
+      description:
+        "Heuristic đọc nét DXF của underlay: hai nét song song trục cách nhau một bề dày tường hợp lý, chồng lấp đủ dài → ứng viên tường ở đường tim. Trả về danh sách ops ĐỀ XUẤT (không tự áp) — duyệt bằng mắt với render_plan (underlay hiện dưới), bỏ ứng viên sai (đồ nội thất vẽ hai nét, ranh sân…), rồi tự apply_ops những op giữ lại. v1 chỉ dò nét thẳng trục x/y; ảnh raster không dò được — đồ tay theo underlay.",
+      inputSchema: {
+        level: z.string().describe("Tầng nhận tường đề xuất, vd L1"),
+        minOverlap: z.number().positive().optional().describe("Chồng lấp tối thiểu mm (mặc định 600 — tăng lên nếu ra quá nhiều rác)"),
+        thickness: z.tuple([z.number(), z.number()]).optional().describe("Khoảng bề dày chấp nhận [min,max] mm, mặc định [80,400]"),
+      },
+    },
+    (args) => {
+      try {
+        const p = store.current;
+        const u = p.underlay;
+        if (!u) return fail(new Error("Chưa có underlay — underlay_import trước."));
+        if (u.kind !== "dxf") return fail(new Error("Underlay hiện là ảnh — dò tường chỉ chạy trên DXF; ảnh thì đồ tay theo nền mờ."));
+        if (!p.levels.some((l) => l.id === args.level)) {
+          return fail(new Error(`Không có level "${args.level}" — các level: ${p.levels.map((l) => l.id).join(", ")}.`));
+        }
+        const cands = detectWalls(placedPolylines(u, store.baseDir), {
+          ...(args.minOverlap ? { minOverlap: args.minOverlap } : {}),
+          ...(args.thickness ? { thickness: args.thickness } : {}),
+        });
+        if (cands.length === 0) {
+          return text("Không dò được cặp nét song song nào ra dáng tường — thử hạ minOverlap, nới thickness, hoặc kiểm tra tỷ lệ underlay (bề dày tường sau scale phải rơi vào khoảng 80–400mm).");
+        }
+        const MAX = 40;
+        const kept = cands.slice(0, MAX);
+        let n = 100; // W101… tránh đụng id model hiện có lẫn nhau trong batch
+        const usedIds = new Set([...p.walls.map((w) => w.id)]);
+        const ops = kept.map((c) => {
+          do n++; while (usedIds.has(`W${n}`));
+          usedIds.add(`W${n}`);
+          return {
+            op: "add" as const,
+            entity: "wall" as const,
+            data: { id: `W${n}`, level: args.level, from: c.from, to: c.to, thickness: c.thickness, kind: "gach" },
+          };
+        });
+        return text([
+          `Dò được ${cands.length} ứng viên tường${cands.length > MAX ? ` (trả ${MAX} dài nhất — còn lại chạy lại với minOverlap cao hơn)` : ""} — ĐỀ XUẤT, chưa áp:`,
+          JSON.stringify(ops, null, 2),
+          `Duyệt trước khi áp: render_plan (nét underlay xanh mờ nằm dưới), bỏ op sai (nội thất hai nét, ranh sân…), chỉnh from/to nếu cần bám trục, rồi apply_ops với baseRevision ${p.meta.revision}.`,
+        ].join("\n"));
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
   return server;
 }
 
@@ -692,6 +853,7 @@ function queryModel(
     furniture: p.furniture.filter((e) => keepId(e) && keepLevel(e)),
     styles: p.styles,
     finishes: p.finishes,
+    underlay: p.underlay ?? "(chưa có underlay — dùng underlay_import)",
   };
 
   const base: Record<string, unknown> = select.entity

@@ -13,6 +13,7 @@ import {
   type CaptureCamera, type CaptureTarget, type ClientKind, type ServerMessage, type ValidationMsg,
 } from "@atelier/core";
 import { compareHtml, type VariantSide } from "./compare.js";
+import { loadUnderlay } from "./import/underlay.js";
 import { renderPlanSvg } from "./render/render.js";
 import type { ProjectStore, StoreEvent } from "./store.js";
 
@@ -283,7 +284,8 @@ export class LiveServer {
         }
       }
       if (!p.levels.some((l) => l.id === level)) return c.text(`Không có tầng "${level}".`, 404);
-      const { svg } = renderPlanSvg(p, level);
+      const underlay = loadUnderlay(p, this.store.baseDir);
+      const { svg } = renderPlanSvg(p, level, underlay ? { underlay } : {});
       return c.body(svg, 200, { "content-type": "image/svg+xml", "cache-control": "no-store" });
     });
 

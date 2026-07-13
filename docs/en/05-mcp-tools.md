@@ -29,6 +29,8 @@ Each tool's description embeds behavioural rules for Claude — e.g. `apply_ops`
 | 17 | `variant_save` | `(name)` | ✅ 2026-07-13 — snapshots the model as a named design variant (A/B) |
 | 18 | `variant_open` | `(slug)` | checks out a variant (⚠ save the current one first if you want to keep it); revision keeps increasing monotonically |
 | 19 | `variant_compare` | `(a?, b?, level?)` | **PNG image** of 2 floor plans side by side + per-room m² diff + per-variant cost estimate; interactive version at `/so-sanh` |
+| 20 | `underlay_import` | `(path, scale? \| calibrate?, origin?, rotation?, opacity?, level?)` | ✅ 2026-07-14 — places an old DXF/plan photo as a DIM tracing layer (entity `underlay` U1); scale auto-derived from $INSUNITS or calibrated with 2 points + a real mm distance |
+| 21 | `underlay_trace` | `(level, minOverlap?, thickness?)` | ✅ 2026-07-14 — detects parallel DXF stroke pairs as wall candidates, returns **proposed** ops (never auto-applied — human/Claude reviews, then apply_ops) |
 
 `export` is fully unlocked across all 5 formats: `pdf` (one multi-page A3 file) / `svg` / `dxf` (pure TS, see ADR-08) since P4; `gltf` (ONE GLB in true metres, one node per entity named by id — with `scripts/render-photoreal.py` for Cycles renders via Blender) and `ifc` (concept-level IFC4: proper voids/fills relations, slabs with holes, per-room IfcSpace) from the P5+ backlog. `sheets` only applies to pdf/svg/dxf.
 
@@ -41,7 +43,8 @@ type Op =
   | { op: "delete"; entity: EntityKind; id: string };
 
 type EntityKind = "level" | "wall" | "opening" | "slab" | "stair"
-                | "room" | "furniture" | "axis" | "style" | "finish";
+                | "room" | "furniture" | "axis" | "style" | "finish"
+                | "underlay";  // singleton U1 — traced old drawing/photo
 ```
 
 - One `apply_ops` call = **one transaction**: all ops apply together or roll back together.

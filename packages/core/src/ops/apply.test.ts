@@ -118,6 +118,49 @@ describe("applyOps — transaction + revision", () => {
   });
 });
 
+describe("applyOps — underlay (singleton U1)", () => {
+  const addUnderlay = (data: Record<string, unknown> = {}): Op => ({
+    op: "add",
+    entity: "underlay",
+    data: { id: "U1", kind: "dxf", source: "nha-cu.dxf", origin: [0, 0], scale: 1, ...data },
+  });
+
+  it("add → update merge → delete; summary có nhãn", () => {
+    const p = loadNhaOng4x16();
+    const r1 = applyOps(p, p.meta.revision, [addUnderlay()]);
+    expect(r1.ok).toBe(true);
+    if (!r1.ok) return;
+    expect(r1.project.underlay?.source).toBe("nha-cu.dxf");
+    expect(r1.summary).toContain("underlay");
+
+    const r2 = applyOps(r1.project, r1.revision, [
+      { op: "update", entity: "underlay", id: "U1", data: { opacity: 0.5, level: "L1" } },
+    ]);
+    expect(r2.ok).toBe(true);
+    if (!r2.ok) return;
+    expect(r2.project.underlay).toMatchObject({ kind: "dxf", opacity: 0.5, level: "L1" });
+
+    const r3 = applyOps(r2.project, r2.revision, [{ op: "delete", entity: "underlay", id: "U1" }]);
+    expect(r3.ok).toBe(true);
+    if (r3.ok) expect(r3.project.underlay).toBeUndefined();
+  });
+
+  it("singleton: add lần 2 bị chặn; id phải U1; kind/source/scale bắt buộc; level phải có thật", () => {
+    const p = loadNhaOng4x16();
+    const ok = applyOps(p, p.meta.revision, [addUnderlay()]);
+    if (!ok.ok) throw new Error("setup fail");
+    expect(applyOps(ok.project, ok.revision, [addUnderlay()]).ok).toBe(false);
+    expect(applyOps(p, p.meta.revision, [addUnderlay({ id: "U2" })]).ok).toBe(false);
+    expect(applyOps(p, p.meta.revision, [addUnderlay({ kind: "pdf" })]).ok).toBe(false);
+    expect(applyOps(p, p.meta.revision, [addUnderlay({ scale: 0 })]).ok).toBe(false);
+    expect(applyOps(p, p.meta.revision, [addUnderlay({ level: "L9" })]).ok).toBe(false);
+    const badUpdate = applyOps(ok.project, ok.revision, [
+      { op: "update", entity: "underlay", id: "U1", data: { level: "L9" } },
+    ]);
+    expect(badUpdate.ok).toBe(false);
+  });
+});
+
 describe("applyOps — property-based (fast-check)", () => {
   /** Validator GEO-01 thu nhỏ: opening phải nằm trọn trong tường. */
   const geo01 = (p: Project): Issue[] => {

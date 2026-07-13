@@ -29,6 +29,8 @@ Mô tả (description) của từng tool sẽ nhúng luôn quy tắc hành vi ch
 | 17 | `variant_save` | `(name)` | ✅ 13/07/2026 — chụp model thành phương án có tên (A/B) |
 | 18 | `variant_open` | `(slug)` | checkout phương án (⚠ lưu bản hiện tại trước nếu muốn giữ); revision vẫn đơn điệu tăng |
 | 19 | `variant_compare` | `(a?, b?, level?)` | **ảnh PNG** 2 mặt bằng cạnh nhau + diff phòng-m² + dự toán từng bên; bản tương tác tại `/so-sanh` |
+| 20 | `underlay_import` | `(path, scale? \| calibrate?, origin?, rotation?, opacity?, level?)` | ✅ 14/07/2026 — đặt DXF/ảnh mặt bằng cũ làm nền MỜ đồ lại (entity `underlay` U1); tỷ lệ tự suy $INSUNITS hoặc calibrate 2 điểm + mm thật |
+| 21 | `underlay_trace` | `(level, minOverlap?, thickness?)` | ✅ 14/07/2026 — dò cặp nét DXF song song thành ứng viên tường, trả ops **đề xuất** (không tự áp — người/Claude duyệt rồi mới apply_ops) |
 
 `export` đã mở khóa đủ 5 định dạng: `pdf` (một file A3 nhiều trang) / `svg` / `dxf` (TS thuần, xem ADR-08) từ P4; `gltf` (MỘT file GLB mét thật, mỗi entity một node theo id — kèm `scripts/render-photoreal.py` render Cycles bằng Blender) và `ifc` (IFC4 mức concept: voids/fills đúng quan hệ, sàn có lỗ, IfcSpace từng phòng) từ backlog P5+. `sheets` chỉ áp cho pdf/svg/dxf.
 
@@ -41,7 +43,8 @@ type Op =
   | { op: "delete"; entity: EntityKind; id: string };
 
 type EntityKind = "level" | "wall" | "opening" | "slab" | "stair"
-                | "room" | "furniture" | "axis" | "style" | "finish";
+                | "room" | "furniture" | "axis" | "style" | "finish"
+                | "underlay";  // singleton U1 — bản vẽ cũ/ảnh đồ lại
 ```
 
 - Một lời gọi `apply_ops` = **một transaction**: tất cả ops cùng áp hoặc cùng rollback.

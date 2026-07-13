@@ -12,6 +12,7 @@ const LABEL: Record<EntityKind, string> = {
   axis: "trục",
   style: "kiểu cửa",
   finish: "vật liệu",
+  underlay: "underlay đồ lại",
 };
 
 const LIST_KEY: Partial<Record<EntityKind, keyof Project>> = {
@@ -42,6 +43,7 @@ function findBefore(before: Project, entity: EntityKind, id: string): Record<str
   }
   if (entity === "style") return (before.styles.openings[id] as Record<string, unknown>) ?? null;
   if (entity === "finish") return (before.finishes[id] as Record<string, unknown>) ?? null;
+  if (entity === "underlay") return before.underlay?.id === id ? (before.underlay as Record<string, unknown>) : null;
   return null;
 }
 

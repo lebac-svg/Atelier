@@ -11,6 +11,7 @@ import type { Point } from "@atelier/core";
  */
 
 export const LAYERS = [
+  "UNDERLAY", // bản vẽ cũ/ảnh đồ lại — LUÔN dưới cùng, chỉ có ở plan live (không vào bộ tờ)
   "TRUC",
   "TUONG-CAT",
   "TUONG-THAY",
@@ -26,8 +27,8 @@ export const LAYERS = [
 export type LayerName = (typeof LAYERS)[number];
 
 export type Prim =
-  | { kind: "line"; a: Point; b: Point; weight: number; dash?: string }
-  | { kind: "polyline"; pts: Point[]; weight: number; dash?: string; close?: boolean }
+  | { kind: "line"; a: Point; b: Point; weight: number; dash?: string; color?: string }
+  | { kind: "polyline"; pts: Point[]; weight: number; dash?: string; close?: boolean; color?: string }
   | { kind: "polygon"; pts: Point[]; fill?: string; weight?: number }
   | { kind: "circle"; c: Point; r: number; weight: number; fill?: string; rPaper?: boolean }
   | { kind: "ellipse"; c: Point; rx: number; ry: number; rot: number; weight: number }
@@ -41,6 +42,20 @@ export type Prim =
       bold?: boolean;
       /** Xoay chữ theo hướng đoạn model (writer tự chống lộn ngược đầu). */
       along?: { from: Point; to: Point };
+    }
+  | {
+      /**
+       * Ảnh raster đặt trong KHÔNG GIAN MODEL (underlay đồ lại) — chỉ SVG writer
+       * vẽ; DXF writer bỏ qua. origin = model mm của góc DƯỚI-TRÁI ảnh,
+       * scale = mm/pixel, rot = độ CCW quanh origin (cùng quy ước Underlay).
+       */
+      kind: "image";
+      href: string;
+      wpx: number;
+      hpx: number;
+      origin: Point;
+      scale: number;
+      rot: number;
     };
 
 export type SceneItem = {
@@ -48,6 +63,8 @@ export type SceneItem = {
   prim: Prim;
   dataId?: string;
   space?: "model" | "paper";
+  /** Độ mờ 0..1 (underlay) — writer SVG áp lên element; DXF bỏ qua. */
+  opacity?: number;
 };
 
 export type Scene2D = SceneItem[];

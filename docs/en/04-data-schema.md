@@ -30,6 +30,7 @@ type Project = {
   furniture: Furniture[];
   styles: { openings: Record<string, OpeningStyle> };  // "D1", "S1"…
   finishes: Record<string, Finish>;                    // finish materials
+  underlay?: Underlay;             // old drawing/photo traced under the plan (scaffolding, never exported)
 };
 
 type Site = {
@@ -99,6 +100,15 @@ type Furniture = {
 type OpeningStyle = { label: string; kind: "door" | "window";
                      leaf: "1-canh" | "2-canh" | "truot" | "xep";   // 1-leaf | 2-leaf | sliding | folding
                      material?: string; note?: string };
+
+type Underlay = {                                  // SINGLETON — id is always "U1"
+  id: string; kind: "dxf" | "image";
+  source: string;                                  // file in .atelier/underlay/ (copied by the server on import)
+  origin: [number, number];                        // model mm where the source (0,0) lands; images: BOTTOM-LEFT corner
+  scale: number;                                   // model mm per source unit (DXF unit or pixel)
+  rotation?: number; opacity?: number;             // degrees CCW; visibility 0..1 (default 0.35)
+  level?: string;                                  // only shown on this storey
+};
 ```
 
 ## "Correct-by-construction" invariants (cannot be wrong even without the validator)

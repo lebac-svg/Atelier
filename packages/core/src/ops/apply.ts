@@ -86,6 +86,8 @@ function applyOne(draft: Project, op: Op): Issue | null {
       return applyRecord(draft, op, "finish");
     case "axis":
       return applyAxis(draft, op);
+    case "underlay":
+      return applyUnderlay(draft, op);
     default:
       return applyArray(draft, op);
   }
@@ -98,6 +100,7 @@ function allIds(draft: Project): Set<string> {
   for (const a of draft.axes.y) ids.add(a.id);
   for (const k of Object.keys(draft.styles.openings)) ids.add(k);
   for (const k of Object.keys(draft.finishes)) ids.add(k);
+  if (draft.underlay) ids.add(draft.underlay.id);
   return ids;
 }
 
@@ -201,6 +204,48 @@ function applyRecord(draft: Project, op: Op, kind: "style" | "finish"): Issue | 
     return issue("OPS-05", "block", [op.id], `Finish ${op.id} đang được phòng sử dụng.`);
   }
   delete record[op.id];
+  return null;
+}
+
+/** Underlay là SINGLETON: chỉ một bản đồ lại, id cố định "U1". */
+function applyUnderlay(draft: Project, op: Op): Issue | null {
+  if (op.op === "add") {
+    if (draft.underlay) {
+      return issue("OPS-02", "block", [draft.underlay.id],
+        "Đã có underlay — dùng update để đổi phép đặt/file, hoặc delete rồi add.");
+    }
+    const d = op.data as { id?: unknown; kind?: unknown; source?: unknown; scale?: unknown; level?: unknown };
+    if (d.id !== "U1") return issue("OPS-02", "block", [], `Underlay là singleton — data.id phải là "U1".`);
+    if (d.kind !== "dxf" && d.kind !== "image") {
+      return issue("OPS-08", "block", ["U1"], `Underlay cần data.kind = "dxf" | "image".`);
+    }
+    if (typeof d.source !== "string" || d.source.length === 0) {
+      return issue("OPS-08", "block", ["U1"], "Underlay thiếu data.source (file trong .atelier/underlay/).");
+    }
+    if (typeof d.scale !== "number" || !(d.scale > 0)) {
+      return issue("OPS-08", "block", ["U1"], "Underlay cần data.scale > 0 (mm model trên một đơn vị nguồn).");
+    }
+    if (d.level !== undefined && !draft.levels.some((l) => l.id === d.level)) {
+      return issue("OPS-05", "block", ["U1"], `Underlay trỏ level không tồn tại: ${String(d.level)}.`);
+    }
+    draft.underlay = structuredClone(op.data) as unknown as NonNullable<Project["underlay"]>;
+    return null;
+  }
+  if (!draft.underlay || draft.underlay.id !== op.id) {
+    return issue("OPS-03", "block", [op.id], `Không tìm thấy underlay ${op.id}.`);
+  }
+  if (op.op === "update") {
+    if ("id" in op.data && op.data.id !== op.id) {
+      return issue("OPS-03", "block", [op.id], `Không được đổi id qua update (${op.id} → ${String(op.data.id)}).`);
+    }
+    const merged = { ...draft.underlay, ...structuredClone(op.data), id: op.id } as typeof draft.underlay;
+    if (merged.level !== undefined && !draft.levels.some((l) => l.id === merged.level)) {
+      return issue("OPS-05", "block", [op.id], `Underlay trỏ level không tồn tại: ${String(merged.level)}.`);
+    }
+    draft.underlay = merged;
+    return null;
+  }
+  delete draft.underlay;
   return null;
 }
 
