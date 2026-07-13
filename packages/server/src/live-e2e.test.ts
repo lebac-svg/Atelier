@@ -24,7 +24,12 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
     live = new LiveServer(store, { port: 0, lockReleaseMs: 300 }); // khóa nguội ngắn cho test
     baseUrl = await live.start();
     browser = await chromium.launch();
-    page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    // ghim môi trường "đang ở Việt Nam" — auto-detect ngôn ngữ ra vi bất kể máy CI ở đâu
+    page = await browser.newPage({
+      viewport: { width: 1440, height: 900 },
+      locale: "vi-VN",
+      timezoneId: "Asia/Ho_Chi_Minh",
+    });
     await page.goto(baseUrl);
     // chờ snapshot dựng xong — test chạy đơn lẻ (-t) cũng phải có model sẵn
     await page.waitForSelector("#paper svg", { timeout: 15_000 });
@@ -348,7 +353,12 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
 
   it("link chia sẻ chỉ-xem: khách thấy live, kéo chỉ pan, không sửa được gì", async () => {
     const share = (await (await fetch(`${baseUrl}/share`)).json()) as { url: string };
-    const viewer = await browser.newPage({ viewport: { width: 1200, height: 800 } });
+    // khách cũng "ở Việt Nam" — badge phải ra tiếng Việt
+    const viewer = await browser.newPage({
+      viewport: { width: 1200, height: 800 },
+      locale: "vi-VN",
+      timezoneId: "Asia/Ho_Chi_Minh",
+    });
     try {
       await viewer.goto(share.url);
       await viewer.waitForSelector("#paper svg", { timeout: 15_000 });
@@ -406,8 +416,29 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
     }
   }, 40_000);
 
-  it("i18n: ?lang=en → UI tiếng Anh (kể cả catalog + badge viewer); mặc định vẫn tiếng Việt", async () => {
-    const en = await browser.newPage({ viewport: { width: 1200, height: 800 } });
+  it("i18n: máy NGOÀI Việt Nam tự ra tiếng Anh (không cần ?lang)", async () => {
+    const abroad = await browser.newPage({
+      viewport: { width: 1200, height: 800 },
+      locale: "en-US",
+      timezoneId: "Europe/Paris",
+    });
+    try {
+      await abroad.goto(baseUrl);
+      await abroad.waitForSelector("#paper svg", { timeout: 15_000 });
+      expect(await abroad.textContent("#share-btn")).toBe("share");
+      expect(await abroad.textContent("#conn-text")).toBe("live");
+      expect(await abroad.textContent("#lang-btn")).toBe("VI");
+    } finally {
+      await abroad.close();
+    }
+  }, 30_000);
+
+  it("i18n: ?lang=en → UI tiếng Anh (kể cả catalog + badge viewer); máy ở VN mặc định vẫn tiếng Việt", async () => {
+    const en = await browser.newPage({
+      viewport: { width: 1200, height: 800 },
+      locale: "vi-VN",
+      timezoneId: "Asia/Ho_Chi_Minh", // ở VN nhưng chủ động chọn EN — tay thắng auto
+    });
     try {
       await en.goto(`${baseUrl}/?lang=en`);
       await en.waitForSelector("#paper svg", { timeout: 15_000 });

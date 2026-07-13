@@ -1,7 +1,9 @@
 /**
  * i18n cho UI editor (doc 09: "tiếng Việt trước, i18n để sẵn khung" — khung đây).
- * - Mặc định TIẾNG VIỆT (Q2: người dùng đích là gia chủ Việt) — KHÔNG auto-detect.
- * - Đổi bằng nút VI/EN trên header hoặc ?lang=en; lưu localStorage, reload để áp.
+ * - TỰ NHẬN THEO QUỐC GIA (quyết định 13/07/2026): máy ở Việt Nam (múi giờ
+ *   Asia/Ho_Chi_Minh/Saigon) hoặc trình duyệt có tiếng Việt → vi; ngoài ra → en.
+ *   Không gọi geo-IP — app local, múi giờ + ngôn ngữ trình duyệt là đủ và riêng tư.
+ * - Lựa chọn TAY luôn thắng auto: ?lang=… hoặc nút VI/EN (lưu localStorage).
  * - Bản vẽ xuất ra + thông điệp validator/summary từ server vẫn tiếng Việt (v1):
  *   hồ sơ là tài liệu TCVN, còn message server broadcast chung mọi client.
  * Chạy được cả trong Node (test) — localStorage/location được guard.
@@ -178,33 +180,68 @@ const DICTS: Record<Lang, Dict> = { vi: VI, en: EN };
 export const DICT_KEYS = Object.keys(VI);
 export const DICT_EN_KEYS = Object.keys(EN);
 
+export type DetectInput = {
+  /** ?lang trong URL. */
+  query?: string | null;
+  /** Lựa chọn tay đã lưu (localStorage). */
+  saved?: string | null;
+  /** Múi giờ máy — Asia/Ho_Chi_Minh/Saigon = đang ở Việt Nam. */
+  timeZone?: string | null;
+  /** Danh sách ngôn ngữ trình duyệt. */
+  languages?: readonly string[];
+};
+
+/** Chọn ngôn ngữ — THUẦN, test được: tay (query > saved) thắng auto (VN → vi, ngoài → en). */
+export function detectLang(input: DetectInput): Lang {
+  if (input.query === "en" || input.query === "vi") return input.query;
+  if (input.saved === "en" || input.saved === "vi") return input.saved;
+  if (input.timeZone === "Asia/Ho_Chi_Minh" || input.timeZone === "Asia/Saigon") return "vi";
+  if (input.languages?.some((l) => l?.toLowerCase().startsWith("vi"))) return "vi";
+  return "en";
+}
+
 function detect(): Lang {
+  let query: string | null = null;
   if (typeof location !== "undefined") {
-    const q = new URLSearchParams(location.search).get("lang");
-    if (q === "en" || q === "vi") {
+    query = new URLSearchParams(location.search).get("lang");
+    if (query === "en" || query === "vi") {
       try {
-        localStorage.setItem("atelier-lang", q);
+        localStorage.setItem("atelier-lang", query);
       } catch {
         // storage bị chặn — vẫn dùng được trong phiên
       }
-      return q;
     }
   }
+  let saved: string | null = null;
   try {
-    const saved = typeof localStorage !== "undefined" ? localStorage.getItem("atelier-lang") : null;
-    if (saved === "en" || saved === "vi") return saved;
+    saved = typeof localStorage !== "undefined" ? localStorage.getItem("atelier-lang") : null;
   } catch {
     // ignore
   }
-  return "vi"; // Việt trước — Q2
+  let timeZone: string | null = null;
+  try {
+    timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? null;
+  } catch {
+    // ignore
+  }
+  const languages =
+    typeof navigator !== "undefined"
+      ? [navigator.language, ...(navigator.languages ?? [])].filter(Boolean)
+      : [];
+  return detectLang({ query, saved, timeZone, languages });
 }
 
 export const LANG: Lang = detect();
 
-export function t(key: string, params?: Record<string, string | number>): string {
-  let s = DICTS[LANG][key] ?? VI[key] ?? key;
+/** Tra từ điển theo ngôn ngữ CHỈ ĐỊNH — nuôi test không phụ thuộc môi trường. */
+export function translate(lang: Lang, key: string, params?: Record<string, string | number>): string {
+  let s = DICTS[lang][key] ?? VI[key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));
   return s;
+}
+
+export function t(key: string, params?: Record<string, string | number>): string {
+  return translate(LANG, key, params);
 }
 
 /** Áp từ điển lên DOM tĩnh: [data-i18n] → textContent, [data-i18n-title] → title. */
