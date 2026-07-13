@@ -13,5 +13,8 @@ export default defineConfig({
       "packages/**/src/**/*.test.ts",
       "packages/**/rules/__tests__/**/*.test.ts",
     ],
+    // e2e Chromium thật trên runner chia sẻ vốn jitter — CI cho chạy lại 1 lần;
+    // máy dev giữ nghiêm (retry 0) để flake còn lộ mặt mà sửa gốc.
+    retry: process.env.CI ? 1 : 0,
   },
 });

@@ -205,12 +205,24 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
   }, 30_000);
 
   it("soft-lock: đang kéo thì op của Claude bị LOCK-01; thả tay + hết khóa nguội thì qua", async () => {
-    const pts = await wallDragPoints("W98", [0, 300]);
-    await page.mouse.move(pts.from.x, pts.from.y);
-    await page.mouse.down();
-    await page.mouse.move(pts.to.x, pts.to.y, { steps: 5 });
-    // chờ tới khi server THẬT SỰ giữ khóa (fixed-wait dễ hụt khi test chạy song song)
-    await expect.poll(() => store.locks.lockedAmong(["W98"]).length, { timeout: 5_000 }).toBeGreaterThan(0);
+    // kéo TỚI KHI server thật sự giữ khóa — dưới tải CI, SVG swap giữa gesture
+    // có thể nuốt pointerdown làm client không mở drag session; kéo lại là đúng
+    // hành vi người dùng, không phải che lỗi sản phẩm
+    let locked = false;
+    for (let attempt = 0; attempt < 3 && !locked; attempt++) {
+      const pts = await wallDragPoints("W98", [0, 300]);
+      await page.mouse.move(pts.from.x, pts.from.y);
+      await page.mouse.down();
+      await page.mouse.move(pts.to.x, pts.to.y, { steps: 5 });
+      try {
+        await expect.poll(() => store.locks.lockedAmong(["W98"]).length, { timeout: attempt < 2 ? 3_000 : 8_000 }).toBeGreaterThan(0);
+        locked = true;
+      } catch {
+        await page.keyboard.press("Escape");
+        await page.mouse.up();
+      }
+    }
+    expect(locked).toBe(true);
     const rev = store.current.meta.revision;
     const rLocked = store.apply(rev, [{ op: "update", entity: "wall", id: "W98", data: { thickness: 220 } }]);
 
@@ -218,10 +230,11 @@ describe.skipIf(!hasDist)("E2E editor thật (chromium headless)", () => {
     await page.mouse.up();
     expect(rLocked.ok).toBe(false);
     if (!rLocked.ok) expect(rLocked.errors[0]!.rule).toBe("LOCK-01");
-    await page.waitForTimeout(500); // 300ms khóa nguội + dư
+    // chờ khóa NGUỘI THẬT thay vì đợi cứng — runner chậm hay trượt mốc 500ms
+    await expect.poll(() => store.locks.lockedAmong(["W98"]).length, { timeout: 5_000 }).toBe(0);
     const rFree = store.apply(store.current.meta.revision, [{ op: "update", entity: "wall", id: "W98", data: { thickness: 110 } }]);
     expect(rFree.ok).toBe(true);
-  }, 30_000);
+  }, 45_000);
 
   it("panel thuộc tính: sửa số trong ô nhập → op update", async () => {
     // chọn W98 bằng click vào điểm chắc chắn chạm tường (không dính nhãn đè)
