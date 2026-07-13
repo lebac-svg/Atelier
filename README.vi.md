@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/lebac-svg/Atelier/actions/workflows/ci.yml/badge.svg)](https://github.com/lebac-svg/Atelier/actions/workflows/ci.yml) [![npm](https://img.shields.io/npm/v/atelier-mcp)](https://www.npmjs.com/package/atelier-mcp)
 
-**Kiến trúc sư AI trong Claude Code** — từ mô tả bằng lời đến bản vẽ nhà đúng chuẩn ký hiệu và mô hình 3D có nội thất, với bản live trên trình duyệt cho phép chỉnh sửa trực tiếp bằng tay.
+**Kiến trúc sư AI cắm vào bất kỳ MCP client nào** — Claude Code, Codex CLI, Gemini CLI, Claude Desktop, Cursor… Từ mô tả bằng lời đến bản vẽ nhà đúng chuẩn ký hiệu và mô hình 3D có nội thất, với bản live trên trình duyệt cho phép chỉnh sửa trực tiếp bằng tay.
 
 > **Atelier** /a-tơ-li-ê/ — "xưởng thiết kế". Tên chốt ngày 13/07/2026 (tên làm việc cũ: Thợ Cả).
 
@@ -22,22 +22,34 @@ Claude Code ──MCP──► Server (model + validator + renderer) ◄──We
 
 ## Cài đặt (30 giây)
 
-Không cần clone gì cả — Atelier phát hành dạng gói npm ([`atelier-mcp`](https://www.npmjs.com/package/atelier-mcp)). Đứng trong thư mục dự án nhà CỦA BẠN và đăng ký:
+Không cần clone gì cả — Atelier phát hành dạng gói npm ([`atelier-mcp`](https://www.npmjs.com/package/atelier-mcp)), và là **MCP server chuẩn** nên KHÔNG buộc vào Claude: client MCP nào cũng chạy được. Server luôn là một lệnh duy nhất — `npx -y atelier-mcp` — chỉ khác bước đăng ký tùy client.
+
+Đứng trong thư mục dự án nhà CỦA BẠN (một thư mục = một căn nhà) và đăng ký với client BẠN dùng:
 
 ```bash
-mkdir nha-cua-toi && cd nha-cua-toi          # một thư mục = một căn nhà
+mkdir nha-cua-toi && cd nha-cua-toi
+
+# Claude Code
 claude mcp add atelier -- npx -y atelier-mcp
-claude                                       # rồi nói: "thiết kế cho tôi nhà ống 4×16m"
-npx playwright install chromium              # tùy chọn, một lần — xuất PNG/PDF
+
+# OpenAI Codex CLI
+codex mcp add atelier -- npx -y atelier-mcp
+
+# Gemini CLI
+gemini mcp add atelier npx -y atelier-mcp
+
+npx playwright install chromium   # tùy chọn, một lần — xuất PNG/PDF
 ```
 
-Claude Desktop (hoặc MCP client bất kỳ) — cùng lệnh đó, vd trong `claude_desktop_config.json`:
+Client dạng GUI (Claude Desktop, Cursor…) không có "thư mục đang đứng" — trỏ `ATELIER_DIR` tới thư mục nhà trong JSON cấu hình MCP:
 
 ```json
 { "mcpServers": { "atelier": {
     "command": "npx", "args": ["-y", "atelier-mcp"],
     "env": { "ATELIER_DIR": "C:\\duong-dan\\nha-cua-toi" } } } }
 ```
+
+Rồi mở agent và nói *"thiết kế cho tôi nhà ống 4×16m"*. Chạy tốt nhất với model đọc tiếng Việt vững (description tools + thông báo validator là tiếng Việt) và client hiển thị được ảnh trong kết quả tool — agent cần tự soi bản vẽ của mình.
 
 Bảng đơn giá địa phương: đặt `rules/don-gia.json` trong thư mục nhà để đè bảng đóng gói.
 

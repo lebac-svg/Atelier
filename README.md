@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/lebac-svg/Atelier/actions/workflows/ci.yml/badge.svg)](https://github.com/lebac-svg/Atelier/actions/workflows/ci.yml) [![npm](https://img.shields.io/npm/v/atelier-mcp)](https://www.npmjs.com/package/atelier-mcp)
 
-**An AI architect inside Claude Code** — from a spoken description to standards-compliant floor plans and a furnished 3D model, with a live browser editor you can edit by hand while the AI works.
+**An AI architect that plugs into any MCP client** — Claude Code, Codex CLI, Gemini CLI, Claude Desktop, Cursor… From a spoken description to standards-compliant floor plans and a furnished 3D model, with a live browser editor you can edit by hand while the AI works.
 
 Built for the **Vietnamese tube house** (nhà ống): TCVN drawing symbols, Vietnamese dimensional rules, Lỗ Ban feng-shui rulers, irregular lot polygons — things no Western tool ships as first-class citizens. The editor UI is bilingual and auto-detects by country: Vietnamese in Vietnam, English elsewhere (timezone + browser language — no geo-IP; the **VI/EN** button overrides and is remembered). Exported drawings stay Vietnamese by design: they are TCVN documents.
 
@@ -24,22 +24,34 @@ Claude Code ──MCP──► Server (model + validator + renderer) ◄──We
 
 ## Install (30 seconds)
 
-You don't clone anything — Atelier ships as an npm package ([`atelier-mcp`](https://www.npmjs.com/package/atelier-mcp)). Stand in your own house folder and register it:
+You don't clone anything — Atelier ships as an npm package ([`atelier-mcp`](https://www.npmjs.com/package/atelier-mcp)), and it's a **standard MCP server**, so it is not tied to Claude: any MCP client can run it. The server is always the same one command — `npx -y atelier-mcp` — only the registration step differs per client.
+
+Stand in your own house folder (one folder = one house) and register with YOUR client:
 
 ```bash
-mkdir my-house && cd my-house               # one folder = one house
+mkdir my-house && cd my-house
+
+# Claude Code
 claude mcp add atelier -- npx -y atelier-mcp
-claude                                      # then: "design me a 4×16m tube house"
-npx playwright install chromium             # optional, once — PNG/PDF export
+
+# OpenAI Codex CLI
+codex mcp add atelier -- npx -y atelier-mcp
+
+# Gemini CLI
+gemini mcp add atelier npx -y atelier-mcp
+
+npx playwright install chromium   # optional, once — PNG/PDF export
 ```
 
-Claude Desktop (or any MCP client) — same command, e.g. in `claude_desktop_config.json`:
+GUI clients (Claude Desktop, Cursor, …) have no "current folder" — point `ATELIER_DIR` at your house folder in their MCP config JSON:
 
 ```json
 { "mcpServers": { "atelier": {
     "command": "npx", "args": ["-y", "atelier-mcp"],
     "env": { "ATELIER_DIR": "C:\\path\\to\\my-house" } } } }
 ```
+
+Then start your agent and say *"design me a 4×16m tube house"*. Works best with a model that reads Vietnamese well (tool descriptions and validator messages are Vietnamese-first) and a client that shows images from tool results — the agent inspects its own drawings.
 
 ## From source (contributors)
 

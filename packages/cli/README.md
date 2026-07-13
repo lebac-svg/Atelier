@@ -1,17 +1,27 @@
 # atelier-mcp
 
-An AI architect that lives inside your MCP client (Claude Code, Claude Desktop, …) — for **Vietnamese tube houses**: floor plans with proper TCVN symbols, a live two-way browser editor (drag walls, type exact mm), furnished 3D walkthrough, sun study, rough cost estimate, and a numbered A3 PDF / DXF / glTF / IFC documentation set.
+An AI architect that plugs into **any MCP client** — Claude Code, OpenAI Codex CLI, Gemini CLI, Claude Desktop, Cursor… — for **Vietnamese tube houses**: floor plans with proper TCVN symbols, a live two-way browser editor (drag walls, type exact mm), furnished 3D walkthrough, sun study, rough cost estimate, and a numbered A3 PDF / DXF / glTF / IFC documentation set.
 
 Bản gốc tiếng Việt + toàn bộ tài liệu thiết kế: [github.com/lebac-svg/Atelier](https://github.com/lebac-svg/Atelier)
 
 ## Install
 
+Atelier is a standard MCP server, not tied to Claude. The server is always `npx -y atelier-mcp`; register it with whichever client you use, standing in your house folder (one folder = one house — the model lives there):
+
 ```bash
-cd my-house            # one folder = one house (the model lives here)
+cd my-house
+
+# Claude Code
 claude mcp add atelier -- npx -y atelier-mcp
+
+# OpenAI Codex CLI
+codex mcp add atelier -- npx -y atelier-mcp
+
+# Gemini CLI
+gemini mcp add atelier npx -y atelier-mcp
 ```
 
-That's it. Open Claude Code in that folder and say *"design me a 4×16m tube house, 2 floors, 3 bedrooms"*.
+That's it. Open your agent in that folder and say *"design me a 4×16m tube house, 2 floors, 3 bedrooms"*. Works best with a model that reads Vietnamese well (tool descriptions are Vietnamese-first) and a client that shows images from tool results — the agent inspects its own drawings.
 
 Optional, for PNG/PDF export (first time only):
 
@@ -19,7 +29,7 @@ Optional, for PNG/PDF export (first time only):
 npx playwright install chromium
 ```
 
-Claude Desktop — add to `claude_desktop_config.json`:
+GUI clients (Claude Desktop, Cursor, …) have no working folder — set `ATELIER_DIR`, e.g. in `claude_desktop_config.json`:
 
 ```json
 {
