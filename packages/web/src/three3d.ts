@@ -180,6 +180,7 @@ export class Scene3D {
         affected.add(wid);
       }
     }
+    if (!this.home) this.fitHome(); // snapshot đầu có thể là dự án trống — fit ở nhịp đầu tiên có hình
     this.invalidate();
     return [...affected];
   }
@@ -391,6 +392,7 @@ export class Scene3D {
   }
 
   resetView(): void {
+    if (!this.home) this.fitHome();
     if (!this.home) return;
     this.camera.position.copy(this.home.position);
     this.controls.target.copy(this.home.target);
