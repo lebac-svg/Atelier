@@ -12,7 +12,8 @@
     "build": "tsc -b",
     "build:web": "pnpm --filter @atelier/web build",
     "demo:p2": "tsx packages/server/scripts/demo-p2.ts",
-    "demo:p3": "tsx packages/server/scripts/demo-p3.ts"
+    "demo:p3": "tsx packages/server/scripts/demo-p3.ts",
+    "demo:p4": "tsx packages/server/scripts/demo-p4.ts"
   },
   "devDependencies": {
     "typescript": "^5.9.0",

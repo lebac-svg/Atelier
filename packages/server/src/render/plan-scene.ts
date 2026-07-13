@@ -1,11 +1,12 @@
 import {
   add, areaM2, furnitureObb, getAsset, getLevel, levelAbove, obbCorners, openingSpan,
-  floorSlabOf, pointOnWall, rotate, scale as vscale, stairLayout, sub, unverifiedRules,
+  floorSlabOf, pointOnWall, rotate, scale as vscale, stairLayout, sub,
   wallBand, wallDir, wallLength, wallNormal, type Furniture, type Level, type Opening,
   type Point, type Project, type Wall,
 } from "@atelier/core";
+import { dimTick, drawSheetFrame } from "./frame.js";
 import { LAYERS, W, type LayerName, type Prim, type Scene2D, type SceneItem } from "./scene.js";
-import { PAPER, planTransform, type Bounds, type PlanTransform } from "./transform.js";
+import { planTransform, type Bounds, type PlanTransform } from "./transform.js";
 
 export type PlanBuild = {
   items: Scene2D;
@@ -13,7 +14,14 @@ export type PlanBuild = {
   meta: { levelName: string; scaleLabel: string; projectName: string };
 };
 
-export type PlanOptions = { date?: string; designer?: string; scale?: number; layers?: string[] };
+export type PlanOptions = {
+  date?: string;
+  designer?: string;
+  scale?: number;
+  layers?: string[];
+  /** Số hiệu tờ trong bộ hồ sơ (P4) — mặc định KT-01. */
+  sheetNo?: string;
+};
 
 export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = {}): PlanBuild {
   const level = getLevel(p, levelId);
@@ -48,8 +56,19 @@ export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = 
   drawStairs(p, levelId, mm, push);
   drawFurniture(p, levelId, push);
   drawDims(p, walls, bounds, mm, push);
+  drawRoomDims(p, levelId, mm, push);
+  drawSectionMark(p, levelId, bounds, mm, push);
   drawRoomLabels(p, level, tf, paperVec, push);
-  drawFrame(p, level, tf, opts, push);
+  drawSheetFrame(push, {
+    projectName: p.meta.name,
+    app: p.meta.app,
+    title: `MẶT BẰNG ${level.name}`,
+    sheetNo: opts.sheetNo ?? "KT-01",
+    scaleLabel: `1:${S}`,
+    ...(opts.date ? { date: opts.date } : {}),
+    ...(opts.designer ? { designer: opts.designer } : {}),
+    northPaperDir: norm(tf.dirToPaper(rotate([0, 1], p.site.north))),
+  });
 
   return {
     items,
@@ -524,55 +543,84 @@ function drawRoomLabels(p: Project, level: Level, tf: PlanTransform, paperVec: (
   }
 }
 
-/* ---------------- khung + khung tên + hướng bắc (paper space) ---------------- */
+/* ---------------- dim thông thủy trong nhà (P4, doc 08) ---------------- */
 
-function drawFrame(p: Project, level: Level, tf: PlanTransform, opts: PlanOptions, push: Push): void {
-  const m = 7;
-  push("KHUNG", { kind: "polyline", pts: [[m, m], [PAPER.w - m, m], [PAPER.w - m, PAPER.h - m], [m, PAPER.h - m]], close: true, weight: W.frame }, undefined, "paper");
+/**
+ * Mỗi phòng đủ lớn: hai dim thông thủy (ngang + dọc) theo bbox polygon —
+ * đặt lệch 30% cạnh để né nhãn tên phòng ở tâm.
+ */
+function drawRoomDims(p: Project, levelId: string, mm: (v: number) => number, push: Push): void {
+  for (const r of p.rooms) {
+    if (r.level !== levelId || r.use === "cau-thang") continue;
+    if (areaM2(r.polygon) < 2) continue;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const [x, y] of r.polygon) {
+      minX = Math.min(minX, x); minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+    }
+    const w = maxX - minX;
+    const h = maxY - minY;
+    const t = mm(1.1);
 
-  // khung tên
-  const x1 = PAPER.w - m, y1 = PAPER.h - m;
-  const x0 = x1 - 150, y0 = y1 - 42;
-  const rows = [y0, y0 + 12, y0 + 22, y0 + 32, y1];
-  push("KHUNG", { kind: "polyline", pts: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], close: true, weight: W.frame }, undefined, "paper");
-  for (const y of rows.slice(1, 4)) {
-    push("KHUNG", { kind: "line", a: [x0, y], b: [x1, y], weight: W.strong }, undefined, "paper");
+    // dim ngang — cần đủ chỗ cho chữ (≈6mm giấy)
+    if (w >= mm(6) && h >= mm(5)) {
+      const y = minY + h * 0.3;
+      push("DIM", { kind: "line", a: [minX, y], b: [maxX, y], weight: W.hair });
+      dimTick(push, "DIM", [minX, y], t);
+      dimTick(push, "DIM", [maxX, y], t);
+      push("DIM", {
+        kind: "text", at: [(minX + maxX) / 2, y + mm(1.0)], text: String(Math.round(w)), size: 2.5,
+        anchor: "middle", along: { from: [minX, y], to: [maxX, y] },
+      });
+    }
+    if (h >= mm(6) && w >= mm(5)) {
+      const x = minX + w * 0.3;
+      push("DIM", { kind: "line", a: [x, minY], b: [x, maxY], weight: W.hair });
+      dimTick(push, "DIM", [x, minY], t);
+      dimTick(push, "DIM", [x, maxY], t);
+      push("DIM", {
+        // chữ đặt ở 30% chiều dim — điểm giữa là chỗ nhãn tên phòng đứng
+        kind: "text", at: [x - mm(1.0), minY + h * 0.3], text: String(Math.round(h)), size: 2.5,
+        anchor: "middle", along: { from: [x, minY], to: [x, maxY] },
+      });
+    }
   }
-  const xm = x0 + 104;
-  push("KHUNG", { kind: "line", a: [xm, y0], b: [xm, y1], weight: W.strong }, undefined, "paper");
+}
 
-  const T = (x: number, y: number, text: string, size = 2.5, bold = false, anchor: "start" | "middle" = "start") =>
-    push("KHUNG", { kind: "text", at: [x, y], text, size, bold, anchor }, undefined, "paper");
+/* ---------------- vết cắt A-A qua thang (P4, doc 08) ---------------- */
 
-  T(x0 + 3, y0 + 7.6, p.meta.name.toUpperCase(), 3.4, true);
-  T(xm + 3, y0 + 7.6, "KT-01", 3.4, true);
-  T(x0 + 3, y0 + 18.6, `MẶT BẰNG ${level.name.toUpperCase()}`, 3.0, true);
-  T(xm + 3, y0 + 18.6, `TỶ LỆ 1:${tf.scale}`, 2.8);
-  T(x0 + 3, y0 + 28.6, `Thiết kế: Atelier AI${opts.designer ? ` + ${opts.designer}` : ""}`, 2.4);
-  T(xm + 3, y0 + 28.6, `Ngày: ${opts.date ?? "—"}`, 2.4);
-  T(x0 + 3, y0 + 38.6, "Kiểm: ................", 2.4);
-  T(xm + 3, y0 + 38.6, p.meta.app, 2.4);
+/** Tâm vế 1 của thang đầu tiên — mặt cắt A-A dọc nhà phải xuyên qua đây. */
+export function sectionCutX(p: Project): number | null {
+  const st = p.stairs[0];
+  if (!st) return null;
+  const base = getLevel(p, st.level);
+  if (!base) return null;
+  const rect = stairLayout(st, base).flights[0]!.rect;
+  return rect.reduce((s, pt) => s + pt[0], 0) / rect.length;
+}
 
-  // ghi chú cố định + cờ ⚠ số liệu chưa verify
-  T(m + 3, y1 - 5.4, "Bản vẽ concept — không thay thế hồ sơ thiết kế có chữ ký KTS hành nghề.", 2.0);
-  if (unverifiedRules().length > 0) {
-    T(m + 3, y1 - 2.6, "⚠ Một số số liệu tiêu chuẩn đang ở mức tham khảo (chưa đối chiếu văn bản gốc).", 2.0);
+function drawSectionMark(p: Project, levelId: string, b: Bounds, mm: (v: number) => number, push: Push): void {
+  const st = p.stairs[0];
+  if (!st) return;
+  const visible = st.level === levelId || levelAbove(p, st.level)?.id === levelId;
+  if (!visible) return;
+  const x = sectionCutX(p);
+  if (x == null) return;
+
+  const y0 = b.minY - mm(8);
+  const y1 = b.maxY + mm(8);
+  push("TEXT", { kind: "line", a: [x, y0], b: [x, y1], weight: W.hair, dash: "10 3 2 3" });
+  for (const [yEnd, dirY] of [[y0, 1], [y1, -1]] as Array<[number, number]>) {
+    // đoạn đậm ở đầu vết + mũi tên chỉ HƯỚNG NHÌN (−x, khớp section-scene) + chữ A
+    push("TEXT", { kind: "line", a: [x, yEnd], b: [x, yEnd + dirY * mm(4)], weight: W.frame });
+    const ax = x - mm(0.6);
+    push("TEXT", {
+      kind: "polygon",
+      pts: [[ax - mm(3), yEnd], [ax, yEnd + mm(1.1)], [ax, yEnd - mm(1.1)]],
+      fill: "#000",
+    });
+    push("TEXT", { kind: "text", at: [x + mm(2.6), yEnd], text: "A", size: 3.5, anchor: "middle", bold: true });
   }
-
-  // hướng bắc
-  const c: Point = [PAPER.w - m - 12, m + 12];
-  const dir = norm(tf.dirToPaper(rotate([0, 1], p.site.north)));
-  push("KHUNG", { kind: "circle", c, r: 6.5, weight: W.mid }, undefined, "paper");
-  const tip: Point = [c[0] + dir[0] * 5.2, c[1] + dir[1] * 5.2];
-  const tail: Point = [c[0] - dir[0] * 5.2, c[1] - dir[1] * 5.2];
-  const side: Point = [-dir[1] * 1.6, dir[0] * 1.6];
-  push("KHUNG", { kind: "line", a: tail, b: tip, weight: W.strong }, undefined, "paper");
-  push("KHUNG", {
-    kind: "polygon",
-    pts: [tip, [tip[0] - dir[0] * 3.4 + side[0], tip[1] - dir[1] * 3.4 + side[1]], [tip[0] - dir[0] * 3.4 - side[0], tip[1] - dir[1] * 3.4 - side[1]]],
-    fill: "#000",
-  }, undefined, "paper");
-  push("KHUNG", { kind: "text", at: [tip[0] + dir[0] * 3.4, tip[1] + dir[1] * 3.4], text: "B", size: 3, anchor: "middle", bold: true }, undefined, "paper");
 }
 
 function norm(v: Point): Point {

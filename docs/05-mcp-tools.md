@@ -23,8 +23,9 @@ Mô tả (description) của từng tool sẽ nhúng luôn quy tắc hành vi ch
 | 13 | `standards_lookup` | `(query)` | rule + số liệu + nguồn trích dẫn (để Claude trả lời "vì sao phải ≥900?") |
 | 14 | `estimate_cost` | `(level: "so-bo")` | 🔭 v2 — khối lượng từ model × bảng đơn giá |
 | 15 | `history_restore` | `(revision)` | ⚠ chỉ khi người dùng yêu cầu rõ ràng |
+| 16 | `render_view` | `(kind: "elevation"\|"section", scale?)` | **ảnh PNG** mặt đứng chính / mặt cắt A-A — bổ sung ở P4 để Claude tự soi trước checkpoint E |
 
-`export` các định dạng `dxf`/`ifc` mở khóa ở Giai đoạn 4 (xem `10-lo-trinh.md`).
+`export` đã mở khóa ở P4 với `pdf` (một file A3 nhiều trang) / `svg` / `dxf` (TS thuần, xem ADR-08); `gltf` chờ P5, `ifc` ở backlog.
 
 ## Bộ từ vựng ops (dùng chung cho MCP lẫn web editor)
 

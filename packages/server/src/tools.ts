@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
@@ -6,7 +7,8 @@ import {
   type CaptureCamera, type Issue, type Op, type Project,
 } from "@atelier/core";
 import { DEFAULT_WEB_DIST, LiveServer, openInBrowser } from "./live.js";
-import { renderPlanFiles } from "./render/render.js";
+import { renderElevationSvg, renderPlanFiles, renderSectionSvg } from "./render/render.js";
+import { buildSheetSet, sheetDxf, sheetSvg } from "./render/sheets.js";
 import { ProjectStore, TEMPLATES } from "./store.js";
 
 const ENTITY = z.enum([
@@ -308,6 +310,109 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
           };
         }
         return fail(new Error("Chưa có browser nào mở editor — gọi editor_open trước (3d chỉ chụp được từ browser)."));
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    "render_view",
+    {
+      title: "Render mặt đứng / mặt cắt (PNG + SVG)",
+      description:
+        "Sinh MẶT ĐỨNG CHÍNH (chiếu cạnh mặt tiền site.front) hoặc MẶT CẮT A-A (vết dọc qua thang — cần model có thang) từ model, trả ảnh PNG nhìn ngay trong chat. Dùng để tự soi trước checkpoint pha E (nguyên tắc 5); mặt bằng vẫn là render_plan.",
+      inputSchema: {
+        kind: z.enum(["elevation", "section"]),
+        scale: z.number().int().optional().describe("50/100 — mặc định tự chọn"),
+      },
+    },
+    async (args) => {
+      try {
+        const p = store.current;
+        const opts = {
+          date: new Date().toLocaleDateString("vi-VN"),
+          ...(args.scale ? { scale: args.scale } : {}),
+        };
+        const r = args.kind === "elevation" ? renderElevationSvg(p, opts) : renderSectionSvg(p, opts);
+        mkdirSync(store.exportDir, { recursive: true });
+        const base = args.kind === "elevation" ? "mat-dung" : "mat-cat-a-a";
+        const svgPath = path.join(store.exportDir, `${base}.svg`);
+        writeFileSync(svgPath, r.svg, "utf8");
+        const pngPath = path.join(store.exportDir, `${base}.png`);
+        try {
+          const { svgToPng } = await import("./render/png.js");
+          await svgToPng(r.svg, pngPath);
+        } catch (e) {
+          return text(`Đã render ${r.title} (${r.scaleLabel}) → ${svgPath}\n(PNG lỗi: ${e instanceof Error ? e.message : String(e)} — xem SVG.)`);
+        }
+        const png = readFileSync(pngPath).toString("base64");
+        return {
+          content: [
+            { type: "image" as const, data: png, mimeType: "image/png" },
+            { type: "text" as const, text: `Đã render ${r.title} (${r.scaleLabel}) → ${svgPath}` },
+          ],
+        };
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    "export",
+    {
+      title: "Xuất hồ sơ bản vẽ",
+      description:
+        "Xuất BỘ hồ sơ concept vào .atelier/exports/ho-so/: mặt bằng từng tầng + mặt đứng chính + mặt cắt A-A + bảng thống kê phòng/cửa, đánh số KT-01… format: 'pdf' = MỘT file A3 ngang nhiều trang (bàn giao); 'svg' = mỗi tờ một file; 'dxf' = mỗi tờ hình học một file mm thật (mở CAD đo được; tờ thống kê không có DXF). sheets để lọc: plan-<levelId> | elevation | section | schedule. LUÔN validate + tự soi render trước khi bàn giao (checkpoint 5). gltf/ifc chưa hỗ trợ (backlog).",
+      inputSchema: {
+        format: z.enum(["pdf", "svg", "dxf", "gltf", "ifc"]),
+        sheets: z.array(z.string()).optional(),
+      },
+    },
+    async (args) => {
+      try {
+        const p = store.current;
+        if (args.format === "gltf" || args.format === "ifc") {
+          return fail(new Error(`Định dạng ${args.format} chưa hỗ trợ — pdf/svg/dxf đã sẵn (gltf: P5, ifc: backlog P4+).`));
+        }
+        const set = buildSheetSet(p, {
+          date: new Date().toLocaleDateString("vi-VN"),
+          ...(args.sheets?.length ? { sheets: args.sheets } : {}),
+        });
+        if (set.sheets.length === 0) {
+          const known = ["plan-<levelId>", "elevation", "section", "schedule"].join(" | ");
+          return fail(new Error(`Không tờ nào khớp bộ lọc — id hợp lệ: ${known}.`));
+        }
+        const dir = path.join(store.exportDir, "ho-so");
+        mkdirSync(dir, { recursive: true });
+        const lines: string[] = [];
+        if (args.format === "pdf") {
+          const file = path.join(dir, `${p.meta.id}-ho-so.pdf`);
+          const { svgsToPdf } = await import("./render/pdf.js");
+          await svgsToPdf(set.sheets.map((s) => sheetSvg(s)), file);
+          lines.push(`✅ PDF ${set.sheets.length} trang → ${file}`);
+        } else if (args.format === "svg") {
+          for (const s of set.sheets) {
+            const fp = path.join(dir, `${s.fileBase}.svg`);
+            writeFileSync(fp, sheetSvg(s), "utf8");
+            lines.push(`  ${s.no} ${s.title} → ${fp}`);
+          }
+          lines.unshift(`✅ ${set.sheets.length} tờ SVG:`);
+        } else {
+          const withModel = set.sheets.filter((s) => s.hasModel);
+          for (const s of withModel) {
+            const fp = path.join(dir, `${s.fileBase}.dxf`);
+            writeFileSync(fp, sheetDxf(s), "utf8");
+            lines.push(`  ${s.no} ${s.title} → ${fp}`);
+          }
+          lines.unshift(`✅ ${withModel.length} tờ DXF (mm thật, layer TCVN):`);
+        }
+        lines.push(`Bộ tờ: ${set.sheets.map((s) => `${s.no} ${s.title}`).join("; ")}.`);
+        for (const sk of set.skipped) lines.push(`⚠ Bỏ tờ ${sk.id}: ${sk.reason}`);
+        const issues = validateProject(p);
+        lines.push(`Validator: ${issues.length === 0 ? "sạch." : `${issues.length} vấn đề — chạy validate soi lại trước khi bàn giao.`}`);
+        return text(lines.join("\n"));
       } catch (e) {
         return fail(e);
       }

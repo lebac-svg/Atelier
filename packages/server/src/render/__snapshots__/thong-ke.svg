@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 297" width="420mm" height="297mm" data-tf-scale="100" data-tf-rotated="0" data-tf-ox="205" data-tf-oy="143.5" data-tf-min-x="0" data-tf-min-y="0" data-tf-max-x="1000" data-tf-max-y="1000">
+<style>
+text{font-family:'Be Vietnam Pro','Segoe UI',Arial,sans-serif;fill:#000;stroke:none}
+.b{font-weight:700}
+</style>
+<rect width="420" height="297" fill="#ffffff"/>
+<g id="layer-KHUNG" data-layer="KHUNG">
+<text x="16" y="20" font-size="3.5" text-anchor="start" dominant-baseline="middle" class="b">THỐNG KÊ PHÒNG</text>
+<polygon points="16,24 162,24 162,32 16,32" fill="#eceae4" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="28.9" font-size="2.5" text-anchor="middle" dominant-baseline="middle" class="b">TT</text>
+<text x="37" y="28.9" font-size="2.5" text-anchor="middle" dominant-baseline="middle" class="b">Tầng</text>
+<text x="48" y="28.9" font-size="2.5" text-anchor="start" dominant-baseline="middle" class="b">Ký hiệu</text>
+<text x="82" y="28.9" font-size="2.5" text-anchor="start" dominant-baseline="middle" class="b">Phòng</text>
+<text x="160" y="28.9" font-size="2.5" text-anchor="end" dominant-baseline="middle" class="b">DT (m²)</text>
+<text x="22" y="36.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">1</text>
+<text x="37" y="36.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L1</text>
+<text x="48" y="36.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R1</text>
+<text x="82" y="36.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Phòng khách</text>
+<text x="160" y="36.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">13.3</text>
+<line x1="16" y1="39" x2="162" y2="39" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="43.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">2</text>
+<text x="37" y="43.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L1</text>
+<text x="48" y="43.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R2</text>
+<text x="82" y="43.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Bếp + ăn</text>
+<text x="160" y="43.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">12.7</text>
+<line x1="16" y1="46" x2="162" y2="46" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="50.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">3</text>
+<text x="37" y="50.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L1</text>
+<text x="48" y="50.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R3</text>
+<text x="82" y="50.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Hành lang</text>
+<text x="160" y="50.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">4.8</text>
+<line x1="16" y1="53" x2="162" y2="53" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="57.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">4</text>
+<text x="37" y="57.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L1</text>
+<text x="48" y="57.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R4</text>
+<text x="82" y="57.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">WC 1</text>
+<text x="160" y="57.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">3.3</text>
+<line x1="16" y1="60" x2="162" y2="60" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="64.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">5</text>
+<text x="37" y="64.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L1</text>
+<text x="48" y="64.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R5</text>
+<text x="82" y="64.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Phòng bà</text>
+<text x="160" y="64.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">9.0</text>
+<line x1="16" y1="67" x2="162" y2="67" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="71.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">6</text>
+<text x="37" y="71.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L1</text>
+<text x="48" y="71.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R6</text>
+<text x="82" y="71.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Cầu thang</text>
+<text x="160" y="71.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">8.3</text>
+<line x1="16" y1="74" x2="162" y2="74" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="78.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">7</text>
+<text x="37" y="78.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L1</text>
+<text x="48" y="78.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R7</text>
+<text x="82" y="78.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Giếng trời sau</text>
+<text x="160" y="78.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">2.4</text>
+<line x1="16" y1="81" x2="162" y2="81" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="82" y="85.4" font-size="2.5" text-anchor="start" dominant-baseline="middle" class="b">Cộng tầng 1</text>
+<text x="160" y="85.4" font-size="2.5" text-anchor="end" dominant-baseline="middle" class="b">53.8</text>
+<line x1="16" y1="88" x2="162" y2="88" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="92.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">8</text>
+<text x="37" y="92.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L2</text>
+<text x="48" y="92.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R8</text>
+<text x="82" y="92.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Ngủ chính</text>
+<text x="160" y="92.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">16.8</text>
+<line x1="16" y1="95" x2="162" y2="95" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="99.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">9</text>
+<text x="37" y="99.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L2</text>
+<text x="48" y="99.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R9</text>
+<text x="82" y="99.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Sảnh thờ + hành lang</text>
+<text x="160" y="99.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">13.6</text>
+<line x1="16" y1="102" x2="162" y2="102" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="106.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">10</text>
+<text x="37" y="106.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L2</text>
+<text x="48" y="106.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R10</text>
+<text x="82" y="106.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">WC 2</text>
+<text x="160" y="106.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">3.3</text>
+<line x1="16" y1="109" x2="162" y2="109" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="113.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">11</text>
+<text x="37" y="113.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L2</text>
+<text x="48" y="113.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R11</text>
+<text x="82" y="113.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Ngủ con</text>
+<text x="160" y="113.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">9.0</text>
+<line x1="16" y1="116" x2="162" y2="116" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="22" y="120.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">12</text>
+<text x="37" y="120.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L2</text>
+<text x="48" y="120.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">R12</text>
+<text x="82" y="120.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Giếng trời sau</text>
+<text x="160" y="120.4" font-size="2.5" text-anchor="end" dominant-baseline="middle">2.4</text>
+<line x1="16" y1="123" x2="162" y2="123" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="82" y="127.4" font-size="2.5" text-anchor="start" dominant-baseline="middle" class="b">Cộng tầng 2</text>
+<text x="160" y="127.4" font-size="2.5" text-anchor="end" dominant-baseline="middle" class="b">45.1</text>
+<line x1="16" y1="130" x2="162" y2="130" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="82" y="134.4" font-size="2.5" text-anchor="start" dominant-baseline="middle" class="b">TỔNG DIỆN TÍCH PHÒNG</text>
+<text x="160" y="134.4" font-size="2.5" text-anchor="end" dominant-baseline="middle" class="b">98.9</text>
+<line x1="16" y1="137" x2="162" y2="137" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="16,24 162,24 162,137 16,137" fill="none" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="28" y1="24" x2="28" y2="137" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="46" y1="24" x2="46" y2="137" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="80" y1="24" x2="80" y2="137" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="132" y1="24" x2="132" y2="137" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="176" y="20" font-size="3.5" text-anchor="start" dominant-baseline="middle" class="b">THỐNG KÊ CỬA</text>
+<polygon points="176,24 332,24 332,32 176,32" fill="#eceae4" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="178" y="28.9" font-size="2.5" text-anchor="start" dominant-baseline="middle" class="b">Ký hiệu</text>
+<text x="217" y="28.9" font-size="2.5" text-anchor="middle" dominant-baseline="middle" class="b">Loại</text>
+<text x="230" y="28.9" font-size="2.5" text-anchor="start" dominant-baseline="middle" class="b">Kiểu</text>
+<text x="285" y="28.9" font-size="2.5" text-anchor="middle" dominant-baseline="middle" class="b">R×C (mm)</text>
+<text x="306" y="28.9" font-size="2.5" text-anchor="middle" dominant-baseline="middle" class="b">SL</text>
+<text x="322" y="28.9" font-size="2.5" text-anchor="middle" dominant-baseline="middle" class="b">Tầng</text>
+<text x="178" y="36.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">D1</text>
+<text x="217" y="36.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">Cửa đi</text>
+<text x="230" y="36.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Cửa chính</text>
+<text x="285" y="36.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">1620×2360</text>
+<text x="306" y="36.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">1</text>
+<text x="322" y="36.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L1</text>
+<line x1="176" y1="39" x2="332" y2="39" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="178" y="43.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">D2, D5</text>
+<text x="217" y="43.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">Cửa đi</text>
+<text x="230" y="43.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Cửa WC</text>
+<text x="285" y="43.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">720×2100</text>
+<text x="306" y="43.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">2</text>
+<text x="322" y="43.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L1, L2</text>
+<line x1="176" y1="46" x2="332" y2="46" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="178" y="50.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">D3, D4, D6</text>
+<text x="217" y="50.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">Cửa đi</text>
+<text x="230" y="50.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Cửa phòng</text>
+<text x="285" y="50.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">800×2100</text>
+<text x="306" y="50.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">3</text>
+<text x="322" y="50.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L1, L2</text>
+<line x1="176" y1="53" x2="332" y2="53" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="178" y="57.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">S1, S2, S4</text>
+<text x="217" y="57.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">Cửa sổ</text>
+<text x="230" y="57.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Cửa sổ trượt</text>
+<text x="285" y="57.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">1240×1400</text>
+<text x="306" y="57.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">3</text>
+<text x="322" y="57.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L1, L2</text>
+<line x1="176" y1="60" x2="332" y2="60" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="178" y="64.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">S3</text>
+<text x="217" y="64.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">Cửa sổ</text>
+<text x="230" y="64.4" font-size="2.5" text-anchor="start" dominant-baseline="middle">Cửa sổ trượt</text>
+<text x="285" y="64.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">1600×1400</text>
+<text x="306" y="64.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">1</text>
+<text x="322" y="64.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle">L2</text>
+<line x1="176" y1="67" x2="332" y2="67" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="285" y="71.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle" class="b">TỔNG</text>
+<text x="306" y="71.4" font-size="2.5" text-anchor="middle" dominant-baseline="middle" class="b">10</text>
+<line x1="176" y1="74" x2="332" y2="74" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="176,24 332,24 332,74 176,74" fill="none" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="206" y1="24" x2="206" y2="74" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="228" y1="24" x2="228" y2="74" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="270" y1="24" x2="270" y2="74" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="300" y1="24" x2="300" y2="74" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="312" y1="24" x2="312" y2="74" stroke="#000" stroke-width="0.13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="16" y="237" font-size="2.4" text-anchor="start" dominant-baseline="middle">Diện tích tính theo lòng phòng (thông thủy); kích thước cửa là kích thước ô chờ.</text>
+<polygon points="7,7 413,7 413,290 7,290" fill="none" stroke="#000" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="263,248 413,248 413,290 263,290" fill="none" stroke="#000" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="263" y1="260" x2="413" y2="260" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="263" y1="270" x2="413" y2="270" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="263" y1="280" x2="413" y2="280" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="367" y1="248" x2="367" y2="290" stroke="#000" stroke-width="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="266" y="255.6" font-size="3.4" text-anchor="start" dominant-baseline="middle" class="b">NHÀ ỐNG 4×16M — 2 TẦNG 3PN</text>
+<text x="370" y="255.6" font-size="3.4" text-anchor="start" dominant-baseline="middle" class="b">KT-05</text>
+<text x="266" y="266.6" font-size="3" text-anchor="start" dominant-baseline="middle" class="b">THỐNG KÊ PHÒNG &amp; CỬA</text>
+<text x="370" y="266.6" font-size="2.8" text-anchor="start" dominant-baseline="middle">TỶ LỆ —</text>
+<text x="266" y="276.6" font-size="2.4" text-anchor="start" dominant-baseline="middle">Thiết kế: Atelier AI</text>
+<text x="370" y="276.6" font-size="2.4" text-anchor="start" dominant-baseline="middle">Ngày: 13/07/2026</text>
+<text x="266" y="286.6" font-size="2.4" text-anchor="start" dominant-baseline="middle">Kiểm: ................</text>
+<text x="370" y="286.6" font-size="2.4" text-anchor="start" dominant-baseline="middle">atelier/0.1</text>
+<text x="10" y="284.6" font-size="2" text-anchor="start" dominant-baseline="middle">Bản vẽ concept — không thay thế hồ sơ thiết kế có chữ ký KTS hành nghề.</text>
+</g>
+</svg>

@@ -27,11 +27,13 @@ const AVAIL = { w: A3.w - 14, h: A3.h - 14 };
  * xoay bản vẽ cho mặt tiền nằm bên trái trang (thói quen bản vẽ nhà ống).
  * Cả hai nhánh transform đều là phép ĐẲNG CỰ trên giấy (kèm y-down của SVG)
  * nên góc và ký hiệu không méo.
+ *
+ * noRotate: mặt đứng/mặt cắt — trục đứng là TRỌNG LỰC, không bao giờ xoay ngang.
  */
-export function planTransform(b: Bounds, preferScale?: number): PlanTransform {
+export function planTransform(b: Bounds, preferScale?: number, opts: { noRotate?: boolean } = {}): PlanTransform {
   const w = b.maxX - b.minX;
   const h = b.maxY - b.minY;
-  const rotated = h > w;
+  const rotated = !opts.noRotate && h > w;
   const effW = rotated ? h : w;
   const effH = rotated ? w : h;
 

@@ -30,15 +30,43 @@ const textOf = (r: Awaited<ReturnType<Client["callTool"]>>): string =>
     .map((c) => c.text)
     .join("\n");
 
-describe("MCP server — tools 1–9 (DoD P1 + P2)", () => {
-  it("liệt kê đúng 9 tools", async () => {
+describe("MCP server — tools DoD P1 + P2 + P4", () => {
+  it("liệt kê đúng 11 tools", async () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();
     expect(names).toEqual([
-      "apply_ops", "capture_view", "editor_open", "get_changes_since",
-      "model_query", "project_new", "project_open", "render_plan", "validate",
+      "apply_ops", "capture_view", "editor_open", "export", "get_changes_since",
+      "model_query", "project_new", "project_open", "render_plan", "render_view", "validate",
     ].sort());
+  });
+
+  it("export dxf: xuất tờ hình học, bỏ tờ thống kê; ifc chưa hỗ trợ", async () => {
+    const { client, store } = await connect();
+    await client.callTool({ name: "project_new", arguments: { name: "Nhà anh Ba", template: "nha-ong-4x16-2t" } });
+
+    const dxf = await client.callTool({ name: "export", arguments: { format: "dxf" } });
+    const msg = textOf(dxf);
+    expect(msg).toContain("4 tờ DXF");
+    expect(msg).toContain("KT-01 MẶT BẰNG TẦNG 1");
+    expect(msg).toContain("KT-04 MẶT CẮT A-A");
+    expect(msg).not.toContain("THỐNG KÊ →"); // tờ bảng không có DXF
+    const { existsSync } = await import("node:fs");
+    const path = await import("node:path");
+    expect(existsSync(path.join(store.exportDir, "ho-so", "kt-01-mat-bang-l1.dxf"))).toBe(true);
+
+    const ifc = await client.callTool({ name: "export", arguments: { format: "ifc" } });
+    expect(ifc.isError).toBe(true);
+    expect(textOf(ifc)).toContain("chưa hỗ trợ");
+  });
+
+  it("export svg lọc theo sheets giữ đúng số KT trong bộ", async () => {
+    const { client } = await connect();
+    await client.callTool({ name: "project_new", arguments: { name: "Nhà anh Ba", template: "nha-ong-4x16-2t" } });
+    const r = await client.callTool({ name: "export", arguments: { format: "svg", sheets: ["elevation"] } });
+    const msg = textOf(r);
+    expect(msg).toContain("1 tờ SVG");
+    expect(msg).toContain("KT-03 MẶT ĐỨNG CHÍNH");
   });
 
   it("editor_open trả URL live server; capture_view 3d không browser → chỉ đường", async () => {

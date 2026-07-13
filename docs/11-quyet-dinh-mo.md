@@ -11,7 +11,7 @@
 | ADR-05 | **Opening neo tương đối vào tường** | "Cửa luôn trên tường" đúng-theo-cấu-trúc; dời tường cửa đi theo miễn phí | Cửa góc/xuyên 2 tường không biểu diễn được (hiếm, chấp nhận) |
 | ADR-06 | **Room = polygon khai báo** (v1), auto-dò từ tường ở v2 | Đơn giản, deterministic, đủ cho validator + tô tên phòng | Sửa tường phải sửa polygon phòng theo (Claude/editor lo) |
 | ADR-07 | **`apply_ops` là cổng mutation duy nhất** + revision optimistic + không có op "thay cả model" | Transaction, validate, broadcast một chỗ; không bao giờ nghiền chỉnh sửa tay | Thao tác lớn = nhiều ops trong 1 transaction |
-| ADR-08 | **SVG-first**; PDF qua Chromium; DXF/IFC lùi P4 | Ra giá trị sớm; SVG test/diff/click được | Người cần DXF phải đợi P4 |
+| ADR-08 | **SVG-first**; PDF qua Chromium; DXF/IFC lùi P4. *Chốt P4 (13/07/2026): DXF viết bằng **TS thuần** từ cùng SceneGraph — không sidecar Python `ezdxf`; IFC tiếp tục lùi backlog* | Ra giá trị sớm; SVG test/diff/click được; một nguồn primitive nên SVG/DXF không bao giờ lệch; không thêm phụ thuộc runtime | DXF là AC1021 tối thiểu (mở/đo được trong CAD, chưa có linetype/dimstyle bản địa); người cần IFC phải đợi |
 | ADR-09 | **Rules là data** (`rules/*.json`) có `source` + cờ `verified` | Sửa số không sửa code; trích nguồn được; chưa verify thì bản vẽ tự chú thích | Cần task tra văn bản chuẩn nghiêm túc ở P1 |
 | ADR-10 | **Schema keys tiếng Anh, nhãn/UI tiếng Việt** | LLM và hệ sinh thái tool làm việc tốt nhất với keys EN; người dùng chỉ thấy tiếng Việt | Tài liệu schema song ngữ nhẹ |
 

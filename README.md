@@ -20,7 +20,9 @@ Từ fixture nhà ống 4×16m: validator 22 rules (số liệu đối chiếu *
 `editor_open` mở web editor (Vite + Three.js) cùng process với MCP; mỗi `apply_ops` mọc NGAY trên màn hình — 2D là SVG do server render (ký hiệu chuẩn tuyệt đối), 3D maquette orbit (tường tách mảnh quanh cửa, chưa CSG) — kèm toast + flash 1.5s; `capture_view` trả về đúng khung người dùng đang thấy, fallback mặt bằng server khi chưa mở browser. Demo: `pnpm demo:p2`. Build editor: `pnpm build:web`.
 ✅ **Giai đoạn 3 — Chỉnh sửa tay: hoàn thành 13/07/2026.**
 Chọn/kéo tường-cửa-nội thất ngay trên mặt bằng (tường neo khoảng cách tới tường song song gần nhất, cửa hiện khoảng cách hai đầu, nội thất hít mặt tường); **HUD gõ số** cạnh con trỏ — đang kéo gõ `4200 ⏎` là chốt đúng 4200mm; snap lưới đổi được; undo/redo per-origin (Ctrl+Z/Y — chỉ hoàn tác thao tác của mình); soft-lock "người dùng luôn thắng" (`LOCK-01`, khóa nguội 5s); panel thuộc tính thành ô nhập; `get_changes_since` tóm tắt cũ → mới cho Claude bắt kịp. Demo vòng lặp cộng tác người ↔ Claude: `pnpm demo:p3`.
-🔜 **Giai đoạn 4 — Hồ sơ bản vẽ:** dim engine hoàn chỉnh, mặt đứng + mặt cắt, thống kê, xuất PDF A3 + DXF.
+✅ **Giai đoạn 4 — Hồ sơ bản vẽ: hoàn thành 13/07/2026.**
+Bộ hồ sơ concept trọn vẹn đánh số KT-01…: mặt bằng từng tầng (thêm dim thông thủy trong phòng + vết cắt A-A), **mặt đứng chính**, **mặt cắt A-A qua thang** (poché, lỗ cửa, profile bậc, chiếu nghỉ), **bảng thống kê phòng & cửa**; xuất **PDF A3 một file nhiều trang**, **DXF** (TS thuần, mm thật — mở CAD đo được) và SVG. Tools mới: `export`, `render_view`. Demo: `pnpm demo:p4`.
+🔜 **Giai đoạn 5 — Nội thất & trải nghiệm:** catalog ≥100 asset CC0, vật liệu, đi bộ WASD, sun study.
 
 ## Bộ tài liệu
 

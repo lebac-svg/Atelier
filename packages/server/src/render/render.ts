@@ -2,7 +2,10 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Project } from "@atelier/core";
+import { buildElevationScene, type ElevationOptions } from "./elevation-scene.js";
 import { buildPlanScene, type PlanOptions } from "./plan-scene.js";
+import { buildScheduleScene, type ScheduleOptions } from "./schedule-scene.js";
+import { buildSectionScene, type SectionOptions } from "./section-scene.js";
 import { sceneToSvg } from "./svg-writer.js";
 
 const FONT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "assets", "fonts");
@@ -36,6 +39,29 @@ export function renderPlanSvg(p: Project, levelId: string, opts: RenderPlanOptio
   const { items, tf, meta } = buildPlanScene(p, levelId, opts);
   const svg = sceneToSvg(items, tf, { fontCss: opts.embedFont === false ? "" : fontCss() });
   return { svg, levelName: meta.levelName, scaleLabel: meta.scaleLabel };
+}
+
+export type RenderedSheet = { svg: string; title: string; scaleLabel: string };
+
+/** Mặt đứng chính (P4). */
+export function renderElevationSvg(p: Project, opts: ElevationOptions & { embedFont?: boolean } = {}): RenderedSheet {
+  const { items, tf, meta } = buildElevationScene(p, opts);
+  const svg = sceneToSvg(items, tf, { fontCss: opts.embedFont === false ? "" : fontCss() });
+  return { svg, title: meta.title, scaleLabel: meta.scaleLabel };
+}
+
+/** Mặt cắt A-A qua thang (P4). */
+export function renderSectionSvg(p: Project, opts: SectionOptions & { embedFont?: boolean } = {}): RenderedSheet {
+  const { items, tf, meta } = buildSectionScene(p, opts);
+  const svg = sceneToSvg(items, tf, { fontCss: opts.embedFont === false ? "" : fontCss() });
+  return { svg, title: meta.title, scaleLabel: meta.scaleLabel };
+}
+
+/** Tờ thống kê phòng + cửa (P4). */
+export function renderScheduleSvg(p: Project, opts: ScheduleOptions & { embedFont?: boolean } = {}): RenderedSheet {
+  const { items, tf, meta } = buildScheduleScene(p, opts);
+  const svg = sceneToSvg(items, tf, { fontCss: opts.embedFont === false ? "" : fontCss() });
+  return { svg, title: meta.title, scaleLabel: meta.scaleLabel };
 }
 
 export type RenderedFiles = RenderedPlan & {
