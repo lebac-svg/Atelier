@@ -1,6 +1,7 @@
 import { getAsset } from "../catalog.js";
 import { convexOverlapDepth, furnitureObb, obbCorners, type Obb } from "../geometry/obb.js";
 import { area, areaM2, minPolygonWidth, pointInPolygon } from "../geometry/polygon.js";
+// (area vẫn dùng cho STD-12)
 import { stairLayout } from "../geometry/stair.js";
 import { openingSidePoints, wallBand } from "../geometry/wall.js";
 import { clearHeight, floorSlabOf, getLevel, getWall, levelAbove, levelsSorted, roomsAdjacent, roomsAtPoint, roomsOfLevel } from "../model.js";
@@ -14,29 +15,34 @@ const round1 = (v: number): number => Math.round(v * 10) / 10;
 export function std01(p: Project, def: RuleDef): Finding[] {
   const prm = def.params!;
   const out: Finding[] = [];
-  const beds = p.rooms.filter((r) => r.use === "ngu").sort((a, b) => area(b.polygon) - area(a.polygon));
-  beds.forEach((r, i) => {
-    const isChinh = i === 0;
-    const min = isChinh ? prm.ngu_chinh! : prm.ngu_phu!;
+
+  // TCVN 13967:2024 Bảng 1 — phòng ngủ phân loại theo giường đang kê trong phòng
+  const hasDoubleBed = (r: Room): boolean =>
+    p.furniture.some((f) => {
+      if (f.level !== r.level) return false;
+      const asset = getAsset(f.asset);
+      return asset?.category === "giuong" && asset.footprint.w >= 1400 && pointInPolygon(f.at, r.polygon);
+    });
+
+  for (const r of p.rooms.filter((x) => x.use === "ngu")) {
+    const doi = hasDoubleBed(r);
+    const min = doi ? prm.ngu_doi! : prm.ngu_don!;
     const a = areaM2(r.polygon);
     if (a < min) {
-      out.push({ entities: [r.id], values: { ten: r.name, room: r.id, area: a, min, loai: isChinh ? "ngủ chính" : "ngủ phụ" } });
+      out.push({ entities: [r.id], values: { ten: r.name, room: r.id, area: a, min, loai: doi ? "ngủ giường đôi" : "ngủ giường đơn" } });
     }
-  });
-  const simple: Array<[Room["use"], number, string, boolean]> = [
-    ["bep-an", prm.bep!, "bếp", false],
-    ["wc", prm.wc!, "WC", false],
-    ["khach", prm.khach!, "phòng khách", true],
+  }
+  const simple: Array<[Room["use"], number, string]> = [
+    ["bep-an", prm.bep_an!, "bếp + ăn"],
+    ["wc", prm.wc!, "vệ sinh"],
+    ["khach", prm.khach!, "tiếp khách"],
+    ["kho", prm.kho!, "chứa đồ"],
   ];
-  for (const [use, min, loai, isInfo] of simple) {
+  for (const [use, min, loai] of simple) {
     for (const r of p.rooms.filter((x) => x.use === use)) {
       const a = areaM2(r.polygon);
       if (a < min) {
-        out.push({
-          entities: [r.id],
-          values: { ten: r.name, room: r.id, area: a, min, loai },
-          ...(isInfo ? { severity: "info" as const } : {}),
-        });
+        out.push({ entities: [r.id], values: { ten: r.name, room: r.id, area: a, min, loai } });
       }
     }
   }
@@ -58,10 +64,17 @@ export function std02(p: Project, def: RuleDef): Finding[] {
 
 export function std03(p: Project, def: RuleDef): Finding[] {
   const out: Finding[] = [];
-  const O = new Set<Room["use"]>(["khach", "ngu", "bep-an", "lam-viec", "tho"]);
-  const PHU = new Set<Room["use"]>(["wc", "kho"]);
+  const O = new Set<Room["use"]>(["khach", "ngu", "lam-viec", "tho"]);
   for (const r of p.rooms) {
-    const min = O.has(r.use) ? def.params!.phong_o! : PHU.has(r.use) ? def.params!.phu! : null;
+    const min = O.has(r.use)
+      ? def.params!.phong_o!
+      : r.use === "bep-an"
+        ? def.params!.bep_an!
+        : r.use === "wc"
+          ? def.params!.wc!
+          : r.use === "kho"
+            ? def.params!.kho!
+            : null;
     if (min == null) continue;
     const clear = Math.round(clearHeight(p, r.level));
     if (clear > 0 && clear < min) {
@@ -123,19 +136,21 @@ export function std06(p: Project, def: RuleDef): Finding[] {
 
     if (riser < prm.riser_min! || riser > prm.riser_max!) {
       push(`cao bậc ${round1(riser)}mm ngoài khoảng ${prm.riser_min}–${prm.riser_max}mm (height ${level.height} / ${st.steps} bậc)`);
+    } else if (riser > prm.riser_khuyen!) {
+      push(`cao bậc ${round1(riser)}mm > ${prm.riser_khuyen}mm — 13967 khuyến khích ≤${prm.riser_khuyen}mm`, "warn");
     }
     if (st.tread < prm.tread_min!) push(`mặt bậc ${st.tread}mm < ${prm.tread_min}mm`);
     if (st.width < prm.ve_min!) {
       push(`vế rộng ${st.width}mm < ${prm.ve_min}mm`);
     } else if (st.width < prm.ve_khuyen!) {
-      push(`vế rộng ${st.width}mm < ${prm.ve_khuyen}mm khuyến nghị`, "warn");
+      push(`vế rộng ${st.width}mm < ${prm.ve_khuyen}mm (mức thang thoát nạn nhà liên kế — TCVN 9411)`, "warn");
     }
     if (st.landing != null && st.landing < st.width) {
       push(`chiếu nghỉ ${st.landing}mm < bề rộng vế ${st.width}mm`);
     }
     const buoc = 2 * riser + st.tread;
     if (buoc < prm.buoc_min! || buoc > prm.buoc_max!) {
-      push(`nhịp bước 2×riser+tread = ${round1(buoc)}mm ngoài ${prm.buoc_min}–${prm.buoc_max}mm`, "info");
+      push(`nhịp bước 2×riser+tread = ${round1(buoc)}mm ngoài ${prm.buoc_min}–${prm.buoc_max}mm`);
     }
   }
   return out;

@@ -94,13 +94,25 @@ describe("GEO — hình học/topology (case phạm; case đạt = fixture golde
 });
 
 describe("STD — tiêu chuẩn kích thước VN", () => {
-  it("STD-01: phòng ngủ phụ < 7m² | STD-02: bề rộng < 2100", () => {
+  it("STD-01: phòng ngủ đơn < 9m² (TCVN 13967 Bảng 1) | STD-02: bề rộng < 2100", () => {
     const issues = violate((p) => {
-      p.rooms.find((r) => r.id === "R5")!.polygon = [[220, 12855], [2200, 12855], [2200, 14945], [220, 14945]];
+      p.rooms.find((r) => r.id === "R5")!.polygon = [[220, 12475], [2200, 12475], [2200, 15005], [220, 15005]];
       p.furniture = p.furniture.filter((f) => !["F8", "F9"].includes(f.id)); // dọn đồ cho khỏi nhiễu GEO
     });
-    expectRule(issues, "STD-01", "warn");
+    const i = expectRule(issues, "STD-01", "warn");
+    expect(i.message).toContain("9m²");
     expectRule(issues, "STD-02", "warn");
+  });
+
+  it("STD-01: phòng ngủ có giường đôi đòi 12m²", () => {
+    const issues = violate((p) => {
+      // chuyển giường đôi 1m8 vào phòng bà (9.0m² — đủ cho giường đơn, thiếu cho giường đôi)
+      p.furniture = p.furniture.filter((f) => !["F8", "F9"].includes(f.id));
+      p.furniture.push({ id: "F98", level: "L1", asset: "giuong-1m8", at: [2680, 14005], rotation: 90 });
+    });
+    const i = expectRule(issues, "STD-01", "warn");
+    expect(i.message).toContain("12m²");
+    expect(i.entities).toContain("R5");
   });
 
   it("STD-03: hạ chiều cao tầng → cao thông thủy thiếu", () => {
@@ -109,9 +121,9 @@ describe("STD — tiêu chuẩn kích thước VN", () => {
     expect(i.message).toContain("2480");
   });
 
-  it("STD-04: hành lang < 900", () => {
+  it("STD-04: hành lang < 1000 (đường thoát nạn 13967)", () => {
     const issues = violate((p) => {
-      p.rooms.find((r) => r.id === "R3")!.polygon = [[220, 7900], [920, 7900], [920, 12745], [220, 12745]];
+      p.rooms.find((r) => r.id === "R3")!.polygon = [[220, 7520], [920, 7520], [920, 12365], [220, 12365]];
     });
     expectRule(issues, "STD-04", "error");
   });
@@ -123,11 +135,14 @@ describe("STD — tiêu chuẩn kích thước VN", () => {
     expectRule(info, "STD-05", "info");
   });
 
-  it("STD-06: mặt bậc mỏng (error) + vế 800–900 (warn)", () => {
-    const err = violate((p) => { p.stairs[0]!.tread = 200; });
+  it("STD-06: mặt bậc < 250 (error) + vế 700–900 (warn) + bậc > 190 (warn khuyến khích)", () => {
+    const err = violate((p) => { p.stairs[0]!.tread = 240; });
     expectRule(err, "STD-06", "error");
     const warn = violate((p) => { p.stairs[0]!.width = 850; p.stairs[0]!.landing = 860; });
     expectRule(warn, "STD-06", "warn");
+    const riser = violate((p) => { p.stairs[0]!.steps = 18; }); // 3600/18 = 200 ∈ (190, 220]
+    const i = expectRule(riser, "STD-06", "warn");
+    expect(i.message).toContain("khuyến khích");
   });
 
   it("STD-08: bậu cửa sổ thấp ở tầng 2 (warn) — tầng 1 thì không", () => {

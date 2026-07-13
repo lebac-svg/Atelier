@@ -32,7 +32,7 @@ describe("renderer 2D — mặt bằng", () => {
     expect(svg).toMatch(/data-id="D1"[^>]*d="M[^"]+A/);
     // nhãn phòng HOA có dấu + diện tích dẫn xuất
     expect(svg).toContain("PHÒNG KHÁCH");
-    expect(svg).toContain("14.5m²");
+    expect(svg).toContain("13.3m²");
     // dim: chuỗi trục 3780 và tổng 4000/16000
     expect(svg).toContain(">3780<");
     expect(svg).toContain(">16000<");

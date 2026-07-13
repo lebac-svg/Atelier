@@ -43,9 +43,9 @@
     "y": [
       { "id": "A", "offset": 110 },
       { "id": "B", "offset": 5000 },
-      { "id": "C", "offset": 7900 },
-      { "id": "D", "offset": 11300 },
-      { "id": "E", "offset": 12800 },
+      { "id": "C", "offset": 7520 },
+      { "id": "D", "offset": 10970 },
+      { "id": "E", "offset": 12420 },
       { "id": "F", "offset": 15060 },
       { "id": "G", "offset": 15890 }
     ]
@@ -59,29 +59,29 @@
     { "id": "W2", "level": "L1", "from": [110, 0], "to": [110, 16000], "thickness": 220, "kind": "gach" },
     { "id": "W3", "level": "L1", "from": [3890, 0], "to": [3890, 16000], "thickness": 220, "kind": "gach" },
     { "id": "W4", "level": "L1", "from": [0, 15890], "to": [4000, 15890], "thickness": 220, "kind": "gach" },
-    { "id": "W5", "level": "L1", "from": [110, 12800], "to": [3890, 12800], "thickness": 110, "kind": "gach" },
-    { "id": "W6", "level": "L1", "from": [1175, 12800], "to": [1175, 11300], "thickness": 110, "kind": "gach" },
-    { "id": "W7", "level": "L1", "from": [1175, 11300], "to": [3890, 11300], "thickness": 110, "kind": "gach" },
+    { "id": "W5", "level": "L1", "from": [110, 12420], "to": [3890, 12420], "thickness": 110, "kind": "gach" },
+    { "id": "W6", "level": "L1", "from": [1275, 12420], "to": [1275, 10970], "thickness": 110, "kind": "gach" },
+    { "id": "W7", "level": "L1", "from": [1275, 10970], "to": [3890, 10970], "thickness": 110, "kind": "gach" },
     { "id": "W8", "level": "L1", "from": [110, 15060], "to": [3890, 15060], "thickness": 110, "kind": "gach" },
     { "id": "W9", "level": "L2", "from": [0, 110], "to": [4000, 110], "thickness": 220, "kind": "gach" },
     { "id": "W10", "level": "L2", "from": [110, 0], "to": [110, 16000], "thickness": 220, "kind": "gach" },
     { "id": "W11", "level": "L2", "from": [3890, 0], "to": [3890, 16000], "thickness": 220, "kind": "gach" },
     { "id": "W12", "level": "L2", "from": [0, 15890], "to": [4000, 15890], "thickness": 220, "kind": "gach" },
     { "id": "W13", "level": "L2", "from": [3890, 5000], "to": [110, 5000], "thickness": 110, "kind": "gach" },
-    { "id": "W14", "level": "L2", "from": [1175, 12800], "to": [1175, 7900], "thickness": 110, "kind": "gach" },
-    { "id": "W15", "level": "L2", "from": [1175, 11300], "to": [3890, 11300], "thickness": 110, "kind": "gach" },
-    { "id": "W16", "level": "L2", "from": [110, 12800], "to": [3890, 12800], "thickness": 110, "kind": "gach" },
+    { "id": "W14", "level": "L2", "from": [1275, 12420], "to": [1275, 7520], "thickness": 110, "kind": "gach" },
+    { "id": "W15", "level": "L2", "from": [1275, 10970], "to": [3890, 10970], "thickness": 110, "kind": "gach" },
+    { "id": "W16", "level": "L2", "from": [110, 12420], "to": [3890, 12420], "thickness": 110, "kind": "gach" },
     { "id": "W17", "level": "L2", "from": [110, 15060], "to": [3890, 15060], "thickness": 110, "kind": "gach" }
   ],
   "openings": [
     { "id": "D1", "wall": "W1", "kind": "door", "style": "DC", "offset": 2000, "width": 1620, "height": 2360, "sill": 0, "swing": "in-L" },
     { "id": "S1", "wall": "W1", "kind": "window", "style": "SW", "offset": 500, "width": 1240, "height": 1400, "sill": 900 },
-    { "id": "D2", "wall": "W6", "kind": "door", "style": "DW", "offset": 400, "width": 720, "height": 2100, "sill": 0, "swing": "in-R" },
+    { "id": "D2", "wall": "W6", "kind": "door", "style": "DW", "offset": 200, "width": 720, "height": 2100, "sill": 0, "swing": "in-R" },
     { "id": "D3", "wall": "W5", "kind": "door", "style": "DP", "offset": 200, "width": 800, "height": 2100, "sill": 0, "swing": "in-R" },
     { "id": "S2", "wall": "W8", "kind": "window", "style": "SW", "offset": 1270, "width": 1240, "height": 1400, "sill": 900 },
     { "id": "S3", "wall": "W9", "kind": "window", "style": "SW", "offset": 1200, "width": 1600, "height": 1400, "sill": 900 },
     { "id": "D4", "wall": "W13", "kind": "door", "style": "DP", "offset": 2780, "width": 800, "height": 2100, "sill": 0, "swing": "in-L" },
-    { "id": "D5", "wall": "W14", "kind": "door", "style": "DW", "offset": 400, "width": 720, "height": 2100, "sill": 0, "swing": "in-R" },
+    { "id": "D5", "wall": "W14", "kind": "door", "style": "DW", "offset": 200, "width": 720, "height": 2100, "sill": 0, "swing": "in-R" },
     { "id": "D6", "wall": "W16", "kind": "door", "style": "DP", "offset": 200, "width": 800, "height": 2100, "sill": 0, "swing": "in-R" },
     { "id": "S4", "wall": "W17", "kind": "window", "style": "SW", "offset": 1270, "width": 1240, "height": 1400, "sill": 900 }
   ],
@@ -99,7 +99,7 @@
       "kind": "floor",
       "outline": [[0, 0], [4000, 0], [4000, 16000], [0, 16000]],
       "holes": [
-        [[1230, 7900], [2830, 7900], [2830, 10105], [3780, 10105], [3780, 11300], [1230, 11300]],
+        [[1330, 7520], [2830, 7520], [2830, 9770], [3780, 9770], [3780, 10970], [1330, 10970]],
         [[220, 15115], [3780, 15115], [3780, 15780], [220, 15780]]
       ],
       "thickness": 120
@@ -110,43 +110,43 @@
       "id": "ST1",
       "level": "L1",
       "type": "2-ve-U",
-      "origin": [2830, 7900],
+      "origin": [2830, 7520],
       "rotation": 0,
       "width": 950,
       "steps": 21,
-      "tread": 245,
+      "tread": 250,
       "landing": 950
     }
   ],
   "rooms": [
     {
       "id": "R1", "level": "L1", "name": "Phòng khách", "use": "khach",
-      "polygon": [[220, 220], [3780, 220], [3780, 4300], [220, 4300]],
+      "polygon": [[220, 220], [3780, 220], [3780, 3950], [220, 3950]],
       "finish": { "floor": "gach-600", "wall": "son-trang", "ceiling": "tran-thach-cao" }
     },
     {
       "id": "R2", "level": "L1", "name": "Bếp + ăn", "use": "bep-an",
-      "polygon": [[220, 4300], [3780, 4300], [3780, 7900], [220, 7900]],
+      "polygon": [[220, 3950], [3780, 3950], [3780, 7520], [220, 7520]],
       "finish": { "floor": "gach-600", "wall": "son-trang", "ceiling": "tran-thach-cao" }
     },
     {
       "id": "R3", "level": "L1", "name": "Hành lang", "use": "hanh-lang",
-      "polygon": [[220, 7900], [1120, 7900], [1120, 12745], [220, 12745]],
+      "polygon": [[220, 7520], [1220, 7520], [1220, 12365], [220, 12365]],
       "finish": { "floor": "gach-600", "wall": "son-trang" }
     },
     {
       "id": "R4", "level": "L1", "name": "WC 1", "use": "wc",
-      "polygon": [[1230, 11355], [3780, 11355], [3780, 12745], [1230, 12745]],
+      "polygon": [[1330, 11025], [3780, 11025], [3780, 12365], [1330, 12365]],
       "finish": { "floor": "gach-chong-tron", "wall": "op-gach-wc" }
     },
     {
       "id": "R5", "level": "L1", "name": "Phòng bà", "use": "ngu",
-      "polygon": [[220, 12855], [3780, 12855], [3780, 15005], [220, 15005]],
+      "polygon": [[220, 12475], [3780, 12475], [3780, 15005], [220, 15005]],
       "finish": { "floor": "go-lam-te", "wall": "son-trang" }
     },
     {
       "id": "R6", "level": "L1", "name": "Cầu thang", "use": "cau-thang",
-      "polygon": [[1230, 7900], [3780, 7900], [3780, 11245], [1230, 11245]],
+      "polygon": [[1330, 7520], [3780, 7520], [3780, 10915], [1330, 10915]],
       "finish": { "floor": "gach-600" }
     },
     {
@@ -160,17 +160,17 @@
     },
     {
       "id": "R9", "level": "L2", "name": "Sảnh thờ + hành lang", "use": "hanh-lang",
-      "polygon": [[220, 5055], [3780, 5055], [3780, 7900], [1120, 7900], [1120, 12745], [220, 12745]],
+      "polygon": [[220, 5055], [3780, 5055], [3780, 7520], [1220, 7520], [1220, 12365], [220, 12365]],
       "finish": { "floor": "gach-600", "wall": "son-trang" }
     },
     {
       "id": "R10", "level": "L2", "name": "WC 2", "use": "wc",
-      "polygon": [[1230, 11355], [3780, 11355], [3780, 12745], [1230, 12745]],
+      "polygon": [[1330, 11025], [3780, 11025], [3780, 12365], [1330, 12365]],
       "finish": { "floor": "gach-chong-tron", "wall": "op-gach-wc" }
     },
     {
       "id": "R11", "level": "L2", "name": "Ngủ con", "use": "ngu",
-      "polygon": [[220, 12855], [3780, 12855], [3780, 15005], [220, 15005]],
+      "polygon": [[220, 12475], [3780, 12475], [3780, 15005], [220, 15005]],
       "finish": { "floor": "go-lam-te", "wall": "son-trang" }
     },
     {
@@ -179,25 +179,25 @@
     }
   ],
   "furniture": [
-    { "id": "F1", "level": "L1", "asset": "sofa-3s-01", "at": [645, 3350], "rotation": 90 },
-    { "id": "F2", "level": "L1", "asset": "ke-tv-1600", "at": [3555, 3350], "rotation": 90 },
+    { "id": "F1", "level": "L1", "asset": "sofa-3s-01", "at": [645, 3050], "rotation": 90 },
+    { "id": "F2", "level": "L1", "asset": "ke-tv-1600", "at": [3555, 3050], "rotation": 90 },
     { "id": "F3", "level": "L1", "asset": "xe-may", "at": [700, 1170], "rotation": 0 },
     { "id": "F4", "level": "L1", "asset": "xe-may", "at": [1500, 1170], "rotation": 0 },
-    { "id": "F5", "level": "L1", "asset": "ban-an-4", "at": [1500, 5800], "rotation": 90 },
-    { "id": "F6", "level": "L1", "asset": "tu-bep-duoi-24", "at": [3480, 5555], "rotation": 90 },
-    { "id": "F7", "level": "L1", "asset": "tu-lanh", "at": [3430, 7500], "rotation": 0 },
-    { "id": "F8", "level": "L1", "asset": "giuong-1m2", "at": [2780, 14345], "rotation": 90 },
-    { "id": "F9", "level": "L1", "asset": "tu-ao-1m", "at": [495, 14300], "rotation": 270 },
-    { "id": "F10", "level": "L1", "asset": "bon-cau", "at": [3430, 12050], "rotation": 90 },
-    { "id": "F11", "level": "L1", "asset": "lavabo", "at": [2350, 11565], "rotation": 0 },
+    { "id": "F5", "level": "L1", "asset": "ban-an-4", "at": [1500, 5600], "rotation": 90 },
+    { "id": "F6", "level": "L1", "asset": "tu-bep-duoi-24", "at": [3480, 5205], "rotation": 90 },
+    { "id": "F7", "level": "L1", "asset": "tu-lanh", "at": [3430, 7120], "rotation": 0 },
+    { "id": "F8", "level": "L1", "asset": "giuong-1m2", "at": [2780, 14405], "rotation": 90 },
+    { "id": "F9", "level": "L1", "asset": "tu-ao-1m", "at": [495, 14400], "rotation": 270 },
+    { "id": "F10", "level": "L1", "asset": "bon-cau", "at": [3430, 11695], "rotation": 90 },
+    { "id": "F11", "level": "L1", "asset": "lavabo", "at": [2450, 11235], "rotation": 0 },
     { "id": "F12", "level": "L1", "asset": "may-giat", "at": [3450, 15430], "rotation": 0 },
     { "id": "F13", "level": "L2", "asset": "giuong-1m8", "at": [2000, 1220], "rotation": 0 },
     { "id": "F14", "level": "L2", "asset": "tu-ao-2m", "at": [2500, 4645], "rotation": 180 },
     { "id": "F15", "level": "L2", "asset": "ban-tho", "at": [3475, 6400], "rotation": 90 },
-    { "id": "F16", "level": "L2", "asset": "giuong-1m2", "at": [2780, 14345], "rotation": 90 },
-    { "id": "F17", "level": "L2", "asset": "ban-hoc", "at": [470, 14300], "rotation": 270 },
-    { "id": "F18", "level": "L2", "asset": "bon-cau", "at": [3430, 12050], "rotation": 90 },
-    { "id": "F19", "level": "L2", "asset": "lavabo", "at": [2350, 11565], "rotation": 0 }
+    { "id": "F16", "level": "L2", "asset": "giuong-1m2", "at": [2780, 14405], "rotation": 90 },
+    { "id": "F17", "level": "L2", "asset": "ban-hoc", "at": [470, 14400], "rotation": 270 },
+    { "id": "F18", "level": "L2", "asset": "bon-cau", "at": [3430, 11695], "rotation": 90 },
+    { "id": "F19", "level": "L2", "asset": "lavabo", "at": [2450, 11235], "rotation": 0 }
   ],
   "styles": {
     "openings": {

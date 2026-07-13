@@ -32,7 +32,9 @@ Mỗi rule:
   "message": "Bậc thang {stair} cao {riser}mm — ngoài khoảng {min}–{max}mm." }
 ```
 
-**Chính sách số liệu:** mọi con số dưới đây là dự thảo từ thực hành thiết kế nhà ở VN; con số nào chưa đối chiếu văn bản gốc mang cờ `verified:false` (đánh dấu ⚠). **Giai đoạn 1 có một task riêng: tra TCVN 4451:2012 / QCVN 04 / QCVN 05 bản gốc, chốt từng số, bật `verified:true`.** Chừng nào còn rule ⚠, bản vẽ xuất ra in chú thích "số liệu tiêu chuẩn đang ở mức tham khảo". Tool `standards_lookup` đọc trực tiếp từ các file này — Claude trả lời "vì sao" luôn kèm nguồn.
+**Chính sách số liệu:** mọi con số dưới đây là dự thảo từ thực hành thiết kế nhà ở VN; con số nào chưa đối chiếu văn bản gốc mang cờ `verified:false` (đánh dấu ⚠). **Giai đoạn 1 có một task riêng: tra văn bản gốc, chốt từng số, bật `verified:true`.** Chừng nào còn rule ⚠, bản vẽ xuất ra in chú thích "số liệu tiêu chuẩn đang ở mức tham khảo". Tool `standards_lookup` đọc trực tiếp từ các file này — Claude trả lời "vì sao" luôn kèm nguồn.
+
+> ✅ **Task tra chuẩn đã chạy 13/07/2026.** Chuẩn áp dụng đúng cho nhà ống là **TCVN 13967:2024 (Nhà ở riêng lẻ)** + TCVN 9411:2012 (nhà liên kế) — *không phải* TCVN 4451:2012 (chỉ áp chung cư/ký túc xá). Số liệu ĐÃ CHỐT nằm trong `packages/core/rules/*.json` (nguồn sự thật, kèm điều/mục + cờ verified); các bảng dưới đây giữ nguyên làm tư liệu dự thảo ban đầu — đối chiếu rules JSON khi có lệch.
 
 ## GEO — hình học / topology (đa số `block`)
 

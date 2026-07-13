@@ -48,8 +48,8 @@
       "id": "GEO-07",
       "title": "Vế trên + chiếu nghỉ thang nằm trong lỗ sàn tầng trên",
       "severity": "warn",
-      "source": { "vanBan": "hình học nội tại", "verified": true },
-      "message": "Thang {stair}: phần lộ thiên (vế trên/chiếu nghỉ) không nằm trong lỗ sàn {slab} — người đi sẽ đụng đầu. v2 sẽ kiểm headroom chính xác."
+      "source": { "vanBan": "TCVN 13967:2024 (thông thủy cầu thang ≥ 2000)", "dieu": "5.11", "verified": true },
+      "message": "Thang {stair}: phần lộ thiên (vế trên/chiếu nghỉ) không nằm trong lỗ sàn {slab} — người đi sẽ đụng đầu (thông thủy phải ≥ 2000mm). v2 sẽ kiểm headroom chính xác."
     },
     {
       "id": "GEO-08",
