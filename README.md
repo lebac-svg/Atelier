@@ -20,7 +20,26 @@ Built for the **Vietnamese tube house** (nhà ống): TCVN drawing symbols, Viet
 Claude Code ──MCP──► Server (model + validator + renderer) ◄──WebSocket──► Browser (live editor)
 ```
 
-## Try it in 5 minutes
+## Install (30 seconds)
+
+You don't clone anything — Atelier ships as an npm package ([`atelier-mcp`](https://www.npmjs.com/package/atelier-mcp)). Stand in your own house folder and register it:
+
+```bash
+mkdir my-house && cd my-house               # one folder = one house
+claude mcp add atelier -- npx -y atelier-mcp
+claude                                      # then: "design me a 4×16m tube house"
+npx playwright install chromium             # optional, once — PNG/PDF export
+```
+
+Claude Desktop (or any MCP client) — same command, e.g. in `claude_desktop_config.json`:
+
+```json
+{ "mcpServers": { "atelier": {
+    "command": "npx", "args": ["-y", "atelier-mcp"],
+    "env": { "ATELIER_DIR": "C:\\path\\to\\my-house" } } } }
+```
+
+## From source (contributors)
 
 ```bash
 pnpm install
@@ -30,7 +49,7 @@ pnpm demo:p5                      # the 60-second demo: live build → drag a wa
                                   # type 4200 → walk through the house in 3D
 ```
 
-Using it from Claude Code: the repo ships a ready `.mcp.json` registering the `atelier` server — open Claude Code in this folder and say *"design me a 4×16m tube house"*.
+The repo ships a ready `.mcp.json` — open Claude Code in this folder and it registers the `atelier` server from source. `pnpm build:cli` builds the npm package (`packages/cli`, single-file bundle + web editor + fonts; verify with `npx tsx packages/cli/smoke.mts <installed-pkg-path>`).
 
 ## What's the "60-second demo"?
 

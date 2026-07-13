@@ -1,0 +1,51 @@
+{
+  "name": "atelier-mcp",
+  "version": "0.1.0",
+  "description": "AI architect MCP server for Vietnamese tube houses — TCVN-standard plans, live two-way browser editor, furnished 3D walkthrough, PDF/DXF/IFC export. Run it inside your house-project folder from Claude Code, Claude Desktop, or any MCP client.",
+  "type": "module",
+  "bin": {
+    "atelier-mcp": "bin/atelier-mcp.mjs"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "web",
+    "assets",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20.10"
+  },
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.53.0"
+  },
+  "devDependencies": {
+    "@atelier/server": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "esbuild": "^0.25.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "architecture",
+    "floor-plan",
+    "cad",
+    "vietnam",
+    "tube-house",
+    "nha-ong"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lebac-svg/Atelier.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/lebac-svg/Atelier#readme",
+  "bugs": {
+    "url": "https://github.com/lebac-svg/Atelier/issues"
+  }
+}

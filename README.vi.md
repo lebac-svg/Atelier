@@ -18,7 +18,28 @@
 Claude Code ──MCP──► Server (model + validator + renderer) ◄──WebSocket──► Trình duyệt (live editor)
 ```
 
-## Chạy thử trong 5 phút
+## Cài đặt (30 giây)
+
+Không cần clone gì cả — Atelier phát hành dạng gói npm ([`atelier-mcp`](https://www.npmjs.com/package/atelier-mcp)). Đứng trong thư mục dự án nhà CỦA BẠN và đăng ký:
+
+```bash
+mkdir nha-cua-toi && cd nha-cua-toi          # một thư mục = một căn nhà
+claude mcp add atelier -- npx -y atelier-mcp
+claude                                       # rồi nói: "thiết kế cho tôi nhà ống 4×16m"
+npx playwright install chromium              # tùy chọn, một lần — xuất PNG/PDF
+```
+
+Claude Desktop (hoặc MCP client bất kỳ) — cùng lệnh đó, vd trong `claude_desktop_config.json`:
+
+```json
+{ "mcpServers": { "atelier": {
+    "command": "npx", "args": ["-y", "atelier-mcp"],
+    "env": { "ATELIER_DIR": "C:\\duong-dan\\nha-cua-toi" } } } }
+```
+
+Bảng đơn giá địa phương: đặt `rules/don-gia.json` trong thư mục nhà để đè bảng đóng gói.
+
+## Chạy từ source (người đóng góp)
 
 ```bash
 pnpm install
@@ -27,7 +48,7 @@ pnpm build:web
 pnpm demo:p5                      # demo 60 giây: dựng live → kéo tường gõ 4200 → đi bộ 3D
 ```
 
-Dùng trong Claude Code: repo đã có sẵn `.mcp.json` đăng ký server `atelier` — mở Claude Code tại thư mục này và nói *"thiết kế cho tôi căn nhà ống 4×16m"*.
+Repo đã có sẵn `.mcp.json` — mở Claude Code tại thư mục này là server `atelier` chạy từ source. `pnpm build:cli` build gói npm (`packages/cli`, bundle một file + web editor + font; kiểm bằng `npx tsx packages/cli/smoke.mts <đường-dẫn-gói-đã-cài>`).
 
 ## Trạng thái
 

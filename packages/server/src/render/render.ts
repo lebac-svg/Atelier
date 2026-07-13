@@ -8,7 +8,11 @@ import { buildScheduleScene, type ScheduleOptions } from "./schedule-scene.js";
 import { buildSectionScene, type SectionOptions } from "./section-scene.js";
 import { sceneToSvg } from "./svg-writer.js";
 
-const FONT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "assets", "fonts");
+// ATELIER_FONT_DIR: bản đóng gói (atelier-mcp) trỏ font trong package — nguồn repo thì tự tìm cạnh src.
+// Đọc LƯỜI (không phải const cấp module): env do entry set SAU khi import hoisting đã chạy body module này.
+const fontDir = (): string =>
+  process.env.ATELIER_FONT_DIR
+  ?? path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "assets", "fonts");
 
 let cachedFontCss: string | null = null;
 
@@ -17,7 +21,7 @@ export function fontCss(): string {
   if (cachedFontCss != null) return cachedFontCss;
   try {
     const face = (file: string, weight: number): string => {
-      const b64 = readFileSync(path.join(FONT_DIR, file)).toString("base64");
+      const b64 = readFileSync(path.join(fontDir(), file)).toString("base64");
       return `@font-face{font-family:'Be Vietnam Pro';font-weight:${weight};src:url(data:font/ttf;base64,${b64}) format('truetype')}`;
     };
     cachedFontCss = face("BeVietnamPro-Regular.ttf", 400) + "\n" + face("BeVietnamPro-Bold.ttf", 700);

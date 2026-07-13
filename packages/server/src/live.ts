@@ -292,6 +292,7 @@ export class LiveServer {
     // ── so sánh phương án A/B cạnh nhau (backlog v2 → 13/07/2026) ──
     app.get("/so-sanh", (c) => {
       if (!this.store.isOpen) return c.text("Chưa mở dự án — project_open trước.", 409);
+      this.store.refreshDonGia(); // dự toán trong trang so sánh ăn bảng đơn giá địa phương
       try {
         const side = (key: string | undefined, fallbackLatest: boolean): VariantSide => {
           if (key && key !== "hien-tai") {

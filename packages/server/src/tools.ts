@@ -499,6 +499,7 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
         const level = args.level ?? [...a.model.levels].sort((x, y) => x.elevation - y.elevation)[0]?.id;
         if (!level) return fail(new Error("Model chưa có tầng nào."));
 
+        store.refreshDonGia();
         const report = compareProjects(a, b);
         const lines = [
           `So sánh (${level}): A = ${report.a.label} · B = ${report.b.label}`,
@@ -542,6 +543,7 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
     (args) => {
       try {
         const p = store.current;
+        store.refreshDonGia();
         const e = estimateCost(p, args.muc as FinishLevel | undefined);
         const q = e.quantities;
         const lines: string[] = [];
@@ -571,7 +573,7 @@ export function createAtelierServer(store: ProjectStore, live: LiveServer = new 
         lines.push("");
         lines.push(`Khối lượng tham khảo: tường xây ${q.tuong_xay_m2}m², cửa ${q.cua_bo} bộ (${q.cua_m2}m²), thang ${q.bac_thang} bậc.`);
         for (const g of e.ghi_chu) lines.push(`⚠ ${g}`);
-        lines.push(`(Bảng đơn giá ${DON_GIA.version} — sửa theo địa phương tại packages/core/rules/don-gia.json.)`);
+        lines.push(`(Bảng đơn giá ${DON_GIA.version} — đặt bảng địa phương tại rules/don-gia.json trong thư mục dự án.)`);
         return text(lines.join("\n"));
       } catch (e) {
         return fail(e);
@@ -613,6 +615,7 @@ ${vNote}`);
 Tường + lỗ cửa (voids/fills), sàn có lỗ, thang, IfcSpace từng phòng — mở bằng BIM viewer/BlenderBIM; KHÔNG thay hồ sơ thi công.
 ${vNote}`);
         }
+        store.refreshDonGia();
         const set = buildSheetSet(p, {
           date: new Date().toLocaleDateString("vi-VN"),
           ...(args.sheets?.length ? { sheets: args.sheets } : {}),

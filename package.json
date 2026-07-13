@@ -16,7 +16,8 @@
     "demo:p2": "tsx packages/server/scripts/demo-p2.ts",
     "demo:p3": "tsx packages/server/scripts/demo-p3.ts",
     "demo:p4": "tsx packages/server/scripts/demo-p4.ts",
-    "demo:p5": "tsx packages/server/scripts/demo-p5.ts"
+    "demo:p5": "tsx packages/server/scripts/demo-p5.ts",
+    "build:cli": "pnpm build:web && pnpm --filter atelier-mcp build"
   },
   "devDependencies": {
     "typescript": "^5.9.0",

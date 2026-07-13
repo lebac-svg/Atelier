@@ -24,7 +24,20 @@ export type DonGia = {
   he_so_quy_doi: Record<string, { label: string; he_so: number; nguong_m2?: number }>;
 };
 
-export const DON_GIA: DonGia = donGiaJson as DonGia;
+const DON_GIA_GOC: DonGia = donGiaJson as DonGia;
+
+/** Bảng đơn giá ĐANG DÙNG — mặc định bảng đóng gói; setDonGia đè bằng bảng địa phương. */
+export const DON_GIA: DonGia = structuredClone(DON_GIA_GOC);
+
+/**
+ * Áp bảng đơn giá địa phương (bản đóng gói đọc từ <dự án>/rules/don-gia.json) —
+ * null = về bảng gốc. Shallow-merge TRÊN bảng gốc để file thiếu mục không làm
+ * gãy estimate; mutate tại chỗ để mọi nơi đã import DON_GIA cùng thấy.
+ */
+export function setDonGia(d: Partial<DonGia> | null): void {
+  for (const k of Object.keys(DON_GIA)) delete (DON_GIA as unknown as Record<string, unknown>)[k];
+  Object.assign(DON_GIA, structuredClone(DON_GIA_GOC), d ? structuredClone(d) : {});
+}
 
 export type FinishLevel = "co-ban" | "trung-binh-kha" | "cao-cap";
 

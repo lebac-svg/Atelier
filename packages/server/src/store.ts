@@ -1,7 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
-  applyOps, loadNhaOng4x16, validateProject,
+  applyOps, loadNhaOng4x16, setDonGia, validateProject,
   type ApplyResult, type Issue, type Op, type OpOrigin, type Point, type Project,
 } from "@atelier/core";
 import { SoftLocks } from "./locks.js";
@@ -58,6 +58,16 @@ export class ProjectStore {
 
   get filePath(): string {
     return path.join(this.baseDir, PROJECT_FILE);
+  }
+
+  /** Bảng đơn giá địa phương: <dự án>/rules/don-gia.json đè bảng đóng gói (ADR-09 — data người dùng sửa được). */
+  refreshDonGia(): void {
+    const fp = path.join(this.baseDir, "rules", "don-gia.json");
+    try {
+      setDonGia(existsSync(fp) ? (JSON.parse(readFileSync(fp, "utf8")) as never) : null);
+    } catch {
+      setDonGia(null); // file hỏng → dùng bảng gốc, đừng làm gãy estimate
+    }
   }
 
   get exportDir(): string {

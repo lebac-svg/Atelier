@@ -88,7 +88,7 @@ export function buildEstimateScene(p: Project, opts: EstimateOptions = {}): Esti
   const notes = [
     ...e.ghi_chu,
     "Dự toán sơ bộ mức concept — chốt chi phí bằng báo giá thầu có khối lượng chi tiết.",
-    `Bảng đơn giá phiên bản ${DON_GIA.version}, người dùng sửa tại packages/core/rules/don-gia.json.`,
+    `Bảng đơn giá phiên bản ${DON_GIA.version} — đặt bảng địa phương tại rules/don-gia.json trong thư mục dự án.`,
   ];
   for (const n of notes) {
     push("KHUNG", { kind: "text", at: [16 + 146 + 14, gy], text: `• ${n}`, size: 2.3 }, undefined, "paper");
