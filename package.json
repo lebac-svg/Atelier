@@ -8,8 +8,10 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -b",
-    "build": "tsc -b"
+    "typecheck": "tsc -b && tsc -p packages/web/tsconfig.json",
+    "build": "tsc -b",
+    "build:web": "pnpm --filter @atelier/web build",
+    "demo:p2": "tsx packages/server/scripts/demo-p2.ts"
   },
   "devDependencies": {
     "typescript": "^5.9.0",

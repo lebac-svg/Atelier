@@ -2,7 +2,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeF
 import path from "node:path";
 import {
   applyOps, loadNhaOng4x16, summarizeOps, validateProject,
-  type ApplyResult, type Op, type OpOrigin, type Point, type Project,
+  type ApplyResult, type Issue, type Op, type OpOrigin, type Point, type Project,
 } from "@atelier/core";
 
 export const PROJECT_FILE = "atelier.project.json";
@@ -16,6 +16,11 @@ export type JournalEntry = {
   ops: Op[];
 };
 
+/** Sự kiện store — nuôi broadcast WS của live server (doc 06). */
+export type StoreEvent =
+  | { kind: "applied"; revision: number; ops: Op[]; origin: OpOrigin; note?: string; summary: string; issues: Issue[] }
+  | { kind: "project"; reason: "created" | "opened" }; // model thay mới toàn bộ → client cần snapshot
+
 /** Template có sẵn ở P1 (Q5/Q6: chỉ nhà ống). */
 export const TEMPLATES: Record<string, { label: string; load: () => Project }> = {
   "nha-ong-4x16-2t": { label: "Nhà ống 4×16m, 2 tầng, 3PN", load: loadNhaOng4x16 },
@@ -28,8 +33,25 @@ export const TEMPLATES: Record<string, { label: string; load: () => Project }> =
  */
 export class ProjectStore {
   private project: Project | null = null;
+  private listeners = new Set<(e: StoreEvent) => void>();
 
   constructor(readonly baseDir: string) {}
+
+  /** Đăng ký nghe sự kiện mutation. Trả hàm hủy đăng ký. */
+  subscribe(fn: (e: StoreEvent) => void): () => void {
+    this.listeners.add(fn);
+    return () => this.listeners.delete(fn);
+  }
+
+  private emit(e: StoreEvent): void {
+    for (const fn of [...this.listeners]) {
+      try {
+        fn(e);
+      } catch {
+        // listener hỏng không được phép làm hỏng transaction
+      }
+    }
+  }
 
   get filePath(): string {
     return path.join(this.baseDir, PROJECT_FILE);
@@ -83,6 +105,7 @@ export class ProjectStore {
       summary: template ? `khởi tạo từ template ${template}` : "khởi tạo dự án trống",
       ops: [],
     });
+    this.emit({ kind: "project", reason: "created" });
     return p;
   }
 
@@ -96,6 +119,7 @@ export class ProjectStore {
       throw new Error(`${fp} không phải file dự án Atelier hợp lệ (thiếu meta.revision / unit mm).`);
     }
     this.project = raw;
+    this.emit({ kind: "project", reason: "opened" });
     return raw;
   }
 
@@ -115,6 +139,15 @@ export class ProjectStore {
         ...(note ? { note } : {}),
         summary: summarizeOps(ops),
         ops,
+      });
+      this.emit({
+        kind: "applied",
+        revision: result.revision,
+        ops,
+        origin,
+        ...(note ? { note } : {}),
+        summary: result.summary,
+        issues: result.warnings, // validate đã chạy trong transaction — không cần chạy lại
       });
     }
     return result;

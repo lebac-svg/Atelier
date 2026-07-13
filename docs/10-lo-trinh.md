@@ -15,6 +15,8 @@ Cỡ M/L là tương đối giữa các giai đoạn — ước lượng thô, c
 
 > ✅ **P1 hoàn thành 13/07/2026.** DoD đủ: fixture `nha-ong-4x16.json` → `render_plan` ra SVG/PNG đúng ký hiệu + dim; 22 rules chạy có test (mỗi rule 1 phạm + 1 đạt, số liệu đối chiếu TCVN 13967:2024); MCP tools 1–7 hoạt động (demo `packages/server/scripts/demo-p1.ts`); tổng 71 tests. Điều chỉnh so với spec: chuẩn áp dụng là TCVN 13967:2024 + 9411:2012 (4451 chỉ áp chung cư); `project_new` nhận thêm `brief` để chốt pha A.
 
+> ✅ **P2 hoàn thành 13/07/2026.** DoD đủ: `editor_open` mở browser — HTTP+WS cùng process MCP (Hono + ws, cổng `ATELIER_PORT`/4823, bận tự thử +1…+9); `apply_ops` đến đâu 2D + 3D mọc đến đó (2D = SVG server render qua `GET /plan/:level.svg`, đúng nguyên tắc ký hiệu trong renderer; 3D thô Three.js orbit — tường tách mảnh quanh opening theo đúng fallback không-CSG đã định ở bảng rủi ro); `capture_view` trả ảnh đúng khung người dùng (fallback plan render server khi chưa có browser). Giao thức doc 06 đủ hai chiều: browser gửi `ops` được (origin `user`, stale-reject) — nền P3 sẵn; replay journal khi reconnect gap liền mạch. Demo `pnpm demo:p2` (dựng nhà ống 18 nhịp); e2e Playwright chromium thật (skip khi chưa `pnpm build:web`).
+
 ## Pipeline asset nội thất (P5, chuẩn bị dần từ P2)
 
 1. Nguồn **CC0**: Poly Haven (model + texture), ambientCG (texture), Sketchfab bộ lọc CC0.

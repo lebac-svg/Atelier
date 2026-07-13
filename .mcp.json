@@ -14,7 +14,7 @@
         "packages/server/src/mcp.ts"
       ],
       "env": {
-        "ATELIER_DIR": "sandbox/demo"
+        "ATELIER_DIR": "sandbox/demo-p2"
       }
     }
   }

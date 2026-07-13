@@ -18,6 +18,8 @@ export * from "./ops/ops.js";
 export * from "./ops/apply.js";
 export * from "./ops/summary.js";
 
+export * from "./protocol.js";
+
 export * from "./validate/rules.js";
 export * from "./validate/loban.js";
 export * from "./validate/engine.js";

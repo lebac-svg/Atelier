@@ -1,10 +1,11 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
   areaM2, getLevel, stairLayout, validateProject,
-  type Issue, type Op, type Project,
+  type CaptureCamera, type Issue, type Op, type Project,
 } from "@atelier/core";
+import { DEFAULT_WEB_DIST, LiveServer, openInBrowser } from "./live.js";
 import { renderPlanFiles } from "./render/render.js";
 import { ProjectStore, TEMPLATES } from "./store.js";
 
@@ -50,7 +51,7 @@ function projectBrief(p: Project): string {
   return `"${p.meta.name}" (revision ${p.meta.revision}) — ${p.levels.length} tầng: ${perLevel}. Openings: ${p.openings.length}, nội thất: ${p.furniture.length}.`;
 }
 
-export function createAtelierServer(store: ProjectStore): McpServer {
+export function createAtelierServer(store: ProjectStore, live: LiveServer = new LiveServer(store)): McpServer {
   const server = new McpServer({ name: "atelier", version: "0.1.0" });
 
   server.registerTool(
@@ -231,6 +232,82 @@ export function createAtelierServer(store: ProjectStore): McpServer {
             { type: "text" as const, text: note },
           ],
         };
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    "editor_open",
+    {
+      title: "Mở live editor trên trình duyệt",
+      description:
+        "Khởi động web editor (một process với server) và mở bằng trình duyệt mặc định — từ đây MỌI apply_ops hiện ngay trên màn hình người dùng (2D + 3D), làm đến đâu dựng đến đó. Gọi sau khi đã project_new/project_open. openBrowser=false nếu chỉ cần URL. Sau khi mở, dùng capture_view để tự nhìn đúng cái người dùng đang thấy (nguyên tắc 5).",
+      inputSchema: {
+        openBrowser: z.boolean().optional().describe("Mặc định true — tự mở trình duyệt"),
+      },
+    },
+    async (args) => {
+      try {
+        void store.current; // bắt lỗi "chưa mở dự án" sớm, thông điệp chỉ đường sẵn có
+        const url = await live.start();
+        if (args.openBrowser !== false) openInBrowser(url);
+        const distNote = existsSync(DEFAULT_WEB_DIST)
+          ? ""
+          : "\n⚠ Web editor chưa build — trang sẽ hướng dẫn chạy: pnpm --filter @atelier/web build";
+        return text(
+          `✅ Editor: ${url}${args.openBrowser !== false ? " (đã mở trình duyệt)" : ""} — browser đang nối: ${live.browserCount}.${distNote}`,
+        );
+      } catch (e) {
+        return fail(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    "capture_view",
+    {
+      title: "Chụp khung nhìn editor",
+      description:
+        "Nhờ browser đang mở chụp ĐÚNG cái người dùng đang thấy: target '3d' (canvas Three.js) hoặc 'plan' (mặt bằng 2D). camera {position, lookAt} mm để đặt góc 3D trước khi chụp — bỏ trống là giữ góc người dùng đang xem. Chưa có browser: 'plan' fallback render server (tầng thấp nhất), '3d' cần editor_open trước. Dùng để TỰ NHÌN sau mỗi thay đổi lớn (nguyên tắc 5).",
+      inputSchema: {
+        target: z.enum(["3d", "plan"]),
+        camera: z
+          .object({
+            position: z.tuple([z.number(), z.number(), z.number()]).optional(),
+            lookAt: z.tuple([z.number(), z.number(), z.number()]).optional(),
+          })
+          .optional(),
+      },
+    },
+    async (args) => {
+      try {
+        const p = store.current;
+        if (live.browserCount > 0) {
+          const png = await live.capture(args.target, args.camera as CaptureCamera | undefined);
+          return {
+            content: [
+              { type: "image" as const, data: png, mimeType: "image/png" },
+              { type: "text" as const, text: `Ảnh ${args.target} từ browser (revision ${p.meta.revision}).` },
+            ],
+          };
+        }
+        if (args.target === "plan") {
+          const ground = [...p.levels].sort((a, b) => a.elevation - b.elevation)[0]!;
+          const r = await renderPlanFiles(p, ground.id, store.exportDir, {
+            date: new Date().toLocaleDateString("vi-VN"),
+          });
+          if (!r.pngPath) return fail(new Error(`Fallback render lỗi: ${r.pngError ?? "không rõ"}`));
+          const png = readFileSync(r.pngPath).toString("base64");
+          return {
+            content: [
+              { type: "image" as const, data: png, mimeType: "image/png" },
+              { type: "text" as const, text: `Chưa có browser mở — đây là bản render server ${r.levelName} (revision ${p.meta.revision}). Muốn nhìn đúng khung người dùng: editor_open trước.` },
+            ],
+          };
+        }
+        return fail(new Error("Chưa có browser nào mở editor — gọi editor_open trước (3d chỉ chụp được từ browser)."));
       } catch (e) {
         return fail(e);
       }

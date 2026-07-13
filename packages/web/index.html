@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atelier</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 26 L16 4 L28 26 Z' fill='none' stroke='%236ea0d8' stroke-width='2.5'/%3E%3Cpath d='M10 21 L16 10 L22 21 Z' fill='%236ea0d8' opacity='.35'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body data-view="split">
+  <header class="top">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M4 26 L16 4 L28 26 Z" fill="none" stroke="currentColor" stroke-width="2.5" />
+        <path d="M10 21 L16 10 L22 21 Z" fill="currentColor" opacity=".35" />
+      </svg>
+      <span class="brand-name">Atelier</span>
+      <span class="brand-sep" aria-hidden="true"></span>
+      <span id="project-name" class="project-name">đang kết nối…</span>
+    </div>
+    <nav class="views" role="tablist" aria-label="Chế độ xem">
+      <button class="view-btn" data-view-btn="plan" role="tab">Mặt bằng</button>
+      <button class="view-btn" data-view-btn="3d" role="tab">3D</button>
+      <button class="view-btn is-active" data-view-btn="split" role="tab" aria-selected="true">Chia đôi</button>
+    </nav>
+  </header>
+
+  <main class="work">
+    <aside class="rail" aria-label="Công cụ (giai đoạn 3)">
+      <button class="tool" disabled title="Chọn / di chuyển — chỉnh tay đến ở giai đoạn 3">V</button>
+      <button class="tool" disabled title="Vẽ tường — giai đoạn 3">1</button>
+      <button class="tool" disabled title="Đặt cửa đi — giai đoạn 3">2</button>
+      <button class="tool" disabled title="Đặt cửa sổ — giai đoạn 3">3</button>
+      <button class="tool" disabled title="Vẽ phòng — giai đoạn 3">4</button>
+      <button class="tool" disabled title="Nội thất — giai đoạn 3">5</button>
+      <button class="tool" disabled title="Đo — giai đoạn 3">M</button>
+    </aside>
+
+    <section class="canvas">
+      <div id="pane2d" class="pane pane-2d">
+        <div class="pane-empty" id="empty2d">Đang chờ dự án — Claude sẽ dựng đến đâu, bản vẽ mọc đến đó.</div>
+        <div class="paper-viewport" id="paper-viewport">
+          <div class="paper" id="paper"></div>
+        </div>
+        <div class="pane-actions">
+          <button id="fit2d" class="pane-btn" title="Khớp bản vẽ vào khung">khớp khung</button>
+        </div>
+      </div>
+      <div id="pane3d" class="pane pane-3d">
+        <canvas id="canvas3d"></canvas>
+        <div class="pane-actions">
+          <button id="reset3d" class="pane-btn" title="Về góc nhìn mặc định">về góc chuẩn</button>
+        </div>
+        <div class="pane-hint">kéo — xoay · lăn — zoom · chuột phải — trượt</div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="panel" id="panel-props">
+        <h2 class="panel-title">Thuộc tính</h2>
+        <div class="panel-body" id="props-body">
+          <p class="panel-empty">Chạm một đối tượng trên bản vẽ để xem thông số.<br /><span class="dim">Chỉnh trực tiếp đến ở giai đoạn 3.</span></p>
+        </div>
+      </section>
+      <section class="panel panel-grow" id="panel-issues">
+        <h2 class="panel-title">Kiểm tra <span id="issues-count" class="count" hidden></span></h2>
+        <div class="panel-body" id="issues-body">
+          <p class="panel-empty">Chưa có kết quả kiểm tra.</p>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="status" aria-label="Khung tên">
+    <div class="cell cell-levels">
+      <span class="cell-label">Tầng</span>
+      <span class="cell-value" id="level-tabs"></span>
+    </div>
+    <div class="cell">
+      <span class="cell-label">Revision</span>
+      <span class="cell-value"><span id="rev-seal" class="rev-seal">—</span></span>
+    </div>
+    <div class="cell">
+      <span class="cell-label">Kết nối</span>
+      <span class="cell-value"><span id="conn-dot" class="dot"></span><span id="conn-text">đang nối…</span></span>
+    </div>
+    <div class="cell cell-flex">
+      <span class="cell-label">Claude</span>
+      <span class="cell-value" id="claude-note">—</span>
+    </div>
+    <div class="cell cell-dim">
+      <span class="cell-label">Snap</span>
+      <span class="cell-value">50 <span class="dim">GĐ3</span></span>
+    </div>
+  </footer>
+
+  <div id="toasts" aria-live="polite"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
