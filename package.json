@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20.10" },
+  "engines": {
+    "node": ">=20.10"
+  },
   "packageManager": "pnpm@11.8.0",
   "scripts": {
     "test": "vitest run",
@@ -20,5 +22,15 @@
     "typescript": "^5.9.0",
     "vitest": "^3.2.0",
     "tsx": "^4.19.0"
+  },
+  "description": "Kiến trúc sư AI trong Claude Code — nhà ống Việt Nam: mặt bằng chuẩn TCVN, 3D nội thất, editor live hai chiều, hồ sơ PDF/DXF",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lebac-svg/Atelier.git"
+  },
+  "homepage": "https://github.com/lebac-svg/Atelier#readme",
+  "bugs": {
+    "url": "https://github.com/lebac-svg/Atelier/issues"
   }
 }

@@ -27,7 +27,7 @@ Muốn lật lại ADR nào, ghi chú thẳng vào bảng khi duyệt.
 | Q4 | **Thước Lỗ Ban:** hỏi bật/tắt ở pha phỏng vấn, luôn bật, hay tắt mặc định? | ✅ **Hỏi ở pha A** — ai quan tâm phong thủy sẽ rất quý, ai không thì khỏi nhiễu |
 | Q5 | **Typology demo đầu tiên?** | ✅ **Nhà ống 4×16m, 2 tầng, 3PN** — phổ biến nhất VN |
 | Q6 | **Template v1** chỉ nhà ống (1 loại làm thật sâu) hay kèm nhà cấp 4? | ✅ Chỉ **nhà ống** — sâu hơn là rộng |
-| Q7 | **Công khai mã nguồn?** | ✅ Private trong lúc làm; cân nhắc open-source sau P3 khi đã có lợi thế |
+| Q7 | **Công khai mã nguồn?** | ✅ Private trong lúc làm; cân nhắc open-source sau P3. **Chốt 13/07/2026 (sau P5 + 3 mục backlog): OPEN-SOURCE** — MIT tại [github.com/lebac-svg/Atelier](https://github.com/lebac-svg/Atelier); font OFL 1.1, catalog CC0, số liệu chuẩn trích nguồn từng rule |
 | Q8 | **Sau khi duyệt:** `git init` + commit bộ docs, rồi vào thẳng P1? | ✅ Có — mỗi giai đoạn xong là một mốc commit |
 
 ## Cách duyệt bộ spec này
