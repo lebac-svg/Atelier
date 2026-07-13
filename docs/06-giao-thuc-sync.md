@@ -1,3 +1,5 @@
+🇬🇧 [English translation](en/06-sync-protocol.md)
+
 # 06 — Giao thức đồng bộ (WebSocket)
 
 Linh hồn của trải nghiệm "làm đến đâu dựng đến đó" và "chỉnh tay được". Hai loại client — **agent** (Claude qua MCP) và **browser** (người dùng) — cùng sửa một model qua cùng bộ từ vựng ops.

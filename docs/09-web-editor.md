@@ -1,3 +1,5 @@
+🇬🇧 [English translation](en/09-web-editor.md)
+
 # 09 — Web editor (bản live trên trình duyệt)
 
 Yêu cầu gốc: *"mở trình duyệt tạo bản live — làm đến đâu dựng đến đó — và chỉnh sửa, kéo thả, thao tác tay trực tiếp được"*. Editor này là kênh **chính xác nhất** trong 3 kênh nhập (xem 02).

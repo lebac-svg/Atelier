@@ -1,3 +1,5 @@
+🇬🇧 [English translation](en/11-decisions.md)
+
 # 11 — Quyết định kiến trúc (ADR) & câu hỏi mở
 
 ## Các quyết định đã chốt trong spec (ADR)

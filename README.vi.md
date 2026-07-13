@@ -50,6 +50,8 @@ Backlog kế tiếp (doc 10): rule pack quy hoạch địa phương, IFC, render
 
 ## Bộ tài liệu
 
+Bản dịch tiếng Anh đầy đủ ở [`docs/en/`](docs/en/) — mỗi file link chéo; khi hai bản lệch nhau, **bản tiếng Việt là chuẩn**.
+
 | # | Tài liệu | Nội dung |
 |---|---|---|
 | 01 | [Tầm nhìn & định vị](docs/01-tam-nhin.md) | Người dùng, non-goals, cạnh tranh, điểm khác biệt |

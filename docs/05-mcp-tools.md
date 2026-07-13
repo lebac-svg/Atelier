@@ -1,3 +1,5 @@
+🇬🇧 [English translation](en/05-mcp-tools.md)
+
 # 05 — MCP tools
 
 Nguyên tắc: **tool ít mà chắc**. Một cổng mutation duy nhất (`apply_ops`) để mọi thay đổi đều là transaction có validate + revision check + broadcast. Các tool còn lại là đọc, nhìn, xuất.

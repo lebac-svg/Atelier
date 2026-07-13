@@ -1,3 +1,5 @@
+🇬🇧 [English translation](en/07-validator-rules.md)
+
 # 07 — Validator & bộ rules
 
 Vai trò: **chặn sai sót trước khi người dùng nhìn thấy**, và làm chỗ dựa "chuẩn" cho toàn hệ thống. LLM đề xuất — code kiểm tra. Không tin spatial reasoning của model ở bất kỳ đâu có thể kiểm bằng toán.

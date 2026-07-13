@@ -1,3 +1,5 @@
+🇬🇧 [English translation](en/03-architecture.md)
+
 # 03 — Kiến trúc hệ thống
 
 ## Sơ đồ tổng

@@ -1,3 +1,5 @@
+🇬🇧 [English translation](en/04-data-schema.md)
+
 # 04 — Schema dữ liệu (model tham số)
 
 Model là **một file JSON** (`atelier.project.json`). Mọi thứ khác — bản vẽ, 3D, dim, thống kê — đều dẫn xuất từ nó.

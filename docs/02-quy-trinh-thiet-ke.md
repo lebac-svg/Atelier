@@ -1,3 +1,5 @@
+🇬🇧 [English translation](en/02-design-process.md)
+
 # 02 — Quy trình thiết kế (từ prompt đến hồ sơ)
 
 Trả lời câu hỏi trung tâm: **"chỉ mô tả prompt có ổn không?"** — Không, nếu one-shot. Có, nếu prompt là *kênh nhập ý định* trong một quy trình nhiều pha có checkpoint. Độ chính xác đến từ quy trình + validator + 3 kênh nhập, không đến từ prompt dài.

@@ -1,0 +1,64 @@
+🇻🇳 [Bản gốc tiếng Việt](../10-lo-trinh.md) — translated from the Vietnamese original, which is authoritative if they differ.
+
+# 10 — Roadmap
+
+Every phase has a **Definition of Done (DoD)** and a **runnable demo scenario** — there is no "80% done".
+
+| Phase | Name | Size | DoD — runnable demo |
+|---|---|---|---|
+| **P0** | Spec | — | This docs set approved; the 8 open questions (doc 11) answered |
+| **P1** | Engine + static drawings | M | From the `nha-ong-4x16.json` fixture: `render_plan` produces an SVG/PNG floor plan with correct symbols + basic dims; ≥ 20 rules running with tests; the **TCVN standards research** task settles the ⚠-flagged numbers; MCP tools 1–7 working — *demo: Claude Code interviews → brief → builds the model → shows the plan image right in chat* |
+| **P2** | One-way live | M | `editor_open` opens the browser; as Claude runs `apply_ops`, 2D + rough 3D (orbit) grow on screen; `capture_view` returns a browser screenshot to Claude — *demo: "the house grows on screen as it is designed"* |
+| **P3** | Hand editing | L | Select/drag walls-doors-furniture, type-a-number HUD, snap, undo, soft-lock, `get_changes_since` — *demo: the user drags a wall and types `4200`; Claude notices and adapts the adjacent room on its own* |
+| **P4** | Documentation set | L | Complete 3-chain dim engine, title block, elevation + section through the stair, room/door schedules, A3 PDF + DXF export (+ IFC if time allows) — *demo: a complete PDF set for one house* |
+| **P5** | Furniture & experience | M | Catalog of ≥ 100 normalized CC0 assets, finish materials, WASD walkthrough, sun study — *demo: the 60-second demo of doc 01 runs end to end* |
+
+Sizes M/L are relative between phases — rough estimates, to be revisited after P1. The order of P4 ↔ P5 **can be swapped** depending on whether you want "proper documents" or "shiny 3D" first.
+
+> ✅ **P1 completed 2026-07-13.** DoD met: fixture `nha-ong-4x16.json` → `render_plan` produces SVG/PNG with correct symbols + dims; 22 rules running with tests (one violating + one passing case each, numbers checked against TCVN 13967:2024); MCP tools 1–7 working (demo `packages/server/scripts/demo-p1.ts`); 71 tests total. Adjustments vs. the spec: the applicable standards are TCVN 13967:2024 + 9411:2012 (4451 applies to apartment buildings only); `project_new` gained a `brief` parameter to close out phase A.
+
+> ✅ **P5 completed 2026-07-13 — the 60-second demo of doc 01 runs end to end** (`pnpm demo:p5`: live build → drag W13, type 4200 → Claude adapts the two adjacent rooms + re-places furniture → WASD walkthrough of the furnished house → sun study at 16:00). DoD: **catalog of 106 normalized assets** (true mm sizes, Vietnamese names, clearances feeding STD-11, `mountHeight` for wall-mounted items, `license-manifest.json` covering every asset). *Adjustment vs. the spec:* assets are **self-generated PARAMETRIC geometry** (per-category 3D builders + 2D symbols in the renderer — CC0 by construction, one glyph source for plan/thumbnail/contact sheet); downloaded CC0 glTF (Poly Haven…) is deferred to P5+ together with photoreal rendering — the manifest already marks the replacement slots, and the footprint is a size contract so swapping models never changes ids. **Finish materials**: finishes carry a `color`, 3D floors are tinted per `room.finish.floor`. **WASD walkthrough**: pointer lock, eye at +1600, Shift to run, Esc to exit (handled internally — environments without pointer lock, e.g. headless, can still walk). **Sun study**: hour+month sliders, sun computed from the brief's latitude (`dat.vi_do`, default 10.8) + `site.north` (simplified Cooper/NOAA solar mechanics, unit-tested), shadow-map shadows. Editor: tool 5 opens the catalog panel (search + click to place repeatedly, grid snap), R rotates 90°. MCP adds `assets_search` (query/category/maxFootprint filters, returns a contact-sheet PNG). 145 tests, 13 e2e scenarios.
+
+> ✅ **P4 completed 2026-07-13.** DoD met: complete dim engine (3 outer chains + two-way clear-dimension interior dims per room, labels dodging room names); the title block extracted into a shared module, sheets auto-numbered KT-01…; **front elevation** (projection of the `site.front` edge, openings/level markers ▽/vertical dims/axes, never rotated sideways); **section A-A through the stair** (vertical cut through the centre of flight 1 — view-direction arrows point −x to match the drawing; cut walls in poché with correct door voids, cut slabs minus stair/light-well holes, step profile with the cut flight bold and the seen flight thin, landing, seen walls + openings in thin lines); **room + door schedules** (grouped by type/size); export to **A3 PDF** as one multi-page file (Chromium print) + **DXF** (pure-TS writer from the same SceneGraph — ADR-08 settled, no Python sidecar; true mm, 1-to-1 layers, solid HATCH for poché, UTF-8 TEXT) + per-sheet SVG. MCP adds 2 tools: `export` (pdf/svg/dxf, `sheets` filter, sheets keep their KT numbers when exported individually) and `render_view` (elevation/section as PNG so Claude can self-inspect — adjustment vs. the spec: doc 05 only had render_plan). IFC deferred to the backlog as planned. Demo `pnpm demo:p4` — a complete 5-sheet PDF set for one house; 131 tests.
+
+> ✅ **P3 completed 2026-07-13.** DoD met: select/drag walls-doors-furniture in 2D (walls slide along their normal anchored to the centre-to-centre distance of the nearest parallel wall; doors slide along their wall showing the distance to both ends; furniture snaps to the grid + flush against wall faces, with a typeable clearance); type-a-number HUD next to the cursor (Enter commits exactly, Esc cancels, Alt disables snap — a keyboard buffer, not an input element, so it never fights pointer capture for focus); grid step adjustable in the status bar; per-origin undo/redo via inverse ops (Ctrl+Z/Y; deleting a wall restores its cascaded openings too); the three-tier soft-lock of doc 06 (the lock lives INSIDE `ProjectStore.apply` — the single mutation gate; 5s cooling-off; `LOCK-01`); the properties panel became editable inputs; `get_changes_since` upgraded so update summaries record old → new values. Also included: fixed cross-project reconnects with a session token on snapshot/hello (matching revision numbers can no longer fool a stale tab; capture only picks synced tabs); the SVG root embeds `data-tf-*` so the browser can invert paper ↔ model coordinates. Demo `pnpm demo:p3` (Playwright plays the user: drags W13, Claude gets LOCK-01, types `4200 ⏎`, Claude runs `get_changes_since` then adapts the two rooms + nudges a cabinet off the wall); 9 e2e scenarios in real Chromium.
+
+> ✅ **P2 completed 2026-07-13.** DoD met: `editor_open` opens the browser — HTTP+WS in the same process as MCP (Hono + ws, port `ATELIER_PORT`/4823, tries +1…+9 when busy); as `apply_ops` runs, 2D + 3D grow on screen (2D = server-rendered SVG via `GET /plan/:level.svg`, keeping symbols inside the renderer per principle 2; rough Three.js orbit 3D — walls split into pieces around openings, exactly the no-CSG fallback named in the risk table); `capture_view` returns exactly the user's current view (server-side plan fallback when no browser is open). The doc 06 protocol is fully two-way: the browser can send `ops` (origin `user`, stale-reject) — the P3 foundation is ready; journal replay on reconnect when the gap is contiguous. Demo `pnpm demo:p2` (builds the tube house in 18 beats); e2e in real Playwright Chromium (skipped until `pnpm build:web`).
+
+## Furniture asset pipeline (P5, prepared gradually from P2)
+
+1. **CC0** sources: Poly Haven (models + textures), ambientCG (textures), Sketchfab with the CC0 filter.
+2. Normalization: scale to true mm, bottom-centre pivot, poly optimization, file name = asset id.
+3. Generate metadata: `{ id, Vietnamese name, category, footprint (width×depth×height), recommended clearance, thumbnail }` — the footprint feeds validators GEO-04/STD-11, the thumbnail feeds the catalog panel and `assets_search`.
+4. `license-manifest.json` records the source of every asset — copyright-clean from day one.
+5. Minimum catalog: beds (3 sizes), wardrobe, dining table + chairs, sofa, TV unit, lower/upper kitchen cabinets, toilet, washbasin, shower, washing machine, motorbike (to size the parking spot!), ancestral altar, desk.
+
+## Deliberate backlog (proposed extras — positioned, not committed)
+
+| Item | Notes | When |
+|---|---|---|
+| ~~Rough cost estimate~~ | ✅ 2026-07-13 — `estimate_cost` (converted areas for foundation/floors/roof × `rules/don-gia.json`, checked against the brief's budget) + a ROUGH COST ESTIMATE sheet KT-06 in the documentation set | ~~v2~~ done |
+| ~~A/B design comparison~~ | ✅ 2026-07-13 — a design variant = a named snapshot (`.atelier/phuong-an/`; the journal cannot reconstruct old states, so snapshots are the right semantics); tools `variant_save`/`variant_open` (checkout, revision stays monotonic)/`variant_compare` (image of 2 plans side by side + per-room m² diff + per-variant COST); server-rendered page `GET /so-sanh?a=&b=&level=` | ~~v2~~ done |
+| ~~View-only share link~~ | ✅ 2026-07-13 — `/xem/<token>` (token persisted in `.atelier/share.json`, revoke via `POST /share/rotate`); the server ENFORCES read-only at the WS level: ops → `VIEW-01`, no soft-locks, capture never picks a guest tab; the guest UI locks all editing tools but keeps live view + walkthrough + sun; a "share" button on the editor + the link included in `editor_open`. LAN: `ATELIER_HOST=0.0.0.0` (loopback by default) | ~~v2~~ done |
+| Local zoning rule pack | PLN — setbacks/density/height limits entered per project | P4 |
+| IFC export | handover to a real architect (IfcOpenShell sidecar if needed) | P4+ |
+| Photoreal rendering | glTF → Blender pipeline, runs in the background | P5+ |
+| Import DXF/photos of old plans | a separate recognition problem, hard | far out |
+| Structure/MEP | outside the current product's scope | far out |
+
+## Main risks & mitigations
+
+| Risk | Mitigation |
+|---|---|
+| Ugly dim engine / overlapping labels — the spot where drawings instantly "look amateur" | Golden tests pixel-compared against hand-approved samples; study real drawings; budget size L for P4 |
+| Wrong standards data (TCVN/QCVN/Lỗ Ban) | Rules are data + a `verified` flag; a source-document research task in P1; drawings carry a caption while anything is unverified |
+| CSG door cutting slow/buggy | `three-bvh-csg`, small town-house scale; fallback: split walls into pieces around openings (no CSG) |
+| Two clients overwriting each other | Revision + soft-lock + user-wins (doc 06); Playwright e2e with 2 parallel clients |
+| Scope creep | Approval checkpoint per phase; the deliberate backlog above; non-goals in doc 01 |
+
+## Test strategy
+
+- **Unit (Vitest):** geometry core, each validator rule (1 violating + 1 passing case).
+- **Property-based (fast-check):** invariants — after any sequence of valid random ops, openings stay within their walls, revisions increase monotonically, undo(redo(x)) = x.
+- **Golden SVG:** sample-house fixture → per-layer snapshots; renderer changes must produce deliberate diffs.
+- **E2E (Playwright):** two clients (simulated agent + browser) editing together — verifying soft-locks, rejects, replay on reconnect.

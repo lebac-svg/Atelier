@@ -56,21 +56,21 @@ Next up: local zoning rule packs, IFC export, photoreal rendering, English i18n 
 
 ## Design docs
 
-The full spec lives in [`docs/`](docs/) — currently in Vietnamese (translations welcome; the table below is the map):
+The full spec lives in [`docs/en/`](docs/en/) (English) with the Vietnamese originals in [`docs/`](docs/) — each file cross-links its counterpart; the Vietnamese original is authoritative if they differ:
 
 | # | Doc | Contents |
 |---|---|---|
-| 01 | [Vision & positioning](docs/01-tam-nhin.md) | Users, non-goals, competitive landscape, differentiators |
-| 02 | [Design process](docs/02-quy-trinh-thiet-ke.md) | Interview → brief → 5 phases with approval checkpoints |
-| 03 | [System architecture](docs/03-kien-truc-he-thong.md) | Dual-client, single process, data flow |
-| 04 | [Data schema](docs/04-schema-du-lieu.md) | Parametric model: walls, openings, rooms, stairs, furniture |
-| 05 | [MCP tools](docs/05-mcp-tools.md) | ~19 tools + the ops vocabulary |
-| 06 | [Sync protocol](docs/06-giao-thuc-sync.md) | WebSocket, revisions, conflicts, undo |
-| 07 | [Validator & rules](docs/07-validator-rules.md) | TCVN rules + geometry + Lỗ Ban rulers |
-| 08 | [2D renderer](docs/08-renderer-2d.md) | Layers, line weights, symbols, dims, title block |
-| 09 | [Web editor](docs/09-web-editor.md) | Hand-editing UX: drag, type numbers, 3D, walkthrough |
-| 10 | [Roadmap](docs/10-lo-trinh.md) | 6 phases with Definitions of Done + backlog |
-| 11 | [Decisions](docs/11-quyet-dinh-mo.md) | 10 ADRs + 8 settled questions |
+| 01 | [Vision & positioning](docs/en/01-vision.md) | Users, non-goals, competitive landscape, differentiators |
+| 02 | [Design process](docs/en/02-design-process.md) | Interview → brief → 5 phases with approval checkpoints |
+| 03 | [System architecture](docs/en/03-architecture.md) | Dual-client, single process, data flow |
+| 04 | [Data schema](docs/en/04-data-schema.md) | Parametric model: walls, openings, rooms, stairs, furniture |
+| 05 | [MCP tools](docs/en/05-mcp-tools.md) | 19 tools + the ops vocabulary |
+| 06 | [Sync protocol](docs/en/06-sync-protocol.md) | WebSocket, revisions, conflicts, undo |
+| 07 | [Validator & rules](docs/en/07-validator-rules.md) | TCVN rules + geometry + Lỗ Ban rulers |
+| 08 | [2D renderer](docs/en/08-2d-renderer.md) | Layers, line weights, symbols, dims, title block |
+| 09 | [Web editor](docs/en/09-web-editor.md) | Hand-editing UX: drag, type numbers, 3D, walkthrough |
+| 10 | [Roadmap](docs/en/10-roadmap.md) | 6 phases with Definitions of Done + backlog |
+| 11 | [Decisions](docs/en/11-decisions.md) | 10 ADRs + 8 settled questions |
 
 ## Stack
 

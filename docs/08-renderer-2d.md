@@ -1,3 +1,5 @@
+🇬🇧 [English translation](en/08-2d-renderer.md)
+
 # 08 — Renderer 2D (bản vẽ)
 
 Renderer là **người gác chuẩn**: ký hiệu, nét, dim theo quy ước bản vẽ xây dựng được encode một lần ở đây — Claude và người dùng không bao giờ vẽ ký hiệu bằng tay, nên không bao giờ sai.

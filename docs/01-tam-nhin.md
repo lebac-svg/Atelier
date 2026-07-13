@@ -1,3 +1,5 @@
+🇬🇧 [English translation](en/01-vision.md)
+
 # 01 — Tầm nhìn & Định vị
 
 ## Một câu

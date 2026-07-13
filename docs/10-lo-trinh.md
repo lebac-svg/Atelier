@@ -1,3 +1,5 @@
+🇬🇧 [English translation](en/10-roadmap.md)
+
 # 10 — Lộ trình
 
 Mỗi giai đoạn có **Definition of Done (DoD)** và một **kịch bản demo** chạy được — không có "xong 80%".
