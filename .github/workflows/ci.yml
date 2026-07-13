@@ -27,6 +27,8 @@ jobs:
       - name: Smoke-test a real install of the npm package
         run: |
           pnpm --filter atelier-mcp build
-          cd packages/cli && npm pack --pack-destination "$RUNNER_TEMP/pkg"
-          cd "$RUNNER_TEMP/pkg" && npm init -y && npm i ./atelier-mcp-*.tgz
+          TGZ=$(cd packages/cli && npm pack | tail -1)
+          mkdir -p "$RUNNER_TEMP/pkg"
+          mv "packages/cli/$TGZ" "$RUNNER_TEMP/pkg/"
+          cd "$RUNNER_TEMP/pkg" && npm init -y && npm i "./$TGZ"
           cd "$GITHUB_WORKSPACE" && npx tsx packages/cli/smoke.mts "$RUNNER_TEMP/pkg/node_modules/atelier-mcp"
