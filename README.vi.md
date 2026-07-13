@@ -2,6 +2,8 @@
 
 # Atelier 📐
 
+[![CI](https://github.com/lebac-svg/Atelier/actions/workflows/ci.yml/badge.svg)](https://github.com/lebac-svg/Atelier/actions/workflows/ci.yml) [![npm](https://img.shields.io/npm/v/atelier-mcp)](https://www.npmjs.com/package/atelier-mcp)
+
 **Kiến trúc sư AI trong Claude Code** — từ mô tả bằng lời đến bản vẽ nhà đúng chuẩn ký hiệu và mô hình 3D có nội thất, với bản live trên trình duyệt cho phép chỉnh sửa trực tiếp bằng tay.
 
 > **Atelier** /a-tơ-li-ê/ — "xưởng thiết kế". Tên chốt ngày 13/07/2026 (tên làm việc cũ: Thợ Cả).

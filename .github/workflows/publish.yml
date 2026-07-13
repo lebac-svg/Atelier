@@ -1,0 +1,40 @@
+name: Publish to npm
+
+# Publishes atelier-mcp when a version tag is pushed (v0.2.0, …).
+# Flow: bump packages/cli/package.json version → git tag vX.Y.Z → git push --tags.
+#
+# One-time setup on npmjs.com (no NPM_TOKEN secret needed — OIDC):
+#   package atelier-mcp → Settings → Trusted Publisher → GitHub Actions,
+#   repository lebac-svg/Atelier, workflow filename "publish.yml".
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write # npm trusted publishing (OIDC + provenance)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@latest # trusted publishing needs npm ≥ 11.5
+      - run: pnpm install --frozen-lockfile
+      - run: npx playwright install --with-deps chromium
+      - run: pnpm build:cli
+
+      - name: Smoke-test the packed tarball before publishing
+        run: |
+          cd packages/cli && npm pack --pack-destination "$RUNNER_TEMP/pkg"
+          cd "$RUNNER_TEMP/pkg" && npm init -y && npm i ./atelier-mcp-*.tgz
+          cd "$GITHUB_WORKSPACE" && npx tsx packages/cli/smoke.mts "$RUNNER_TEMP/pkg/node_modules/atelier-mcp"
+
+      - run: cd packages/cli && npm publish --access public

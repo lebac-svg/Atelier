@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npx playwright install --with-deps chromium
+      - run: pnpm typecheck
+      - run: pnpm build:web
+      - run: pnpm test
+
+      # The npm package must stay installable: pack it, install the tarball
+      # like an end user, then drive the installed bin over MCP stdio.
+      - name: Smoke-test a real install of the npm package
+        run: |
+          pnpm --filter atelier-mcp build
+          cd packages/cli && npm pack --pack-destination "$RUNNER_TEMP/pkg"
+          cd "$RUNNER_TEMP/pkg" && npm init -y && npm i ./atelier-mcp-*.tgz
+          cd "$GITHUB_WORKSPACE" && npx tsx packages/cli/smoke.mts "$RUNNER_TEMP/pkg/node_modules/atelier-mcp"

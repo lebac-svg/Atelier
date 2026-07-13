@@ -2,6 +2,8 @@
 
 # Atelier 📐
 
+[![CI](https://github.com/lebac-svg/Atelier/actions/workflows/ci.yml/badge.svg)](https://github.com/lebac-svg/Atelier/actions/workflows/ci.yml) [![npm](https://img.shields.io/npm/v/atelier-mcp)](https://www.npmjs.com/package/atelier-mcp)
+
 **An AI architect inside Claude Code** — from a spoken description to standards-compliant floor plans and a furnished 3D model, with a live browser editor you can edit by hand while the AI works.
 
 Built for the **Vietnamese tube house** (nhà ống): TCVN drawing symbols, Vietnamese dimensional rules, Lỗ Ban feng-shui rulers, irregular lot polygons — things no Western tool ships as first-class citizens. The editor UI is bilingual and auto-detects by country: Vietnamese in Vietnam, English elsewhere (timezone + browser language — no geo-IP; the **VI/EN** button overrides and is remembered). Exported drawings stay Vietnamese by design: they are TCVN documents.
