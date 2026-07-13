@@ -1,6 +1,6 @@
 {
   "name": "atelier-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "AI architect MCP server for Vietnamese tube houses — TCVN-standard plans, live two-way browser editor, furnished 3D walkthrough, PDF/DXF/IFC export. Run it inside your house-project folder from Claude Code, Claude Desktop, or any MCP client.",
   "type": "module",
   "bin": {
