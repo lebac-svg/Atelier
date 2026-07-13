@@ -23,7 +23,7 @@
     "vitest": "^3.2.0",
     "tsx": "^4.19.0"
   },
-  "description": "Kiến trúc sư AI trong Claude Code — nhà ống Việt Nam: mặt bằng chuẩn TCVN, 3D nội thất, editor live hai chiều, hồ sơ PDF/DXF",
+  "description": "An AI architect inside Claude Code — Vietnamese tube houses: TCVN-standard plans, live two-way browser editor, furnished 3D walkthrough, PDF/DXF documentation",
   "license": "MIT",
   "repository": {
     "type": "git",

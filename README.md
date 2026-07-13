@@ -1,83 +1,99 @@
+**English** · 🇻🇳 [Tiếng Việt](README.vi.md)
+
 # Atelier 📐
 
-**Kiến trúc sư AI trong Claude Code** — từ mô tả bằng lời đến bản vẽ nhà đúng chuẩn ký hiệu và mô hình 3D có nội thất, với bản live trên trình duyệt cho phép chỉnh sửa trực tiếp bằng tay.
+**An AI architect inside Claude Code** — from a spoken description to standards-compliant floor plans and a furnished 3D model, with a live browser editor you can edit by hand while the AI works.
 
-*An AI architect living inside Claude Code, built for Vietnamese tube houses: TCVN-standard floor plans, live two-way browser editor, walkable 3D with furniture, PDF/DXF documentation. Vietnamese-first — English i18n is on the backlog.*
+Built for the **Vietnamese tube house** (nhà ống): TCVN drawing symbols, Vietnamese dimensional rules, Lỗ Ban feng-shui rulers, irregular lot polygons — things no Western tool ships as first-class citizens. The product UI is intentionally Vietnamese-first (its users are Vietnamese homeowners); this README and the codebase identifiers are English.
 
-> **Atelier** /a-tơ-li-ê/ — "xưởng thiết kế". Tên chốt ngày 13/07/2026 (tên làm việc cũ: Thợ Cả).
+> **Atelier** /ˌætəlˈjeɪ/ — "design workshop".
 
-| Mặt bằng chuẩn ký hiệu + dim 3 chuỗi | Đi bộ trong nhà (WASD) | So sánh phương án A/B |
+| Standards-compliant plan, 3-chain dims | First-person walkthrough (WASD) | A/B design comparison |
 |---|---|---|
-| ![Mặt bằng tầng 1](docs/images/mat-bang-l1.png) | ![Đi bộ 3D](docs/images/di-bo-3d.png) | ![So sánh phương án](docs/images/so-sanh-phuong-an.png) |
+| ![Floor plan](docs/images/mat-bang-l1.png) | ![3D walkthrough](docs/images/di-bo-3d.png) | ![A/B comparison](docs/images/so-sanh-phuong-an.png) |
 
-## Ý tưởng cốt lõi
+## Core idea
 
-**Một model tham số (JSON) là nguồn sự thật duy nhất.** Claude sửa model qua MCP tools; con người sửa trực tiếp trên web editor (kéo thả, gõ số); hai bên đồng bộ realtime qua WebSocket. Renderer deterministic sinh ra bản vẽ 2D đúng ký hiệu và mô hình 3D nội thất từ cùng một nguồn — nên 2D và 3D không bao giờ lệch nhau, và ký hiệu luôn chuẩn vì không do AI vẽ.
+**One parametric model (JSON) is the single source of truth.** Claude edits it through MCP tools; humans edit it directly in the web editor (drag, type exact numbers); both sync in real time over WebSocket. A deterministic renderer generates symbol-correct 2D drawings and the furnished 3D model from the same source — so 2D and 3D can never drift apart, and drawing symbols are always correct because the AI never draws them.
 
 ```
-Claude Code ──MCP──► Server (model + validator + renderer) ◄──WebSocket──► Trình duyệt (live editor)
+Claude Code ──MCP──► Server (model + validator + renderer) ◄──WebSocket──► Browser (live editor)
 ```
 
-## Trạng thái
+## Try it in 5 minutes
 
-✅ **Giai đoạn 1 — Engine + bản vẽ tĩnh: hoàn thành 13/07/2026** (71 tests xanh).
-Từ fixture nhà ống 4×16m: validator 22 rules (số liệu đối chiếu **TCVN 13967:2024**), renderer mặt bằng SVG/PNG đúng ký hiệu + dim 3 chuỗi, MCP server 7 tools, skill `thiet-ke-nha`, demo trọn nhịp *phỏng vấn → brief → model → ảnh trong chat* (`packages/server/scripts/demo-p1.ts`).
-✅ **Giai đoạn 2 — Live một chiều: hoàn thành 13/07/2026.**
-`editor_open` mở web editor (Vite + Three.js) cùng process với MCP; mỗi `apply_ops` mọc NGAY trên màn hình — 2D là SVG do server render (ký hiệu chuẩn tuyệt đối), 3D maquette orbit (tường tách mảnh quanh cửa, chưa CSG) — kèm toast + flash 1.5s; `capture_view` trả về đúng khung người dùng đang thấy, fallback mặt bằng server khi chưa mở browser. Demo: `pnpm demo:p2`. Build editor: `pnpm build:web`.
-✅ **Giai đoạn 3 — Chỉnh sửa tay: hoàn thành 13/07/2026.**
-Chọn/kéo tường-cửa-nội thất ngay trên mặt bằng (tường neo khoảng cách tới tường song song gần nhất, cửa hiện khoảng cách hai đầu, nội thất hít mặt tường); **HUD gõ số** cạnh con trỏ — đang kéo gõ `4200 ⏎` là chốt đúng 4200mm; snap lưới đổi được; undo/redo per-origin (Ctrl+Z/Y — chỉ hoàn tác thao tác của mình); soft-lock "người dùng luôn thắng" (`LOCK-01`, khóa nguội 5s); panel thuộc tính thành ô nhập; `get_changes_since` tóm tắt cũ → mới cho Claude bắt kịp. Demo vòng lặp cộng tác người ↔ Claude: `pnpm demo:p3`.
-✅ **Giai đoạn 4 — Hồ sơ bản vẽ: hoàn thành 13/07/2026.**
-Bộ hồ sơ concept trọn vẹn đánh số KT-01…: mặt bằng từng tầng (thêm dim thông thủy trong phòng + vết cắt A-A), **mặt đứng chính**, **mặt cắt A-A qua thang** (poché, lỗ cửa, profile bậc, chiếu nghỉ), **bảng thống kê phòng & cửa**; xuất **PDF A3 một file nhiều trang**, **DXF** (TS thuần, mm thật — mở CAD đo được) và SVG. Tools mới: `export`, `render_view`. Demo: `pnpm demo:p4`.
-✅ **Giai đoạn 5 — Nội thất & trải nghiệm: hoàn thành 13/07/2026.**
-**Demo 60 giây chạy trọn** (`pnpm demo:p5`): dựng live → kéo tường gõ `4200` → Claude thích nghi → **đi bộ WASD** xuyên nhà có nội thất → **sun study** theo giờ/tháng. Catalog **106 asset** chuẩn hóa mm thật (hình học tham số CC0 tự sinh + license manifest; glTF photoreal để dành P5+), 3D nội thất dựng theo category, sàn tô theo vật liệu hoàn thiện; editor có panel catalog (tool 5, click đặt, R xoay); MCP thêm `assets_search` trả contact-sheet.
+```bash
+pnpm install
+npx playwright install chromium   # PNG/PDF rendering + demos
+pnpm build:web
+pnpm demo:p5                      # the 60-second demo: live build → drag a wall,
+                                  # type 4200 → walk through the house in 3D
+```
 
-**Lộ trình 6 giai đoạn P0–P5 đã hoàn thành.**
-✅ **Backlog — Dự toán sơ bộ (13/07/2026):** tool `estimate_cost` + tờ **DỰ TOÁN SƠ BỘ** (KT-06) trong bộ PDF — diện tích quy đổi (móng/sàn/mái) × bảng đơn giá `rules/don-gia.json` (người dùng sửa theo địa phương), tự đối chiếu ngân sách trong brief.
-✅ **Backlog — Link chia sẻ chỉ-xem (13/07/2026):** nút **chia sẻ** trên editor (hoặc lấy từ `editor_open`) → `/xem/<token>` gửi người thân cùng ngắm: thấy live, đi bộ, xem nắng — nhưng server cưỡng chế không sửa được (`VIEW-01`). Thu hồi: `POST /share/rotate`. Mở cho máy khác trong LAN: `ATELIER_HOST=0.0.0.0`.
-✅ **Backlog — So sánh phương án A/B (13/07/2026):** `variant_save` chụp bố trí hiện tại thành phương án có tên; `variant_compare` đặt 2 mặt bằng cạnh nhau + diff diện tích từng phòng **+ dự toán từng bên**; `variant_open` quay lại phương án cũ; trang `/so-sanh` xem trên trình duyệt.
-Backlog kế tiếp (doc 10): rule pack quy hoạch địa phương, IFC, render photoreal.
+Using it from Claude Code: the repo ships a ready `.mcp.json` registering the `atelier` server — open Claude Code in this folder and say *"design me a 4×16m tube house"*.
 
-## Bộ tài liệu
+## What's the "60-second demo"?
 
-| # | Tài liệu | Nội dung |
+The project's definition of success (doc 01), and it runs end-to-end (`pnpm demo:p5`):
+
+> Describe *"4×16m tube house, 2 floors, 3 bedrooms, parking for 2 motorbikes"* → a two-storey plan with correct symbols grows live in the browser → the user grabs a wall, types `4200 ⏎` → dims update, Claude notices the change and adapts the adjacent rooms → switch to 3D and walk (WASD) through the furnished house.
+
+## Status — roadmap complete
+
+All six phases (P0–P5) plus the first three backlog items shipped:
+
+| Phase | Delivered | Demo |
 |---|---|---|
-| 01 | [Tầm nhìn & định vị](docs/01-tam-nhin.md) | Người dùng, non-goals, cạnh tranh, điểm khác biệt |
-| 02 | [Quy trình thiết kế](docs/02-quy-trinh-thiet-ke.md) | Phỏng vấn → brief → 5 pha có checkpoint duyệt |
-| 03 | [Kiến trúc hệ thống](docs/03-kien-truc-he-thong.md) | Dual-client, một process, luồng dữ liệu |
-| 04 | [Schema dữ liệu](docs/04-schema-du-lieu.md) | Model tham số: tường, cửa, phòng, thang, nội thất |
-| 05 | [MCP tools](docs/05-mcp-tools.md) | ~14 tools + bộ từ vựng ops |
-| 06 | [Giao thức sync](docs/06-giao-thuc-sync.md) | WebSocket, revision, xung đột, undo |
-| 07 | [Validator & rules](docs/07-validator-rules.md) | Bộ rule TCVN + hình học + thước Lỗ Ban |
-| 08 | [Renderer 2D](docs/08-renderer-2d.md) | Layer, nét, ký hiệu, dim, khung tên, SVG/PDF |
-| 09 | [Web editor](docs/09-web-editor.md) | UX chỉnh sửa tay: kéo thả, gõ số, 3D, walkthrough |
-| 10 | [Lộ trình](docs/10-lo-trinh.md) | 6 giai đoạn với Definition of Done + backlog |
-| 11 | [Quyết định & câu hỏi mở](docs/11-quyet-dinh-mo.md) | 10 ADR + 8 câu hỏi cần bạn chốt |
+| **P1 — Engine + static drawings** | Parametric model, 22-rule validator with sources checked against **TCVN 13967:2024**, SVG/PNG plan renderer (symbols + 3-chain dims), 7 MCP tools, design-process skill | `demo:p1` |
+| **P2 — One-way live** | `editor_open` launches the browser editor (Vite + Three.js) in the same process; every `apply_ops` appears instantly in 2D (server-rendered SVG) and 3D (incremental maquette); `capture_view` lets Claude see exactly what the user sees | `demo:p2` |
+| **P3 — Hand editing** | Drag walls/doors/furniture with a **type-a-number HUD** (drag, type `4200 ⏎` → exactly 4200mm), snapping, per-origin undo, **soft-locks** ("the user always wins" — agent writes on a user-held entity are rejected), editable properties panel, `get_changes_since` with old → new summaries | `demo:p3` |
+| **P4 — Documentation set** | Numbered sheet set KT-01…: floor plans (clear-dimension interior dims, section mark), **front elevation**, **section A-A through the stair** (poché, door voids, step profile), room & door schedules; export **multi-page A3 PDF**, **DXF** (pure TS, true mm — measurable in CAD), SVG | `demo:p4` |
+| **P5 — Furniture & experience** | **106-asset catalog** (true mm sizes, clearances, CC0 parametric geometry + license manifest), per-category 3D builders, floor finishes, catalog panel in the editor, **WASD walkthrough** (pointer lock, 1600mm eye height), **sun study** (hour/month sliders, real shadows from latitude + site orientation), `assets_search` with a visual contact sheet | `demo:p5` |
 
-## Stack dự kiến
+**Backlog shipped:** rough **cost estimate** (`estimate_cost` + a KT-06 sheet: converted areas × an editable local price table, auto-checked against the interview budget) · **view-only share links** (`/xem/<token>`, server-enforced read-only — send it to your spouse) · **A/B design comparison** (`variant_save/open/compare`, two plans side by side with per-room m² and per-variant cost deltas).
 
-TypeScript monorepo — Node.js (MCP server + WebSocket), Three.js (3D), SVG (bản vẽ 2D), Vite (web editor), Vitest + Playwright (test). Chi tiết và lý do: `03-kien-truc-he-thong.md`.
+Next up: local zoning rule packs, IFC export, photoreal rendering, English i18n for UI/docs.
 
-## Môi trường dev
+## Design docs
 
-Repo đã tích hợp **[haido](https://github.com/lebac-svg/haido)** (v0.2.3) — memory layer neo vào code, làm bộ nhớ dự án cho chính quá trình phát triển Atelier:
+The full spec lives in [`docs/`](docs/) — currently in Vietnamese (translations welcome; the table below is the map):
 
-- `.mcp.json` → MCP server `haido serve` (tools: recall / remember / related / overview / stale / reanchor)
-- `.claude/settings.json` → hooks tự nạp tri thức vào phiên Claude Code (SessionStart / PostToolUse / Stop)
-- DB local ở `.haido/` (đã gitignore); tri thức chia sẻ qua **memory pack** `docs/memory-pack/` (commit được)
-- Mở Claude Code tại thư mục repo này (restart nếu đang mở) và chấp thuận MCP server ở lần đầu
+| # | Doc | Contents |
+|---|---|---|
+| 01 | [Vision & positioning](docs/01-tam-nhin.md) | Users, non-goals, competitive landscape, differentiators |
+| 02 | [Design process](docs/02-quy-trinh-thiet-ke.md) | Interview → brief → 5 phases with approval checkpoints |
+| 03 | [System architecture](docs/03-kien-truc-he-thong.md) | Dual-client, single process, data flow |
+| 04 | [Data schema](docs/04-schema-du-lieu.md) | Parametric model: walls, openings, rooms, stairs, furniture |
+| 05 | [MCP tools](docs/05-mcp-tools.md) | ~19 tools + the ops vocabulary |
+| 06 | [Sync protocol](docs/06-giao-thuc-sync.md) | WebSocket, revisions, conflicts, undo |
+| 07 | [Validator & rules](docs/07-validator-rules.md) | TCVN rules + geometry + Lỗ Ban rulers |
+| 08 | [2D renderer](docs/08-renderer-2d.md) | Layers, line weights, symbols, dims, title block |
+| 09 | [Web editor](docs/09-web-editor.md) | Hand-editing UX: drag, type numbers, 3D, walkthrough |
+| 10 | [Roadmap](docs/10-lo-trinh.md) | 6 phases with Definitions of Done + backlog |
+| 11 | [Decisions](docs/11-quyet-dinh-mo.md) | 10 ADRs + 8 settled questions |
 
-Hai memory nền tảng đã seed: 5 nguyên tắc bất di bất dịch (neo `README.md`) và trạng thái P0 chờ duyệt Q2–Q8 (neo `docs/11-quyet-dinh-mo.md`).
+## Stack
 
-## Giấy phép & miễn trừ
+TypeScript monorepo — Node.js (MCP server + WebSocket), Three.js (3D), SVG (2D drawings), Vite (web editor), Vitest + Playwright (162 tests incl. real-browser e2e). Rationale in doc 03.
 
-- **Code:** [MIT](LICENSE). **Font** Be Vietnam Pro: SIL OFL 1.1 (`OFL.txt` cạnh file font). **Catalog nội thất** tham số: CC0-1.0 (`packages/core/assets/license-manifest.json`).
-- Số liệu tiêu chuẩn trong `rules/*.json` trích dẫn TCVN/QCVN kèm nguồn từng rule; bảng đơn giá `rules/don-gia.json` là số **tham khảo** — sửa theo địa phương của bạn.
-- ⚠ **Bản vẽ Atelier sinh ra là bản concept** — dùng để suy nghĩ, trao đổi và làm việc với kiến trúc sư; **không thay thế hồ sơ thiết kế/xin phép có chữ ký KTS hành nghề**.
+## Dev environment
 
-## 5 nguyên tắc bất di bất dịch
+The repo integrates **[haido](https://github.com/lebac-svg/haido)** — a code-anchored memory layer that served as the project's own long-term memory while Atelier was being built:
 
-1. **Claude không bao giờ vẽ trực tiếp** — chỉ sửa model tham số; renderer mới là thứ vẽ.
-2. **Ký hiệu chuẩn nằm trong renderer** — encode một lần theo TCVN, đúng 100% mọi lúc.
-3. **Mọi mutation đi qua một cổng duy nhất** (`apply_ops`) — transaction, validate, broadcast.
-4. **Người dùng luôn thắng** — chỉnh sửa tay không bao giờ bị Claude ghi đè.
-5. **Claude phải tự nhìn trước khi mời người dùng xem** — validate + render + capture sau mỗi thay đổi lớn.
+- `.mcp.json` → `haido serve` MCP server (recall / remember / related / overview / stale / reanchor)
+- `.claude/settings.json` → hooks that feed project knowledge into every Claude Code session
+- Local DB in `.haido/` (gitignored); shared knowledge ships as a **memory pack** in `docs/memory-pack/`
+
+## License & disclaimer
+
+- **Code:** [MIT](LICENSE). **Font** Be Vietnam Pro: SIL OFL 1.1 (`OFL.txt` next to the font files). **Furniture catalog** (parametric): CC0-1.0 (`packages/core/assets/license-manifest.json`).
+- Standards data in `rules/*.json` cites TCVN/QCVN sources per rule; the price table `rules/don-gia.json` is **reference-only** — edit it for your region.
+- ⚠ **Atelier outputs are concept drawings** — for thinking, discussing and working with an architect; they do **not** replace permit/construction documents signed by a licensed architect.
+
+## The 5 invariants
+
+1. **Claude never draws directly** — it only edits the parametric model; the renderer draws.
+2. **Standard symbols live in the renderer** — encoded once per TCVN, correct 100% of the time.
+3. **Every mutation goes through one gate** (`apply_ops`) — transaction, validation, broadcast.
+4. **The user always wins** — hand edits are never overwritten by the AI.
+5. **Claude must look before inviting the user to look** — validate + render + capture after every significant change.
