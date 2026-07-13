@@ -13,6 +13,8 @@ Mỗi giai đoạn có **Definition of Done (DoD)** và một **kịch bản dem
 
 Cỡ M/L là tương đối giữa các giai đoạn — ước lượng thô, chốt lại sau P1. Thứ tự P4 ↔ P5 **đảo được** tùy bạn muốn "hồ sơ chuẩn" trước hay "3D lung linh" trước.
 
+> ✅ **P1 hoàn thành 13/07/2026.** DoD đủ: fixture `nha-ong-4x16.json` → `render_plan` ra SVG/PNG đúng ký hiệu + dim; 22 rules chạy có test (mỗi rule 1 phạm + 1 đạt, số liệu đối chiếu TCVN 13967:2024); MCP tools 1–7 hoạt động (demo `packages/server/scripts/demo-p1.ts`); tổng 71 tests. Điều chỉnh so với spec: chuẩn áp dụng là TCVN 13967:2024 + 9411:2012 (4451 chỉ áp chung cư); `project_new` nhận thêm `brief` để chốt pha A.
+
 ## Pipeline asset nội thất (P5, chuẩn bị dần từ P2)
 
 1. Nguồn **CC0**: Poly Haven (model + texture), ambientCG (texture), Sketchfab bộ lọc CC0.

@@ -63,11 +63,12 @@ export function createAtelierServer(store: ProjectStore): McpServer {
         name: z.string().min(1).describe("Tên dự án, vd 'Nhà anh Ba'"),
         template: z.string().optional().describe("ID template khởi đầu (bỏ trống = dự án trống)"),
         siteBoundary: z.array(z.tuple([z.number().int(), z.number().int()])).min(3).optional(),
+        brief: z.record(z.unknown()).optional().describe("Brief pha A (schema xem docs/02): dat, gia_dinh, nhu_cau, ngan_sach, gu, uu_tien, phong_thuy.lo_ban"),
       },
     },
     (args) => {
       try {
-        const p = store.newProject(args.name, args.template, args.siteBoundary as never);
+        const p = store.newProject(args.name, args.template, args.siteBoundary as never, args.brief as never);
         return text(`✅ Đã tạo ${store.filePath}\n${projectBrief(p)}\nBước tiếp: brief (pha A) → apply_ops dựng/chỉnh model → validate → render_plan.`);
       } catch (e) {
         return fail(e);

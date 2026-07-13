@@ -14,8 +14,10 @@ Claude Code ──MCP──► Server (model + validator + renderer) ◄──We
 
 ## Trạng thái
 
-🔨 **Giai đoạn 1 — Engine + bản vẽ tĩnh (đang làm, từ 13/07/2026).**
-Spec P0 đã duyệt 13/07/2026 — Q1–Q8 đã chốt, xem `11-quyet-dinh-mo.md`.
+✅ **Giai đoạn 1 — Engine + bản vẽ tĩnh: hoàn thành 13/07/2026** (71 tests xanh).
+Từ fixture nhà ống 4×16m: validator 22 rules (số liệu đối chiếu **TCVN 13967:2024**), renderer mặt bằng SVG/PNG đúng ký hiệu + dim 3 chuỗi, MCP server 7 tools, skill `thiet-ke-nha`, demo trọn nhịp *phỏng vấn → brief → model → ảnh trong chat* (`packages/server/scripts/demo-p1.ts`).
+⚠ Server MCP `atelier` đã đăng ký trong `.mcp.json` — **restart Claude Code** để phiên sau nạp tools và chạy live.
+🔜 **Giai đoạn 2 — Live một chiều:** `editor_open`, browser 2D/3D mọc theo `apply_ops`, `capture_view`.
 
 ## Bộ tài liệu
 

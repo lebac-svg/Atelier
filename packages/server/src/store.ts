@@ -54,7 +54,7 @@ export class ProjectStore {
     return this.project;
   }
 
-  newProject(name: string, template?: string, siteBoundary?: Point[]): Project {
+  newProject(name: string, template?: string, siteBoundary?: Point[], brief?: Project["brief"]): Project {
     if (existsSync(this.filePath)) {
       throw new Error(`Đã có dự án tại ${this.filePath} — dùng project_open, hoặc xóa file nếu muốn làm lại từ đầu.`);
     }
@@ -69,6 +69,7 @@ export class ProjectStore {
       p = blankProject();
     }
     p.meta = { ...p.meta, id: slugify(name), name, revision: 0 };
+    if (brief) p.brief = structuredClone(brief); // brief từ pha A phỏng vấn — nguồn đối chiếu mọi pha sau
     if (siteBoundary) {
       p.site.boundary = siteBoundary;
       p.brief.dat = { ...(p.brief.dat ?? {}), ranh_gioi: siteBoundary };
