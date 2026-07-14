@@ -17,6 +17,7 @@ export type Polygon = Point[];
 export type Project = {
   meta: ProjectMeta;
   brief: Brief;
+  config?: ProjectConfig;
   site: Site;
   axes: { x: Axis[]; y: Axis[] };
   levels: Level[];
@@ -37,6 +38,19 @@ export type ProjectMeta = {
   revision: number;
   unit: "mm";
   app: string; // "atelier/0.x"
+};
+
+/**
+ * Cấu hình region/typology của dự án (P6 — doc 12). MỌI field optional:
+ * project không khai config → bộ chuẩn Việt Nam builtin, hành vi như trước.
+ */
+export type ProjectConfig = {
+  /** Vùng áp dụng — quyết định bộ rule-pack chuẩn mặc định. Bỏ trống = "vn". */
+  region?: string;
+  /** Loại hình nhà (vd. "nha-ong", "biet-thu") — lọc rule gắn `typologies`. */
+  typology?: string;
+  /** Ghi đè tường minh danh sách pack id áp dụng (bỏ qua suy từ region). Core pack luôn chạy. */
+  packs?: string[];
 };
 
 export type Site = {

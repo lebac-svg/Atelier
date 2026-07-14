@@ -4,7 +4,7 @@ import { loadNhaOng4x16 } from "../../src/fixture.js";
 import type { Issue, Severity } from "../../src/issues.js";
 import type { Project } from "../../src/types.js";
 import { validateProject } from "../../src/validate/engine.js";
-import { activeRules, unverifiedRules } from "../../src/validate/rules.js";
+import { activeRules, unverifiedRules, packsFor, registerPack, getPack, type RulePack } from "../../src/validate/rules.js";
 import { cungAt, nearestGood } from "../../src/validate/loban.js";
 import { RULERS } from "../../src/validate/rules.js";
 
@@ -282,5 +282,77 @@ describe("LBB — thước Lỗ Ban (advisory, bật qua brief)", () => {
       p.openings.find((o) => o.id === "D3")!.width = 700;
     });
     expect(issues.filter((i) => i.rule.startsWith("LBB"))).toEqual([]);
+  });
+});
+
+describe("P6 — kiến trúc rule-pack (doc 12)", () => {
+  it("project VN (không khai config) chọn đúng bộ builtin theo thứ tự cũ", () => {
+    const packs = packsFor(loadNhaOng4x16());
+    expect(packs.map((p) => p.id)).toEqual(["geo", "std-vn", "loban", "pln"]);
+  });
+
+  it("golden bất biến: pack-aware default == builtin (validate fixture vẫn sạch)", () => {
+    // đã có test 0-issue ở trên; ở đây chốt activeRules(project) == activeRules() cho VN.
+    expect(activeRules(loadNhaOng4x16()).map((r) => r.id)).toEqual(activeRules().map((r) => r.id));
+  });
+
+  it("region ngoài VN: bỏ toàn bộ TCVN/Lỗ Ban/PLN, chỉ còn lõi geo + pack region đó", () => {
+    const p = loadNhaOng4x16();
+    p.config = { region: "generic" };
+    const ids = activeRules(p).map((r) => r.id);
+    expect(ids.some((id) => id.startsWith("GEO-"))).toBe(true); // lõi luôn chạy
+    expect(ids.some((id) => id.startsWith("STD-"))).toBe(false);
+    expect(ids.some((id) => id.startsWith("LBB-"))).toBe(false);
+    expect(ids.some((id) => id.startsWith("PLN-"))).toBe(false);
+    expect(ids).toContain("GEN-CEIL-01"); // pack mẫu region generic
+  });
+
+  it("pack mẫu tái dùng evaluator STD-03: chỉ nổ khi region generic được chọn", () => {
+    // Hạ trần tầng trệt xuống dưới 2400 → GEN-CEIL-01 phải nổ; STD-03 (VN) thì không (pack không chọn).
+    const p = loadNhaOng4x16();
+    p.config = { region: "generic" };
+    p.levels.find((l) => l.id === "L1")!.height = 2200;
+    const issues = validateProject(p);
+    expectRule(issues, "GEN-CEIL-01", "warn");
+    expect(issues.some((i) => i.rule === "STD-03")).toBe(false);
+  });
+
+  it("config.packs = [] → chỉ còn core geo (pack chuẩn tắt hết, hình học vẫn kiểm)", () => {
+    const p = loadNhaOng4x16();
+    p.config = { packs: [] };
+    const ids = activeRules(p).map((r) => r.id);
+    expect(ids.length).toBeGreaterThan(0);
+    expect(ids.every((id) => id.startsWith("GEO-"))).toBe(true);
+  });
+
+  it("lọc theo typology: rule gắn typologies chỉ chạy khi project khai đúng typology", () => {
+    const testPack: RulePack = {
+      id: "test-typ",
+      title: "Test typology filter",
+      kind: "standard",
+      region: "test", // khác "vn" nên không lọt vào default → không đụng golden
+      rules: [
+        {
+          id: "TST-VILLA-01",
+          title: "Chỉ áp cho biệt thự",
+          severity: "warn",
+          evaluator: "STD-03",
+          typologies: ["biet-thu"],
+          params: { phong_o: 2400 },
+          source: { verified: false },
+          message: "test {room}",
+        },
+      ],
+    };
+    registerPack(testPack);
+    expect(getPack("test-typ")).toBeDefined();
+
+    const base = loadNhaOng4x16();
+    base.config = { region: "test" };
+    // Không khai typology → rule gắn typologies bị lọc bỏ.
+    expect(activeRules(base).some((r) => r.id === "TST-VILLA-01")).toBe(false);
+    // Khai đúng typology → rule vào danh sách active.
+    base.config = { region: "test", typology: "biet-thu" };
+    expect(activeRules(base).some((r) => r.id === "TST-VILLA-01")).toBe(true);
   });
 });

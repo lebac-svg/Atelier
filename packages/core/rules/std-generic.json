@@ -1,0 +1,23 @@
+{
+  "pack": {
+    "id": "std-generic",
+    "title": "Generic metric starter (PACK MẪU)",
+    "kind": "standard",
+    "region": "generic",
+    "standard": "Atelier sample pack — ngưỡng đặt tạm, CHƯA phải chuẩn thật. Thay bằng UK Approved Documents / IRC… khi làm region thật (xem docs/13)."
+  },
+  "rules": [
+    {
+      "id": "GEN-CEIL-01",
+      "title": "Minimum clear ceiling height (generic)",
+      "severity": "warn",
+      "evaluator": "STD-03",
+      "params": { "phong_o": 2400, "bep_an": 2400, "wc": 2100, "kho": 2000 },
+      "source": {
+        "vanBan": "PACK MẪU — placeholder, chưa đối chiếu văn bản. Region thật phải trích nguồn từng rule như std-vn.",
+        "verified": false
+      },
+      "message": "Room {ten} ({room}) on {level}: clear height {clear}mm below minimum {min}mm."
+    }
+  ]
+}

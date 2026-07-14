@@ -1,4 +1,11 @@
 {
+  "pack": {
+    "id": "std-vn",
+    "title": "Chuẩn nhà ở Việt Nam",
+    "kind": "standard",
+    "region": "vn",
+    "standard": "TCVN 13967:2024 + TCVN 9411:2012 + QCXDVN 05:2008/BXD"
+  },
   "rules": [
     {
       "id": "STD-01",
@@ -145,7 +152,7 @@
         "dieu": "5.8",
         "verified": true
       },
-      "message": "Phòng {ten} ({room}) không có cửa sổ hay giếng trời lấy sáng — nhà ống nên cân nhắc giếng trời/thông tầng."
+      "message": "Phòng {ten} ({room}) không có cửa sổ hay giếng trời lấy sáng — cân nhắc bổ sung cửa sổ, giếng trời hoặc thông tầng."
     },
     {
       "id": "STD-10",

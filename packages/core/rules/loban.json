@@ -1,4 +1,5 @@
 {
+  "pack": { "id": "loban", "title": "Phong thủy — thước Lỗ Ban (VN)", "kind": "customs", "region": "vn" },
   "rulers": {
     "thong_thuy": {
       "label": "Thước Lỗ Ban 52.2cm (thông thủy cửa, lỗ rỗng)",

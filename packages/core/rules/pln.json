@@ -1,4 +1,5 @@
 {
+  "pack": { "id": "pln", "title": "Quy hoạch địa phương (VN)", "kind": "planning", "region": "vn" },
   "ghi_chu": "PLN — quy hoạch địa phương (doc 07, backlog doc 10 → 13/07/2026). Params KHÔNG hardcode: lấy từ brief.dat.quy_hoach do người dùng khai ở pha A (Atelier không tự tra quy hoạch — ngoài phạm vi). Không khai mục nào thì rule đó không chạy. Thay thế STD-12 cũ và phần khoảng lùi từng ghép tạm trong GEO-08.",
   "rules": [
     {

@@ -1,4 +1,5 @@
 {
+  "pack": { "id": "geo", "title": "Hình học & topology (lõi)", "kind": "core" },
   "rules": [
     {
       "id": "GEO-01",

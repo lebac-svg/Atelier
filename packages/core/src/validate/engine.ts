@@ -51,8 +51,9 @@ export function formatMessage(tpl: string, values: Record<string, string | numbe
  */
 export function validateProject(p: Project): Issue[] {
   const issues: Issue[] = [];
-  for (const def of activeRules()) {
-    const evaluate = EVALUATORS[def.id];
+  for (const def of activeRules(p)) {
+    // def.evaluator cho phép pack cộng đồng tái dùng phép kiểm builtin (vd. STD-03).
+    const evaluate = EVALUATORS[def.evaluator ?? def.id];
     if (!evaluate) continue;
     for (const f of evaluate(p, def)) {
       const ruleId = f.rule ?? def.id;

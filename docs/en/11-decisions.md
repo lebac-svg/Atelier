@@ -28,7 +28,7 @@ To revisit any ADR, note it directly in this table during review.
 | Q3 | **Confirm the non-goal:** no legal/structural/MEP documents in v1; positioning as a "concept + visualization assistant"? | ✅ Confirmed — legally safe, matches actual capability |
 | Q4 | **Lỗ Ban ruler:** ask on/off during the interview phase, always on, or off by default? | ✅ **Ask in phase A** — those who care about feng shui will treasure it; those who don't get zero noise |
 | Q5 | **First demo typology?** | ✅ **4×16m tube house, 2 floors, 3 bedrooms** — the most common in Vietnam |
-| Q6 | **v1 templates:** tube house only (one type done deeply) or also single-storey houses? | ✅ **Tube house** only — depth over breadth |
+| Q6 | **v1 templates:** tube house only (one type done deeply) or also single-storey houses? | ✅ **Tube house** only — depth over breadth. **→ Superseded 14 Jul 2026:** multi-typology/multi-region expansion, see [doc 12](12-typology-expansion.md) |
 | Q7 | **Open-source the code?** | ✅ Private while building; consider open-sourcing after P3. **Settled 2026-07-13 (after P5 + 3 backlog items): OPEN-SOURCE** — MIT at [github.com/lebac-svg/Atelier](https://github.com/lebac-svg/Atelier); fonts OFL 1.1, catalog CC0, standards data cites a source per rule |
 | Q8 | **After approval:** `git init` + commit the docs set, then go straight to P1? | ✅ Yes — each completed phase is a commit milestone |
 
