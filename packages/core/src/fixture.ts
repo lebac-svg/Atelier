@@ -1,6 +1,9 @@
 import type { Project } from "./types.js";
 import nhaOng4x16Json from "../fixtures/nha-ong-4x16.json" with { type: "json" };
 import bietThuDocJson from "../fixtures/biet-thu-doc.json" with { type: "json" };
+import nhaCap4Json from "../fixtures/nha-cap-4.json" with { type: "json" };
+import nhaVuonJson from "../fixtures/nha-vuon.json" with { type: "json" };
+import canHoJson from "../fixtures/can-ho.json" with { type: "json" };
 
 /** Fixture chuẩn: nhà ống 4×16m, 2 tầng, 3PN — dùng cho golden tests + template. */
 export const NHA_ONG_4X16 = nhaOng4x16Json as unknown as Project;
@@ -18,4 +21,25 @@ export const BIET_THU_DOC = bietThuDocJson as unknown as Project;
 
 export function loadBietThuDoc(): Project {
   return structuredClone(BIET_THU_DOC);
+}
+
+/** Fixture P8: nhà cấp 4 một tầng — không thang, mái tôn gable, mẫu nhập môn. */
+export const NHA_CAP_4 = nhaCap4Json as unknown as Project;
+
+export function loadNhaCap4(): Project {
+  return structuredClone(NHA_CAP_4);
+}
+
+/** Fixture P8: nhà vườn — lô lớn méo + terrain nhẹ, 1 tầng mái ngói hip, mật độ ~21%. */
+export const NHA_VUON = nhaVuonJson as unknown as Project;
+
+export function loadNhaVuon(): Project {
+  return structuredClone(NHA_VUON);
+}
+
+/** Fixture P8: căn hộ cải tạo — KHÔNG lô đất, boundary = khung căn hộ có sẵn. */
+export const CAN_HO = canHoJson as unknown as Project;
+
+export function loadCanHo(): Project {
+  return structuredClone(CAN_HO);
 }

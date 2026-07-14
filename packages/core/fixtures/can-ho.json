@@ -1,0 +1,109 @@
+{
+  "meta": {
+    "id": "can-ho",
+    "name": "Căn hộ 2PN — cải tạo trong khung có sẵn",
+    "revision": 1,
+    "unit": "mm",
+    "app": "atelier/0.1"
+  },
+  "config": { "typology": "can-ho" },
+  "brief": {
+    "dat": {
+      "ranh_gioi": [[0, 0], [10500, 0], [10500, 8200], [0, 8200]],
+      "huong_truoc": "hành lang chung cư",
+      "tiep_giap": { "truoc": "hành lang chung", "sau": "thoáng", "trai": "căn hộ", "phai": "thoáng" }
+    },
+    "gia_dinh": "vợ chồng + 1 con",
+    "nhu_cau": { "phong_ngu": 2, "wc": 1, "bep": "mở liền khách" },
+    "ngan_sach": { "muc": "~350 triệu", "hoan_thien": "trung bình khá" },
+    "gu": { "phong_cach": "hiện đại ấm", "mau": "kem - gỗ" },
+    "uu_tien": ["bếp mở", "tối đa ánh sáng"],
+    "phong_thuy": { "lo_ban": false }
+  },
+  "site": {
+    "boundary": [[0, 0], [10500, 0], [10500, 8200], [0, 8200]],
+    "north": 0,
+    "front": 0
+  },
+  "axes": {
+    "x": [
+      { "id": "A", "offset": 110 },
+      { "id": "B", "offset": 10390 }
+    ],
+    "y": [
+      { "id": "1", "offset": 110 },
+      { "id": "2", "offset": 8090 }
+    ]
+  },
+  "levels": [{ "id": "L1", "name": "Căn hộ", "elevation": 0, "height": 3000 }],
+  "walls": [
+    { "id": "W1", "level": "L1", "from": [110, 110], "to": [10390, 110], "thickness": 220, "kind": "btct" },
+    { "id": "W2", "level": "L1", "from": [10390, 110], "to": [10390, 8090], "thickness": 220, "kind": "btct" },
+    { "id": "W3", "level": "L1", "from": [10390, 8090], "to": [110, 8090], "thickness": 220, "kind": "btct" },
+    { "id": "W4", "level": "L1", "from": [110, 8090], "to": [110, 110], "thickness": 220, "kind": "btct" },
+    { "id": "W5", "level": "L1", "from": [6000, 110], "to": [6000, 8090], "thickness": 110, "kind": "vach-nhe" },
+    { "id": "W6", "level": "L1", "from": [6000, 6355], "to": [10390, 6355], "thickness": 110, "kind": "vach-nhe" },
+    { "id": "W7", "level": "L1", "from": [6000, 3500], "to": [10390, 3500], "thickness": 110, "kind": "vach-nhe" }
+  ],
+  "openings": [
+    { "id": "D1", "wall": "W1", "kind": "door", "style": "DC", "offset": 800, "width": 1000, "height": 2200, "sill": 0, "swing": "in-L" },
+    { "id": "D2", "wall": "W5", "kind": "door", "style": "DP", "offset": 1200, "width": 800, "height": 2100, "sill": 0, "swing": "in-R" },
+    { "id": "D3", "wall": "W5", "kind": "door", "style": "DP", "offset": 4200, "width": 800, "height": 2100, "sill": 0, "swing": "in-R" },
+    { "id": "D4", "wall": "W5", "kind": "door", "style": "DW", "offset": 6700, "width": 700, "height": 2100, "sill": 0, "swing": "in-R" },
+    { "id": "S1", "wall": "W4", "kind": "window", "style": "SW", "offset": 2500, "width": 1800, "height": 1600, "sill": 900 },
+    { "id": "S2", "wall": "W3", "kind": "window", "style": "SW", "offset": 5000, "width": 1400, "height": 1600, "sill": 900 },
+    { "id": "S3", "wall": "W2", "kind": "window", "style": "SW", "offset": 1000, "width": 1600, "height": 1600, "sill": 900 },
+    { "id": "S4", "wall": "W2", "kind": "window", "style": "SW", "offset": 3900, "width": 1400, "height": 1600, "sill": 900 },
+    { "id": "S5", "wall": "W3", "kind": "window", "style": "SW", "offset": 1200, "width": 800, "height": 600, "sill": 1200 }
+  ],
+  "slabs": [
+    {
+      "id": "SL1",
+      "level": "L1",
+      "kind": "floor",
+      "outline": [[0, 0], [10500, 0], [10500, 8200], [0, 8200]],
+      "thickness": 120
+    }
+  ],
+  "stairs": [],
+  "rooms": [
+    {
+      "id": "R1",
+      "level": "L1",
+      "name": "Khách + bếp",
+      "polygon": [[220, 220], [5945, 220], [5945, 7980], [220, 7980]],
+      "use": "khach"
+    },
+    {
+      "id": "R2",
+      "level": "L1",
+      "name": "Ngủ 1",
+      "polygon": [[6055, 220], [10280, 220], [10280, 3445], [6055, 3445]],
+      "use": "ngu"
+    },
+    {
+      "id": "R3",
+      "level": "L1",
+      "name": "Ngủ 2",
+      "polygon": [[6055, 3555], [10280, 3555], [10280, 6300], [6055, 6300]],
+      "use": "ngu"
+    },
+    {
+      "id": "R4",
+      "level": "L1",
+      "name": "WC",
+      "polygon": [[6055, 6410], [10280, 6410], [10280, 7980], [6055, 7980]],
+      "use": "wc"
+    }
+  ],
+  "furniture": [],
+  "styles": {
+    "openings": {
+      "DC": { "label": "Cửa vào căn hộ", "kind": "door", "leaf": "1-canh", "material": "thép chống cháy" },
+      "DP": { "label": "Cửa phòng", "kind": "door", "leaf": "1-canh", "material": "gỗ công nghiệp" },
+      "DW": { "label": "Cửa WC", "kind": "door", "leaf": "1-canh", "material": "nhựa lõi thép" },
+      "SW": { "label": "Cửa sổ trượt", "kind": "window", "leaf": "truot", "material": "nhôm kính" }
+    }
+  },
+  "finishes": {}
+}

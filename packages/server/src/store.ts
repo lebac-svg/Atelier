@@ -1,7 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
-  applyOps, loadBietThuDoc, loadNhaOng4x16, setDonGia, validateProject,
+  applyOps, loadBietThuDoc, loadCanHo, loadNhaCap4, loadNhaOng4x16, loadNhaVuon, setDonGia, validateProject,
   type ApplyResult, type Issue, type Op, type OpOrigin, type Point, type Project,
 } from "@atelier/core";
 import { SoftLocks } from "./locks.js";
@@ -22,10 +22,13 @@ export type StoreEvent =
   | { kind: "applied"; revision: number; ops: Op[]; origin: OpOrigin; note?: string; summary: string; issues: Issue[] }
   | { kind: "project"; reason: "created" | "opened" }; // model thay mới toàn bộ → client cần snapshot
 
-/** Template có sẵn — Q6 cũ (chỉ nhà ống) đã thay bằng doc 12; thư viện đầy đủ là việc P8. */
+/** Thư viện template (P8 — doc 12): mỗi typology một mẫu có fixture + golden test. */
 export const TEMPLATES: Record<string, { label: string; load: () => Project }> = {
   "nha-ong-4x16-2t": { label: "Nhà ống 4×16m, 2 tầng, 3PN", load: loadNhaOng4x16 },
-  "biet-thu-doc-2t": { label: "Biệt thự mái dốc — lô góc đất dốc, 2 tầng (P7)", load: loadBietThuDoc },
+  "biet-thu-doc-2t": { label: "Biệt thự mái dốc — lô góc đất dốc, 2 tầng", load: loadBietThuDoc },
+  "nha-cap-4": { label: "Nhà cấp 4 — 2 phòng ngủ, mái tôn, một tầng", load: loadNhaCap4 },
+  "nha-vuon": { label: "Nhà vườn — 1 tầng mái ngói, lô lớn mật độ thấp", load: loadNhaVuon },
+  "can-ho": { label: "Căn hộ 2PN — cải tạo trong khung có sẵn (không lô đất)", load: loadCanHo },
 };
 
 /**
@@ -102,7 +105,7 @@ export class ProjectStore {
       }
       p = t.load();
     } else {
-      p = blankProject();
+      p = blankProject(brief);
     }
     p.meta = { ...p.meta, id: slugify(name), name, revision: 0 };
     if (brief) p.brief = structuredClone(brief); // brief từ pha A phỏng vấn — nguồn đối chiếu mọi pha sau
@@ -299,16 +302,23 @@ function touchedIds(p: Project, ops: Op[]): Set<string> {
   return ids;
 }
 
-export function blankProject(): Project {
+/**
+ * Dự án trống (P8 — doc 12): hình lô lấy từ BRIEF pha A (dat.ranh_gioi),
+ * không còn mặc định lô nhà ống 4×16. Chưa phỏng vấn → lô vuông 10×10
+ * trung tính, chỉ là chỗ đứng tạm cho tới khi khai ranh giới thật.
+ */
+export function blankProject(brief?: Project["brief"]): Project {
+  const boundary: Point[] = brief?.dat?.ranh_gioi ?? [[0, 0], [10000, 0], [10000, 10000], [0, 10000]];
   return {
     meta: { id: "du-an-moi", name: "Dự án mới", revision: 0, unit: "mm", app: "atelier/0.1" },
-    brief: {},
-    site: { boundary: [[0, 0], [4000, 0], [4000, 16000], [0, 16000]], north: 0, front: 0 },
+    brief: brief ? structuredClone(brief) : {},
+    site: { boundary: structuredClone(boundary), north: 0, front: 0 },
     axes: { x: [], y: [] },
     levels: [{ id: "L1", name: "Tầng 1", elevation: 0, height: 3600 }],
     walls: [],
     openings: [],
     slabs: [],
+    roofs: [],
     stairs: [],
     rooms: [],
     furniture: [],

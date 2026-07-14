@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { registerAsset } from "../../src/catalog.js";
-import { loadBietThuDoc, loadNhaOng4x16 } from "../../src/fixture.js";
+import { loadBietThuDoc, loadCanHo, loadNhaCap4, loadNhaOng4x16, loadNhaVuon } from "../../src/fixture.js";
 import { applyOps } from "../../src/ops/apply.js";
 import type { Issue, Severity } from "../../src/issues.js";
 import type { Project } from "../../src/types.js";
@@ -435,5 +435,38 @@ describe("P7 — mái dốc, đa mặt tiền, địa hình (doc 12)", () => {
     }], { validate: validateProject });
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.project.roofs).toHaveLength(1);
+  });
+});
+
+describe("P8 — thư viện template (doc 12): mỗi fixture một golden", () => {
+  it("nhà cấp 4 sạch (1 tầng, gable tôn, không thang)", () => {
+    expect(validateProject(loadNhaCap4())).toEqual([]);
+  });
+
+  it("nhà vườn sạch (lô méo + terrain, hip ngói, mật độ thấp)", () => {
+    expect(validateProject(loadNhaVuon())).toEqual([]);
+  });
+
+  it("căn hộ sạch (không lô đất — boundary là khung có sẵn; không roof/thang)", () => {
+    const p = loadCanHo();
+    expect(p.roofs).toBeUndefined();
+    expect(p.stairs).toEqual([]);
+    expect(validateProject(p)).toEqual([]);
+  });
+
+  it("đối chứng cấp 4: bỏ cửa sổ bếp → STD-09; bóp hành lang → STD-04", () => {
+    const p1 = loadNhaCap4();
+    p1.openings = p1.openings.filter((o) => o.id !== "S3");
+    expectRule(validateProject(p1), "STD-09", "info");
+
+    const p2 = loadNhaCap4();
+    p2.rooms.find((r) => r.id === "R3")!.polygon = [[1110, 7000], [8890, 7000], [8890, 7900], [1110, 7900]];
+    expectRule(validateProject(p2), "STD-04", "error");
+  });
+
+  it("đối chứng nhà vườn: mật độ 30% — phình sàn gấp rưỡi là nổ PLN-03", () => {
+    const p = loadNhaVuon();
+    p.slabs[0]!.outline = [[2000, 3000], [15500, 3000], [15500, 19000], [2000, 19000]];
+    expectRule(validateProject(p), "PLN-03", "error");
   });
 });

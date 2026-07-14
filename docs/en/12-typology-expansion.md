@@ -83,6 +83,8 @@ Concrete geometry for the seed models (source: Annex A):
 
 **DoD**: every template has a fixture + golden tests; the skill routes from interview to the right template.
 
+> ✅ **P8 done 2026-07-14.** Template library of 5: `nha-ong-4x16-2t` (P1) + `biet-thu-doc-2t` (P7) + **3 new**: `nha-cap-4` (single-storey, 7 rooms + central corridor, 20° GABLE metal roof, no stairs — the sheet set auto-skips the section), `nha-vuon` (irregular 484m² lot + light terrain, single-storey 27° HIP tiled roof with 700 eaves, 21% density), `can-ho` (NO lot — boundary = the 10.5×8.2 apartment shell, concrete perimeter + light partitions, open kitchen-living, no roof/stairs). Each ships a JSON fixture + 0-issue golden + counter-cases (STD-04/09, PLN-03); every fixture declares its `config.typology`. `blankProject()` drops the 4×16 tube-house default — takes `brief.dat.ranh_gioi` from phase A, falls back to a neutral 10×10 square. The `thiet-ke-nha` skill: phase A asks the **house type FIRST** → template routing table by typology; checklist extended with sloped lots/corner lots/roof material; Lỗ Ban noted as a VN-only question. Single-storey + apartment plans visually reviewed. **239 tests green.** *Adjustments vs spec:* the "Western-style detached" template moves to P9 as planned (needs region + ft-in); the renovation estimate still prices foundations/roof as new construction — a "renovation" estimate mode goes to the P9 backlog.
+
 ## P9 — Region layer & community platform
 
 **Region** = `{ display units, default standards pack, unit-cost table, customs module }`.

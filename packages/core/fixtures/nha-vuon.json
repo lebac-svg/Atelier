@@ -1,0 +1,156 @@
+{
+  "meta": {
+    "id": "nha-vuon",
+    "name": "Nhà vườn — 1 tầng mái ngói, mật độ thấp",
+    "revision": 1,
+    "unit": "mm",
+    "app": "atelier/0.1"
+  },
+  "config": { "typology": "nha-vuon" },
+  "brief": {
+    "dat": {
+      "ranh_gioi": [[0, 0], [18000, 0], [17500, 28000], [0, 26500]],
+      "huong_truoc": "Nam",
+      "tiep_giap": { "truoc": "đường làng 5m", "sau": "vườn", "trai": "vườn", "phai": "ruộng" },
+      "quy_hoach": { "tang_max": 2, "chieu_cao_max": 9000, "mat_do_max": 30 },
+      "vi_do": 10.3
+    },
+    "gia_dinh": "ông bà + vợ chồng con trai",
+    "nhu_cau": { "phong_ngu": 2, "wc": 1, "xe_may": 2, "bep": "liền phòng ăn" },
+    "ngan_sach": { "muc": "~1.2 tỷ", "hoan_thien": "trung bình khá" },
+    "gu": { "phong_cach": "nhà vườn truyền thống", "mau": "trắng - ngói đỏ - gỗ" },
+    "phong_thuy": { "lo_ban": false }
+  },
+  "site": {
+    "boundary": [[0, 0], [18000, 0], [17500, 28000], [0, 26500]],
+    "north": 0,
+    "front": 0,
+    "edges": [
+      { "kind": "street", "setback": 4000 },
+      { "kind": "neighbor", "setback": 2000 },
+      { "kind": "neighbor", "setback": 2000 },
+      { "kind": "neighbor", "setback": 2000 }
+    ],
+    "terrain": { "elevations": [0, -200, -800, -500] }
+  },
+  "axes": {
+    "x": [
+      { "id": "A", "offset": 4000 },
+      { "id": "B", "offset": 13000 }
+    ],
+    "y": [
+      { "id": "1", "offset": 5000 },
+      { "id": "2", "offset": 16000 }
+    ]
+  },
+  "levels": [{ "id": "L1", "name": "Tầng 1", "elevation": 0, "height": 3800 }],
+  "walls": [
+    { "id": "W1", "level": "L1", "from": [4000, 5000], "to": [13000, 5000], "thickness": 220, "kind": "gach" },
+    { "id": "W2", "level": "L1", "from": [13000, 5000], "to": [13000, 16000], "thickness": 220, "kind": "gach" },
+    { "id": "W3", "level": "L1", "from": [13000, 16000], "to": [4000, 16000], "thickness": 220, "kind": "gach" },
+    { "id": "W4", "level": "L1", "from": [4000, 16000], "to": [4000, 5000], "thickness": 220, "kind": "gach" },
+    { "id": "W5", "level": "L1", "from": [8945, 5000], "to": [8945, 10000], "thickness": 110, "kind": "gach" },
+    { "id": "W6", "level": "L1", "from": [4000, 9945], "to": [13000, 9945], "thickness": 110, "kind": "gach" },
+    { "id": "W7", "level": "L1", "from": [4000, 11145], "to": [13000, 11145], "thickness": 110, "kind": "gach" },
+    { "id": "W8", "level": "L1", "from": [8500, 11145], "to": [8500, 16000], "thickness": 110, "kind": "gach" },
+    { "id": "W9", "level": "L1", "from": [8500, 13800], "to": [13000, 13800], "thickness": 110, "kind": "gach" },
+    { "id": "W10", "level": "L1", "from": [10800, 13800], "to": [10800, 16000], "thickness": 110, "kind": "gach" }
+  ],
+  "openings": [
+    { "id": "D1", "wall": "W1", "kind": "door", "style": "DC", "offset": 1500, "width": 1200, "height": 2360, "sill": 0, "swing": "in-L" },
+    { "id": "S1", "wall": "W1", "kind": "window", "style": "SW", "offset": 3200, "width": 1600, "height": 1400, "sill": 900 },
+    { "id": "S2", "wall": "W1", "kind": "window", "style": "SW", "offset": 5800, "width": 1400, "height": 1400, "sill": 900 },
+    { "id": "D2", "wall": "W6", "kind": "door", "style": "DP", "offset": 1500, "width": 900, "height": 2100, "sill": 0, "swing": "in-L" },
+    { "id": "D3", "wall": "W6", "kind": "door", "style": "DP", "offset": 6000, "width": 800, "height": 2100, "sill": 0, "swing": "in-R" },
+    { "id": "D4", "wall": "W7", "kind": "door", "style": "DP", "offset": 1500, "width": 900, "height": 2100, "sill": 0, "swing": "in-L" },
+    { "id": "D5", "wall": "W7", "kind": "door", "style": "DP", "offset": 5600, "width": 800, "height": 2100, "sill": 0, "swing": "in-R" },
+    { "id": "D6", "wall": "W9", "kind": "door", "style": "DW", "offset": 600, "width": 700, "height": 2100, "sill": 0, "swing": "in-R" },
+    { "id": "D7", "wall": "W9", "kind": "door", "style": "DP", "offset": 2700, "width": 700, "height": 2100, "sill": 0, "swing": "in-L" },
+    { "id": "S3", "wall": "W4", "kind": "window", "style": "SW", "offset": 2000, "width": 1600, "height": 1400, "sill": 900 },
+    { "id": "S4", "wall": "W2", "kind": "window", "style": "SW", "offset": 7500, "width": 1400, "height": 1400, "sill": 900 },
+    { "id": "S5", "wall": "W3", "kind": "window", "style": "SW", "offset": 2800, "width": 800, "height": 600, "sill": 1200 }
+  ],
+  "slabs": [
+    {
+      "id": "SL1",
+      "level": "L1",
+      "kind": "floor",
+      "outline": [[3890, 4890], [13110, 4890], [13110, 16110], [3890, 16110]],
+      "thickness": 120
+    }
+  ],
+  "roofs": [
+    {
+      "id": "RF1",
+      "level": "L1",
+      "kind": "hip",
+      "outline": [[3190, 4190], [13810, 4190], [13810, 16810], [3190, 16810]],
+      "pitch": 27,
+      "overhang": 700,
+      "thickness": 150,
+      "material": "ngoi"
+    }
+  ],
+  "stairs": [],
+  "rooms": [
+    {
+      "id": "R1",
+      "level": "L1",
+      "name": "Khách",
+      "polygon": [[4110, 5110], [8890, 5110], [8890, 9890], [4110, 9890]],
+      "use": "khach"
+    },
+    {
+      "id": "R2",
+      "level": "L1",
+      "name": "Ngủ 1",
+      "polygon": [[9000, 5110], [12890, 5110], [12890, 9890], [9000, 9890]],
+      "use": "ngu"
+    },
+    {
+      "id": "R3",
+      "level": "L1",
+      "name": "Hành lang",
+      "polygon": [[4110, 10000], [12890, 10000], [12890, 11090], [4110, 11090]],
+      "use": "hanh-lang"
+    },
+    {
+      "id": "R4",
+      "level": "L1",
+      "name": "Bếp + ăn",
+      "polygon": [[4110, 11200], [8445, 11200], [8445, 15890], [4110, 15890]],
+      "use": "bep-an"
+    },
+    {
+      "id": "R5",
+      "level": "L1",
+      "name": "Ngủ 2",
+      "polygon": [[8555, 11200], [12890, 11200], [12890, 13745], [8555, 13745]],
+      "use": "ngu"
+    },
+    {
+      "id": "R6",
+      "level": "L1",
+      "name": "WC",
+      "polygon": [[8555, 13855], [10745, 13855], [10745, 15890], [8555, 15890]],
+      "use": "wc"
+    },
+    {
+      "id": "R7",
+      "level": "L1",
+      "name": "Kho",
+      "polygon": [[10855, 13855], [12890, 13855], [12890, 15890], [10855, 15890]],
+      "use": "kho"
+    }
+  ],
+  "furniture": [],
+  "styles": {
+    "openings": {
+      "DC": { "label": "Cửa chính", "kind": "door", "leaf": "2-canh", "material": "gỗ" },
+      "DP": { "label": "Cửa phòng", "kind": "door", "leaf": "1-canh", "material": "gỗ" },
+      "DW": { "label": "Cửa WC", "kind": "door", "leaf": "1-canh", "material": "nhựa lõi thép" },
+      "SW": { "label": "Cửa sổ mở quay", "kind": "window", "leaf": "2-canh", "material": "gỗ kính" }
+    }
+  },
+  "finishes": {}
+}

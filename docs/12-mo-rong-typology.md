@@ -83,6 +83,8 @@ Thông số hình học cụ thể để dựng model mẫu (nguồn: Phụ lụ
 
 **DoD**: mỗi template có fixture + golden test; skill dẫn được từ phỏng vấn tới đúng template.
 
+> ✅ **P8 hoàn thành 14/07/2026.** Thư viện template 5 mẫu: `nha-ong-4x16-2t` (P1) + `biet-thu-doc-2t` (P7) + **3 mẫu mới**: `nha-cap-4` (một tầng 7 phòng + hành lang giữa, mái GABLE tôn 20°, không thang — bộ tờ tự bỏ mặt cắt), `nha-vuon` (lô 484m² méo + terrain nhẹ, 1 tầng mái HIP ngói 27° đua 700, mật độ 21%), `can-ho` (KHÔNG lô đất — boundary = khung căn hộ 10.5×8.2, tường bao BTCT + vách nhẹ, khách+bếp mở, không mái/thang). Mỗi mẫu có fixture JSON + golden 0-issue + case đối chứng (STD-04/09, PLN-03); mỗi fixture khai `config.typology` sẵn. `blankProject()` bỏ mặc định lô nhà ống 4×16 — lấy `brief.dat.ranh_gioi` pha A, fallback lô vuông 10×10 trung tính. Skill `thiet-ke-nha`: pha A hỏi **loại nhà TRƯỚC TIÊN** → bảng chọn template theo typology; checklist thêm đất dốc/lô góc/vật liệu mái; ghi chú Lỗ Ban là câu hỏi VN. Mặt bằng cấp 4 + căn hộ đã soi mắt. **239 tests xanh.** *Điều chỉnh so spec:* mẫu "Detached kiểu phương Tây" lùi sang P9 đúng kế hoạch (cần region + ft-in); estimate căn hộ cải tạo vẫn tính móng/mái như xây mới — chế độ "cải tạo" ghi vào backlog P9.
+
 ## P9 — Lớp region & nền tảng cộng đồng
 
 **Region** = `{ đơn vị hiển thị, pack chuẩn mặc định, bảng đơn giá, mô-đun phong tục }`.

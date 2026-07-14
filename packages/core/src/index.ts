@@ -5,7 +5,10 @@ export * from "./ids.js";
 export * from "./catalog.js";
 export * from "./issues.js";
 export * from "./model.js";
-export { BIET_THU_DOC, NHA_ONG_4X16, loadBietThuDoc, loadNhaOng4x16 } from "./fixture.js";
+export {
+  BIET_THU_DOC, CAN_HO, NHA_CAP_4, NHA_ONG_4X16, NHA_VUON,
+  loadBietThuDoc, loadCanHo, loadNhaCap4, loadNhaOng4x16, loadNhaVuon,
+} from "./fixture.js";
 
 export * from "./geometry/vec.js";
 export * from "./geometry/segment.js";
