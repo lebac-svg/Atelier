@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { registerAsset } from "../../src/catalog.js";
-import { loadNhaOng4x16 } from "../../src/fixture.js";
+import { loadBietThuDoc, loadNhaOng4x16 } from "../../src/fixture.js";
+import { applyOps } from "../../src/ops/apply.js";
 import type { Issue, Severity } from "../../src/issues.js";
 import type { Project } from "../../src/types.js";
 import { validateProject } from "../../src/validate/engine.js";
@@ -354,5 +355,85 @@ describe("P6 — kiến trúc rule-pack (doc 12)", () => {
     // Khai đúng typology → rule vào danh sách active.
     base.config = { region: "test", typology: "biet-thu" };
     expect(activeRules(base).some((r) => r.id === "TST-VILLA-01")).toBe(true);
+  });
+});
+
+describe("P7 — mái dốc, đa mặt tiền, địa hình (doc 12)", () => {
+  /** Mutation trên fixture BIỆT THỰ (lô góc 2 mặt tiền, đất dốc, mái hip). */
+  function violateVilla(mutate: (p: Project) => void): Issue[] {
+    const p = loadBietThuDoc();
+    mutate(p);
+    return validateProject(p);
+  }
+
+  it("fixture biệt thự hoàn toàn sạch (0 issue) — golden P7", () => {
+    expect(validateProject(loadBietThuDoc())).toEqual([]);
+  });
+
+  it("PLN-07: tường phạm khoảng lùi cạnh #1 (mặt tiền phụ lô góc)", () => {
+    // đẩy tường Đông sát ranh phải (setback cạnh 1 = 2000)
+    const issues = violateVilla((p) => {
+      for (const w of p.walls.filter((x) => x.from[0] === 9800 && x.to[0] === 9800)) {
+        w.from = [11500, w.from[1]];
+        w.to = [11500, w.to[1]];
+      }
+    });
+    const i = expectRule(issues, "PLN-07", "error");
+    expect(i.message).toContain("#1");
+  });
+
+  it("PLN-06: đuôi mái vươn quá o_vang_max về cạnh street được kiểm", () => {
+    const issues = violateVilla((p) => {
+      // kéo mép mái vươn 2000mm ra ngoài ranh trước (y âm) — o_vang_max 1200
+      p.roofs![0]!.outline = [[2490, -2000], [10510, -2000], [10510, 12910], [2490, 12910]];
+    });
+    const i = expectRule(issues, "PLN-06", "error");
+    expect(i.message).toContain("RF1");
+  });
+
+  it("PLN-05: đỉnh nóc mái tính vào chiều cao, đo từ cốt đất mặt tiền", () => {
+    const issues = violateVilla((p) => {
+      p.roofs![0]!.pitch = 50; // nóc vọt lên ~11.8m + đất −238 → vượt 12000
+    });
+    expectRule(issues, "PLN-05", "error");
+  });
+
+  it("GEO-05: outline mái tự cắt bị bắt", () => {
+    const issues = violateVilla((p) => {
+      p.roofs![0]!.outline = [[2490, 2490], [10510, 12910], [10510, 2490], [2490, 12910]];
+    });
+    expectRule(issues, "GEO-05");
+  });
+
+  it("STD-09 (P7): cửa sổ mở ra SÂN TRONG LÔ được tính là lấy sáng (biệt thự lùi ranh)", () => {
+    // fixture sạch chứng minh điều này; đối chứng: bịt hết cửa sổ ngủ 2 → nổ
+    const issues = violateVilla((p) => {
+      p.openings = p.openings.filter((o) => o.id !== "S5");
+    });
+    const i = expectRule(issues, "STD-09", "warn");
+    expect(i.message).toContain("Ngủ 2");
+  });
+
+  it("ops: add/update/delete roof đi qua apply_ops như mọi entity, undo được cấu trúc", () => {
+    const p = loadBietThuDoc();
+    const r1 = applyOps(p, 1, [{ op: "update", entity: "roof", id: "RF1", data: { pitch: 25 } }], { validate: validateProject });
+    expect(r1.ok).toBe(true);
+    if (r1.ok) {
+      expect(r1.project.roofs![0]!.pitch).toBe(25);
+      const r2 = applyOps(r1.project, 2, [{ op: "delete", entity: "roof", id: "RF1" }], { validate: validateProject });
+      expect(r2.ok).toBe(true);
+      if (r2.ok) expect(r2.project.roofs).toHaveLength(0);
+    }
+  });
+
+  it("file cũ KHÔNG có mảng roofs: add roof vẫn chạy (tự khởi tạo)", () => {
+    const p = loadNhaOng4x16();
+    expect(p.roofs).toBeUndefined();
+    const r = applyOps(p, 1, [{
+      op: "add", entity: "roof",
+      data: { id: "RF9", level: "L2", kind: "gable", outline: [[0, 0], [4000, 0], [4000, 8000], [0, 8000]], pitch: 20 },
+    }], { validate: validateProject });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.project.roofs).toHaveLength(1);
   });
 });

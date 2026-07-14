@@ -1,5 +1,11 @@
-import type { Level, Point, Project, Room, Slab, Wall } from "./types.js";
+import type { Level, Point, Project, Roof, Room, Slab, Wall } from "./types.js";
 import { pointInPolygon } from "./geometry/polygon.js";
+
+/**
+ * Cao độ mặt đất khi CHƯA khai terrain: đúng z=0 như renderer vẽ từ trước —
+ * giữ golden snapshot bất động. Muốn nền cao hơn đất (thềm) thì khai terrain.
+ */
+export const GROUND_DEFAULT = 0;
 
 export function getLevel(p: Project, id: string): Level | undefined {
   return p.levels.find((l) => l.id === id);
@@ -32,6 +38,38 @@ export function levelAbove(p: Project, levelId: string): Level | undefined {
 /** Sàn (kind floor) của một level. */
 export function floorSlabOf(p: Project, levelId: string): Slab | undefined {
   return p.slabs.find((s) => s.level === levelId && s.kind === "floor");
+}
+
+/** Mái dốc của model — file cũ thiếu mảng roofs thì trả []. */
+export function roofsOf(p: Project): Roof[] {
+  return p.roofs ?? [];
+}
+
+export function roofsOfLevel(p: Project, levelId: string): Roof[] {
+  return roofsOf(p).filter((r) => r.level === levelId);
+}
+
+/**
+ * Cao độ MẶT ĐẤT tại một điểm (mm so với cốt ±0.000).
+ * - Có terrain: nội suy IDW (mũ 2) từ cao độ các đỉnh boundary — mượt, không
+ *   cần tam giác hóa, đủ cho render mặt cắt/3D concept.
+ * - Không terrain: mặt phẳng GROUND_DEFAULT.
+ */
+export function groundAt(p: Project, pt: Point): number {
+  const elevations = p.site.terrain?.elevations;
+  if (!elevations || elevations.length === 0) return GROUND_DEFAULT;
+  const b = p.site.boundary;
+  let num = 0;
+  let den = 0;
+  for (let i = 0; i < b.length; i++) {
+    const z = elevations[i] ?? elevations[elevations.length - 1]!;
+    const d2 = (pt[0] - b[i]![0]) ** 2 + (pt[1] - b[i]![1]) ** 2;
+    if (d2 < 1) return z; // trùng đỉnh
+    const w = 1 / d2;
+    num += w * z;
+    den += w;
+  }
+  return num / den;
 }
 
 /**

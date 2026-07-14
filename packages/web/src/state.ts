@@ -105,7 +105,7 @@ export class AppState {
     if (!p) return null;
     const lists: Array<[string, EntityKind, Array<{ id: string }>]> = [
       ["Tường", "wall", p.walls], ["Cửa", "opening", p.openings], ["Sàn", "slab", p.slabs],
-      ["Thang", "stair", p.stairs], ["Phòng", "room", p.rooms],
+      ["Mái", "roof", p.roofs ?? []], ["Thang", "stair", p.stairs], ["Phòng", "room", p.rooms],
       ["Nội thất", "furniture", p.furniture], ["Tầng", "level", p.levels],
     ];
     for (const [kind, entity, list] of lists) {

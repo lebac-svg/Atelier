@@ -39,10 +39,19 @@
     },
     {
       "id": "PLN-06",
-      "title": "Ô văng/mái vươn ra ngoài ranh trước tối đa",
+      "title": "Ô văng/mái vươn ra ngoài ranh mặt thoáng tối đa",
       "severity": "error",
       "source": { "vanBan": "Quy hoạch địa phương — người dùng khai trong brief (pha A)", "verified": true },
-      "message": "{slab} vươn ra ngoài ranh trước {vuon}mm — quá mức ô văng tối đa {max}mm khai trong brief."
+      "message": "{slab} vươn ra ngoài ranh {vuon}mm — quá mức ô văng tối đa {max}mm khai trong brief.",
+      "note": "Cạnh mặt thoáng = site.front, hoặc mọi cạnh street/alley khi khai site.edges (P7). Ô văng slab lẫn đuôi mái dốc đều tính."
+    },
+    {
+      "id": "PLN-07",
+      "title": "Khoảng lùi theo TỪNG CẠNH ranh (đa mặt tiền)",
+      "severity": "error",
+      "source": { "vanBan": "Quy hoạch địa phương — người dùng khai setback từng cạnh trong site.edges (P7)", "verified": true },
+      "message": "Tường {wall} cách cạnh ranh #{edge} {dist}mm — phạm khoảng lùi {lui}mm khai cho cạnh này.",
+      "note": "Chỉ chạy khi site.edges[i].setback được khai — lô góc/biệt thự lùi nhiều phía. PLN-01/02 (trước/sau) vẫn hoạt động độc lập cho dự án chưa khai edges."
     }
   ]
 }

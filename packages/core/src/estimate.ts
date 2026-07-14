@@ -1,6 +1,8 @@
 import donGiaJson from "../rules/don-gia.json" with { type: "json" };
 import { areaM2 } from "./geometry/polygon.js";
+import { roofGeometry } from "./geometry/roof.js";
 import { wallLength } from "./geometry/wall.js";
+import { roofsOf } from "./model.js";
 import type { Project } from "./types.js";
 
 /**
@@ -101,11 +103,26 @@ export function computeQuantities(p: Project): QuantityReport {
     lines.unshift({ label: hs.mong?.label ?? "Móng", dien_tich_m2: r1(mongArea), he_so: hs.mong?.he_so ?? 0.4, quy_doi_m2: r1(mongArea * (hs.mong?.he_so ?? 0.4)) });
   }
 
-  // ── mái: roof-flat có gì tính nấy; chưa vẽ → ước theo sàn trên cùng ──
+  // ── mái dốc (P7): m² MẶT NGHIÊNG thật từ roofGeometry, hệ số theo vật liệu ──
+  let maiDocArea = 0;
+  for (const rf of roofsOf(p)) {
+    const lv = p.levels.find((l) => l.id === rf.level);
+    if (!lv) continue;
+    const g = roofGeometry(rf, lv);
+    const key = rf.material === "ton" ? "mai_ton" : "mai_ngoi";
+    const heSo = hs[key]?.he_so ?? 0.7;
+    maiDocArea += g.areaM2;
+    lines.push({
+      label: `${hs[key]?.label ?? "Mái dốc"} (${rf.id})`, dien_tich_m2: r1(g.areaM2),
+      he_so: heSo, quy_doi_m2: r1(g.areaM2 * heSo),
+    });
+  }
+
+  // ── mái bằng: roof-flat có gì tính nấy; KHÔNG mái nào cả → ước theo sàn trên cùng ──
   const roofs = p.slabs.filter((s) => s.kind === "roof-flat");
   let maiArea = roofs.reduce((s, x) => s + areaM2(x.outline), 0);
   let maiUocLe = false;
-  if (maiArea === 0) {
+  if (maiArea === 0 && maiDocArea === 0) {
     const top = levels[levels.length - 1];
     const topFloor = top ? p.slabs.filter((s) => s.level === top.id && s.kind === "floor") : [];
     maiArea = topFloor.reduce((s, x) => s + areaM2(x.outline), 0);

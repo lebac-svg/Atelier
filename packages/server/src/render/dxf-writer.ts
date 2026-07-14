@@ -15,6 +15,7 @@ const LAYER_COLOR: Record<string, number> = {
   "TUONG-THAY": 7,
   CUA: 7,
   THANG: 7,
+  MAI: 7,
   "NOI-THAT": 8,
   DIM: 8,
   TEXT: 7,

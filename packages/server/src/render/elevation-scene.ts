@@ -1,5 +1,5 @@
 import {
-  normalize, pointOnWall, sub,
+  groundAt, normalize, pointOnWall, roofGeometry, roofsOf, sub,
   type Level, type Opening, type Point, type Project, type Wall,
 } from "@atelier/core";
 import { dimTick, drawSheetFrame } from "./frame.js";
@@ -31,10 +31,14 @@ function frontEdge(p: Project): { A: Point; d: Point; len: number } {
   return { A, d: normalize(v), len: Math.hypot(v[0], v[1]) };
 }
 
-/** Tường "thuộc mặt tiền": song song cạnh trước và tim cách nó < 600mm. */
+/**
+ * Tường "thuộc mặt tiền": song song cạnh trước, thuộc CỤM GẦN NHẤT với ranh
+ * (min khoảng cách + 600mm). Nhà ống sát ranh cho kết quả y hệt quy ước cũ
+ * (<600); biệt thự lùi 3m (P7) vẫn tìm được lớp tường ngoài cùng.
+ */
 export function facadeWalls(p: Project): Array<{ wall: Wall; level: Level }> {
   const { A, d } = frontEdge(p);
-  const out: Array<{ wall: Wall; level: Level }> = [];
+  const parallel: Array<{ wall: Wall; level: Level; dist: number }> = [];
   for (const w of p.walls) {
     const level = p.levels.find((l) => l.id === w.level);
     if (!level) continue;
@@ -43,9 +47,11 @@ export function facadeWalls(p: Project): Array<{ wall: Wall; level: Level }> {
     const mid: Point = [(w.from[0] + w.to[0]) / 2, (w.from[1] + w.to[1]) / 2];
     const rel = sub(mid, A);
     const dist = Math.abs(rel[0] * d[1] - rel[1] * d[0]); // khoảng cách tới đường mặt tiền
-    if (dist < 600) out.push({ wall: w, level });
+    parallel.push({ wall: w, level, dist });
   }
-  return out;
+  if (parallel.length === 0) return [];
+  const nearest = Math.min(...parallel.map((x) => x.dist));
+  return parallel.filter((x) => x.dist < nearest + 600).map(({ wall, level }) => ({ wall, level }));
 }
 
 export function buildElevationScene(p: Project, opts: ElevationOptions = {}): ElevationBuild {
@@ -66,8 +72,28 @@ export function buildElevationScene(p: Project, opts: ElevationOptions = {}): El
   }
   u0 = Math.max(0, Math.min(u0, len));
   u1 = Math.min(len, Math.max(u1, 0));
+  const wallTop = top;
 
-  const bounds: Bounds = { minX: u0, minY: 0, maxX: u1, maxY: top };
+  // mái dốc (P7): đỉnh hình phải kể nóc mái
+  const roofGeoms = roofsOf(p)
+    .map((rf) => {
+      const lv = p.levels.find((l) => l.id === rf.level);
+      return lv ? { rf, g: roofGeometry(rf, lv) } : null;
+    })
+    .filter((x): x is NonNullable<typeof x> => x != null);
+  for (const { g } of roofGeoms) top = Math.max(top, g.ridgeZ);
+
+  // địa hình (P7): đất dốc dọc mặt tiền — không khai terrain thì y hệt cũ (z=0)
+  const hasTerrain = !!p.site.terrain?.elevations?.length;
+  const groundU = (uu: number): number =>
+    hasTerrain ? groundAt(p, [A[0] + d[0] * uu, A[1] + d[1] * uu]) : 0;
+  let minZ = 0;
+  if (hasTerrain) {
+    for (let uu = u0; uu <= u1; uu += Math.max(200, (u1 - u0) / 40)) minZ = Math.min(minZ, groundU(uu));
+    minZ = Math.min(minZ, groundU(u1));
+  }
+
+  const bounds: Bounds = { minX: u0, minY: minZ, maxX: u1, maxY: top };
   const tf = planTransform(bounds, opts.scale, { noRotate: true });
   const S = tf.scale;
   const mm = (paperMm: number): number => paperMm * S;
@@ -78,14 +104,32 @@ export function buildElevationScene(p: Project, opts: ElevationOptions = {}): El
   };
 
   // ── khối nhà ──────────────────────────────────────────────
-  push("TUONG-CAT", { kind: "polyline", pts: [[u0, 0], [u1, 0], [u1, top], [u0, top]], close: true, weight: W.cut });
+  push("TUONG-CAT", { kind: "polyline", pts: [[u0, 0], [u1, 0], [u1, wallTop], [u0, wallTop]], close: true, weight: W.cut });
 
-  // ── đường đất + gạch chân ─────────────────────────────────
+  // ── mái dốc: chiếu các mặt mái lên (u, z) ─────────────────
+  for (const { rf, g } of roofGeoms) {
+    for (const face of g.faces) {
+      const pts: Point[] = face.map((v) => [u([v[0], v[1]]), v[2]]);
+      push("MAI", { kind: "polyline", pts, close: true, weight: W.mid }, rf.id);
+    }
+  }
+
+  // ── đường đất + gạch chân (đất dốc theo terrain) ──────────
   const g0 = u0 - mm(8);
   const g1 = u1 + mm(8);
-  push("TUONG-CAT", { kind: "line", a: [g0, 0], b: [g1, 0], weight: W.frame });
-  for (let x = g0; x <= g1; x += mm(3)) {
-    push("TUONG-THAY", { kind: "line", a: [x, 0], b: [x - mm(1.6), -mm(1.6)], weight: W.hair });
+  if (hasTerrain) {
+    const pts: Point[] = [];
+    for (let x = g0; x <= g1; x += mm(3)) pts.push([x, groundU(Math.max(u0, Math.min(u1, x)))]);
+    pts.push([g1, groundU(u1)]);
+    push("TUONG-CAT", { kind: "polyline", pts, weight: W.frame });
+    for (const [x, z] of pts) {
+      push("TUONG-THAY", { kind: "line", a: [x, z], b: [x - mm(1.6), z - mm(1.6)], weight: W.hair });
+    }
+  } else {
+    push("TUONG-CAT", { kind: "line", a: [g0, 0], b: [g1, 0], weight: W.frame });
+    for (let x = g0; x <= g1; x += mm(3)) {
+      push("TUONG-THAY", { kind: "line", a: [x, 0], b: [x - mm(1.6), -mm(1.6)], weight: W.hair });
+    }
   }
 
   // ── cửa đi / cửa sổ trên tường mặt tiền ───────────────────

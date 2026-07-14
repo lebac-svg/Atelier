@@ -5,7 +5,7 @@ export * from "./ids.js";
 export * from "./catalog.js";
 export * from "./issues.js";
 export * from "./model.js";
-export { NHA_ONG_4X16, loadNhaOng4x16 } from "./fixture.js";
+export { BIET_THU_DOC, NHA_ONG_4X16, loadBietThuDoc, loadNhaOng4x16 } from "./fixture.js";
 
 export * from "./geometry/vec.js";
 export * from "./geometry/segment.js";
@@ -14,6 +14,7 @@ export * from "./geometry/wall.js";
 export * from "./geometry/wall-pieces.js";
 export * from "./geometry/obb.js";
 export * from "./geometry/stair.js";
+export * from "./geometry/roof.js";
 
 export * from "./estimate.js";
 

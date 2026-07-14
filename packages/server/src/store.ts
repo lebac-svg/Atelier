@@ -1,7 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
-  applyOps, loadNhaOng4x16, setDonGia, validateProject,
+  applyOps, loadBietThuDoc, loadNhaOng4x16, setDonGia, validateProject,
   type ApplyResult, type Issue, type Op, type OpOrigin, type Point, type Project,
 } from "@atelier/core";
 import { SoftLocks } from "./locks.js";
@@ -22,9 +22,10 @@ export type StoreEvent =
   | { kind: "applied"; revision: number; ops: Op[]; origin: OpOrigin; note?: string; summary: string; issues: Issue[] }
   | { kind: "project"; reason: "created" | "opened" }; // model thay mới toàn bộ → client cần snapshot
 
-/** Template có sẵn ở P1 (Q5/Q6: chỉ nhà ống). */
+/** Template có sẵn — Q6 cũ (chỉ nhà ống) đã thay bằng doc 12; thư viện đầy đủ là việc P8. */
 export const TEMPLATES: Record<string, { label: string; load: () => Project }> = {
   "nha-ong-4x16-2t": { label: "Nhà ống 4×16m, 2 tầng, 3PN", load: loadNhaOng4x16 },
+  "biet-thu-doc-2t": { label: "Biệt thự mái dốc — lô góc đất dốc, 2 tầng (P7)", load: loadBietThuDoc },
 };
 
 /**

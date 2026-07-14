@@ -14,13 +14,14 @@ export type ApplyResult =
   | { ok: true; project: Project; revision: number; warnings: Issue[]; summary: string }
   | { ok: false; currentRevision: number; errors: Issue[] };
 
-type ArrayKind = "level" | "wall" | "opening" | "slab" | "stair" | "room" | "furniture";
+type ArrayKind = "level" | "wall" | "opening" | "slab" | "roof" | "stair" | "room" | "furniture";
 
-const ARRAY_KEY: Record<ArrayKind, "levels" | "walls" | "openings" | "slabs" | "stairs" | "rooms" | "furniture"> = {
+const ARRAY_KEY: Record<ArrayKind, "levels" | "walls" | "openings" | "slabs" | "roofs" | "stairs" | "rooms" | "furniture"> = {
   level: "levels",
   wall: "walls",
   opening: "openings",
   slab: "slabs",
+  roof: "roofs",
   stair: "stairs",
   room: "rooms",
   furniture: "furniture",
@@ -95,7 +96,7 @@ function applyOne(draft: Project, op: Op): Issue | null {
 
 function allIds(draft: Project): Set<string> {
   const ids = new Set<string>();
-  for (const key of Object.values(ARRAY_KEY)) for (const e of draft[key]) ids.add(e.id);
+  for (const key of Object.values(ARRAY_KEY)) for (const e of draft[key] ?? []) ids.add(e.id);
   for (const a of draft.axes.x) ids.add(a.id);
   for (const a of draft.axes.y) ids.add(a.id);
   for (const k of Object.keys(draft.styles.openings)) ids.add(k);
@@ -108,6 +109,7 @@ function applyArray(draft: Project, op: Op): Issue | null {
   const kind = op.entity as ArrayKind;
   const key = ARRAY_KEY[kind];
   if (!key) return issue("OPS-01", "block", [], `Loại thực thể không hợp lệ: ${String(op.entity)}.`);
+  if (key === "roofs") draft.roofs ??= []; // file cũ thiếu mảng roofs
   const list = draft[key] as Array<Record<string, unknown> & { id: string }>;
 
   if (op.op === "add") {
@@ -140,7 +142,7 @@ function applyArray(draft: Project, op: Op): Issue | null {
 
   // delete
   if (kind === "level") {
-    const used = [...draft.walls, ...draft.rooms, ...draft.slabs, ...draft.stairs, ...draft.furniture]
+    const used = [...draft.walls, ...draft.rooms, ...draft.slabs, ...(draft.roofs ?? []), ...draft.stairs, ...draft.furniture]
       .some((e) => (e as { level?: string }).level === op.id);
     if (used) return issue("OPS-04", "block", [op.id], `Level ${op.id} còn thực thể — xóa/di dời chúng trước.`);
   }

@@ -21,7 +21,7 @@ import { loadUnderlay, placedPolylines, underlayDir } from "./import/underlay.js
 import { ProjectStore, TEMPLATES } from "./store.js";
 
 const ENTITY = z.enum([
-  "level", "wall", "opening", "slab", "stair", "room", "furniture", "axis", "style", "finish", "underlay",
+  "level", "wall", "opening", "slab", "roof", "stair", "room", "furniture", "axis", "style", "finish", "underlay",
 ]);
 
 const OP = z.discriminatedUnion("op", [
@@ -819,7 +819,7 @@ ${vNote}`);
 
 function entityIdsOfLevel(p: Project, levelId: string): Set<string> {
   const ids = new Set<string>([levelId]);
-  for (const list of [p.walls, p.rooms, p.slabs, p.stairs, p.furniture]) {
+  for (const list of [p.walls, p.rooms, p.slabs, p.roofs ?? [], p.stairs, p.furniture]) {
     for (const e of list) if ((e as { level?: string }).level === levelId) ids.add(e.id);
   }
   for (const o of p.openings) {
@@ -851,6 +851,7 @@ function queryModel(
       return p.walls.find((w) => w.id === o.wall)?.level === select.level;
     }),
     slabs: p.slabs.filter((e) => keepId(e) && keepLevel(e)),
+    roofs: (p.roofs ?? []).filter((e) => keepId(e) && keepLevel(e)),
     stairs: p.stairs.filter((e) => keepId(e) && keepLevel(e)),
     rooms: p.rooms.filter((e) => keepId(e) && keepLevel(e)),
     furniture: p.furniture.filter((e) => keepId(e) && keepLevel(e)),

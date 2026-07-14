@@ -196,7 +196,13 @@ function roomHasNaturalLight(p: Project, room: Room): boolean {
     const bIn = pointInPolygon(pb, room.polygon);
     if (!aIn && !bIn) continue;
     const other = aIn ? pb : pa;
-    if (!pointInPolygon(other, p.site.boundary)) return true; // ra ngoài trời
+    if (!pointInPolygon(other, p.site.boundary)) return true; // ra ngoài ranh (hẻm/đường)
+    // P7: nhà lùi trong lô (biệt thự) — sân/vườn TRONG ranh vẫn là ngoài trời:
+    // điểm phía kia không thuộc phòng nào và nằm ngoài sàn của tầng
+    if (roomsAtPoint(p, room.level, other).length === 0) {
+      const slab = floorSlabOf(p, room.level);
+      if (!slab || !pointInPolygon(other, slab.outline)) return true;
+    }
     if (roomsAtPoint(p, room.level, other).some((r) => r.use === "gieng-troi")) return true;
   }
   // (b) mở thông sang giếng trời (chạm cạnh thật sự, không qua tường)

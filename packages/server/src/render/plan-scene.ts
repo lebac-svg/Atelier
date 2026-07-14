@@ -1,6 +1,6 @@
 import {
   add, areaM2, furnitureObb, getAsset, getLevel, levelAbove, obbCorners, openingSpan,
-  floorSlabOf, pointOnWall, rotate, scale as vscale, stairLayout, sub,
+  floorSlabOf, pointOnWall, roofGeometry, roofsOfLevel, rotate, scale as vscale, stairLayout, sub,
   wallBand, wallDir, wallLength, wallNormal, type Furniture, type Level, type Opening,
   type Point, type Project, type Wall,
 } from "@atelier/core";
@@ -56,7 +56,7 @@ export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = 
   const underlay = opts.underlay && (!opts.underlay.level || opts.underlay.level === levelId)
     ? opts.underlay
     : undefined;
-  const bounds = computeBounds(p, walls, underlay);
+  const bounds = computeBounds(p, walls, underlay, levelId);
   const tf = planTransform(bounds, opts.scale);
   const S = tf.scale;
   const mm = (paperMm: number): number => paperMm * S; // mm giấy → mm model
@@ -70,6 +70,7 @@ export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = 
   drawAxes(p, bounds, mm, push);
   drawWallsAndOpenings(p, walls, mm, push);
   drawSlabHoles(p, levelId, push);
+  drawRoofs(p, levelId, push);
   drawStairs(p, levelId, mm, push);
   drawFurniture(p, levelId, push);
   drawDims(p, walls, bounds, mm, push);
@@ -94,9 +95,10 @@ export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = 
   };
 }
 
-function computeBounds(p: Project, walls: Wall[], underlay?: PlanUnderlay): Bounds {
+function computeBounds(p: Project, walls: Wall[], underlay?: PlanUnderlay, levelId?: string): Bounds {
   const pts: Point[] = [...p.site.boundary];
   for (const w of walls) pts.push(...wallBand(w));
+  if (levelId) for (const rf of roofsOfLevel(p, levelId)) pts.push(...rf.outline);
   if (underlay) pts.push(...underlayCorners(underlay));
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const [x, y] of pts) {
@@ -138,6 +140,21 @@ function drawUnderlay(u: PlanUnderlay, items: Scene2D): void {
 
 function drawSite(p: Project, push: Push): void {
   push("TUONG-THAY", { kind: "polyline", pts: p.site.boundary, close: true, weight: W.hair, dash: "3 1.2 0.6 1.2" }, "site");
+}
+
+/* ---------------- mái dốc (P7) ---------------- */
+
+/** Mặt bằng mái: mép mái nét đứt (nằm TRÊN đầu ta) + nét gãy nóc/hông. */
+function drawRoofs(p: Project, levelId: string, push: Push): void {
+  for (const rf of roofsOfLevel(p, levelId)) {
+    const level = getLevel(p, levelId);
+    if (!level) continue;
+    const g = roofGeometry(rf, level);
+    push("MAI", { kind: "polyline", pts: rf.outline, close: true, weight: W.mid, dash: "4 2" }, rf.id);
+    for (const [a, b] of g.creases) {
+      push("MAI", { kind: "line", a, b, weight: W.thin, dash: "4 2" }, rf.id);
+    }
+  }
 }
 
 /* ---------------- trục ---------------- */

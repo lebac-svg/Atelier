@@ -17,6 +17,7 @@ export const LAYERS = [
   "TUONG-THAY",
   "CUA",
   "THANG",
+  "MAI", // mái dốc (P7): nét mái mặt bằng, hình mái mặt đứng/mặt cắt
   "NOI-THAT",
   "DIM",
   "TEXT",

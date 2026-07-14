@@ -6,6 +6,7 @@ const LABEL: Record<EntityKind, string> = {
   wall: "tường",
   opening: "cửa",
   slab: "sàn",
+  roof: "mái",
   stair: "thang",
   room: "phòng",
   furniture: "nội thất",
@@ -20,6 +21,7 @@ const LIST_KEY: Partial<Record<EntityKind, keyof Project>> = {
   wall: "walls",
   opening: "openings",
   slab: "slabs",
+  roof: "roofs",
   stair: "stairs",
   room: "rooms",
   furniture: "furniture",
@@ -35,7 +37,7 @@ function short(v: unknown): string {
 function findBefore(before: Project, entity: EntityKind, id: string): Record<string, unknown> | null {
   const key = LIST_KEY[entity];
   if (key) {
-    const hit = (before[key] as Array<{ id: string }>).find((e) => e.id === id);
+    const hit = ((before[key] ?? []) as Array<{ id: string }>).find((e) => e.id === id);
     return (hit as Record<string, unknown>) ?? null;
   }
   if (entity === "axis") {

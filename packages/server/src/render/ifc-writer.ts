@@ -1,6 +1,6 @@
 import {
-  pointOnWall, stairLayout, wallDir, wallLength,
-  type Point, type Polygon, type Project, type Wall,
+  pointOnWall, roofGeometry, roofsOf, stairLayout, wallDir, wallLength,
+  type Point, type Polygon, type Project, type Vec3, type Wall,
 } from "@atelier/core";
 
 /**
@@ -90,9 +90,19 @@ export function modelToIfc(p: Project): string {
     const pts = [...poly, poly[0]!].map(([x, y]) => f.e("IFCCARTESIANPOINT", [`(${real(x)},${real(y)})`]));
     return f.e("IFCPOLYLINE", [`(${pts.join(",")})`]);
   };
-  const bodyRep = (solid: string): string => {
-    const shape = f.e("IFCSHAPEREPRESENTATION", [context, "'Body'", "'SweptSolid'", `(${solid})`]);
+  const bodyRep = (solid: string, repType = "SweptSolid"): string => {
+    const shape = f.e("IFCSHAPEREPRESENTATION", [context, "'Body'", `'${repType}'`, `(${solid})`]);
     return f.e("IFCPRODUCTDEFINITIONSHAPE", ["$", "$", `(${shape})`]);
+  };
+  /** Khối brep kín từ danh sách mặt polygon 3D (mái dốc P7). */
+  const brepSolid = (faces3d: Vec3[][]): string => {
+    const faceIds = faces3d.map((poly) => {
+      const loop = f.e("IFCPOLYLOOP", [`(${poly.map(([x, y, z]) => pt3(x, y, z)).join(",")})`]);
+      const bound = f.e("IFCFACEOUTERBOUND", [loop, ".T."]);
+      return f.e("IFCFACE", [`(${bound})`]);
+    });
+    const shell = f.e("IFCCLOSEDSHELL", [`(${faceIds.join(",")})`]);
+    return f.e("IFCFACETEDBREP", [shell]);
   };
   /** Hộp: profile chữ nhật đặt tâm tại (cx,cy,cz), trục X theo (dx,dy), đùn lên depth. */
   const boxSolid = (cx: number, cy: number, cz: number, xLen: number, yLen: number, depth: number, dx = 1, dy = 0): string => {
@@ -169,6 +179,30 @@ export function modelToIfc(p: Project): string {
     const kind = s.kind === "floor" ? ".FLOOR." : ".ROOF.";
     const ent = f.e("IFCSLAB", [G(s.id), "$", str(s.id), "$", "$", worldPlacement, bodyRep(solid), "$", kind]);
     contained.get(s.level)!.push(ent);
+  }
+
+  for (const rf of roofsOf(p)) {
+    const lv = levels.find((l) => l.id === rf.level);
+    if (!lv) continue;
+    const g = roofGeometry(rf, lv);
+    const drop = (rf.thickness ?? 150) / Math.cos((rf.pitch * Math.PI) / 180);
+    const solidFaces: Vec3[][] = [];
+    for (const face of g.faces) {
+      solidFaces.push(face);
+      solidFaces.push([...face].reverse().map(([x, y, z]) => [x, y, z - drop] as Vec3));
+      for (let i = 0; i < face.length; i++) {
+        const a = face[i]!;
+        const b = face[(i + 1) % face.length]!;
+        solidFaces.push([
+          [a[0], a[1], a[2] - drop], [b[0], b[1], b[2] - drop], [b[0], b[1], b[2]], [a[0], a[1], a[2]],
+        ]);
+      }
+    }
+    const kind = rf.kind === "hip" ? ".HIP_ROOF." : rf.kind === "shed" ? ".SHED_ROOF." : ".GABLE_ROOF.";
+    const ent = f.e("IFCROOF", [
+      G(rf.id), "$", str(rf.id), "$", "$", worldPlacement, bodyRep(brepSolid(solidFaces), "Brep"), "$", kind,
+    ]);
+    contained.get(rf.level)!.push(ent);
   }
 
   for (const st of p.stairs) {

@@ -9,6 +9,7 @@ export const ID_PREFIX: Record<Exclude<EntityKind, "axis" | "style" | "finish">,
   wall: "W",
   opening: "", // D cửa đi / S cửa sổ — xem idPrefixForOpening
   slab: "SL",
+  roof: "RF", // R đã thuộc room
   stair: "ST",
   room: "R",
   furniture: "F",
@@ -22,7 +23,7 @@ export function idPrefixForOpening(kind: "door" | "window"): string {
 /** Gom mọi ID đang dùng trong model (mọi loại chung một không gian tên). */
 export function collectIds(p: Project): Set<string> {
   const ids = new Set<string>();
-  for (const list of [p.levels, p.walls, p.openings, p.slabs, p.stairs, p.rooms, p.furniture]) {
+  for (const list of [p.levels, p.walls, p.openings, p.slabs, p.roofs ?? [], p.stairs, p.rooms, p.furniture]) {
     for (const e of list) ids.add(e.id);
   }
   for (const a of p.axes.x) ids.add(a.id);

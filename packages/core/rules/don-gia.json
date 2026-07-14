@@ -17,6 +17,8 @@
     "mong": { "label": "Móng (băng/đơn, gia cố thường)", "he_so": 0.4 },
     "san": { "label": "Sàn các tầng có mái che", "he_so": 1.0 },
     "mai_btct": { "label": "Mái BTCT / sân thượng", "he_so": 0.5 },
+    "mai_ngoi": { "label": "Mái dốc lợp ngói (vì kèo) — theo m² mặt nghiêng", "he_so": 0.7 },
+    "mai_ton": { "label": "Mái dốc lợp tôn — theo m² mặt nghiêng", "he_so": 0.3 },
     "o_trong_lon": {
       "label": "Ô trống thông tầng/giếng trời ≥ ngưỡng — phần vượt tính nửa",
       "he_so": 0.5,

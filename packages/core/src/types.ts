@@ -24,6 +24,8 @@ export type Project = {
   walls: Wall[];
   openings: Opening[];
   slabs: Slab[];
+  /** Mái dốc (P7). File cũ thiếu trường này — normalizeProject bù []. */
+  roofs?: Roof[];
   stairs: Stair[];
   rooms: Room[];
   furniture: Furniture[];
@@ -56,8 +58,30 @@ export type ProjectConfig = {
 export type Site = {
   boundary: Polygon; // chấp nhận đất méo
   north: number; // độ lệch bắc so với y+
-  front: number; // index CẠNH mặt tiền của boundary
+  front: number; // index CẠNH mặt tiền CHÍNH của boundary (mặt đứng chiếu cạnh này)
   setbacks?: { front?: number; back?: number; left?: number; right?: number };
+  /**
+   * Đa mặt tiền (P7): thuộc tính TỪNG CẠNH boundary[i]→boundary[i+1].
+   * Mảng song song boundary (thiếu phần tử = cạnh không khai). Có `edges`
+   * thì PLN đọc setback theo cạnh; không có → hành vi front/back cũ.
+   */
+  edges?: SiteEdge[];
+  /**
+   * Địa hình (P7): cao độ MẶT ĐẤT tại từng đỉnh boundary (mm, so với cốt
+   * ±0.000 của model — âm = đất thấp hơn nền trệt). Mảng song song boundary.
+   * Bỏ trống = đất phẳng ở −450 (nền trệt cao hơn đất 3 bậc thềm quen thuộc).
+   * Trong lô nội suy IDW — xem groundAt() ở model.ts.
+   */
+  terrain?: { elevations: number[] };
+};
+
+export type SiteEdgeKind = "street" | "alley" | "neighbor";
+
+export type SiteEdge = {
+  /** Cạnh giáp gì — "street"/"alley" là mặt thoáng (được trổ cửa, vươn ô văng). */
+  kind?: SiteEdgeKind;
+  /** Khoảng lùi yêu cầu cho riêng cạnh này (mm) — PLN-07 kiểm. */
+  setback?: number;
 };
 
 export type Axis = { id: string; offset: number; label?: string };
@@ -102,6 +126,37 @@ export type Slab = {
   outline: Polygon;
   holes?: Polygon[]; // lỗ thang, giếng trời
   thickness: number; // mặc định 120
+};
+
+export type RoofKind = "gable" | "hip" | "shed";
+
+/**
+ * Quy ước hình học mái dốc (v1 — P7 doc 12), cùng tinh thần quy ước thang:
+ * - `level` = tầng TRÊN CÙNG mà mái che. Đáy MÉP mái (diềm) nằm ở
+ *   z = level.elevation + level.height (đỉnh tường tầng đó).
+ * - `outline` = hình chiếu bằng MÉP NGOÀI mái, ĐÃ GỒM phần đua (overhang
+ *   chỉ là metadata). Mái bằng BTCT tiếp tục dùng Slab kind "roof-flat".
+ * - `pitch` = độ dốc (ĐỘ, không phải tỷ lệ; phổ biến 18–34°).
+ * - gable: nóc chạy dọc `ridgeAxis` qua TÂM bbox outline — 2 mặt phẳng;
+ *   z(pt) = base + (halfSpan − |khoảng cách tới đường nóc|) × tan(pitch).
+ * - shed: MỘT mặt phẳng; cạnh CAO là cạnh bbox song song `ridgeAxis`
+ *   phía `highSide` ("min" = phía tọa độ nhỏ của trục vuông góc).
+ * - hip: 4 mặt từ 4 mép bbox; z = min(khoảng cách tới 4 mép) × tan, chặn
+ *   tại nóc. v1 outline hip nên là CHỮ NHẬT (4 đỉnh) — polygon phức tạp
+ *   cần straight skeleton, để v2.
+ * - `ridgeAxis` bỏ trống = trục DÀI của bbox.
+ */
+export type Roof = {
+  id: string;
+  level: string;
+  kind: RoofKind;
+  outline: Polygon;
+  pitch: number; // độ
+  ridgeAxis?: "x" | "y";
+  highSide?: "min" | "max"; // chỉ shed; mặc định "min"
+  overhang?: number; // mm — metadata (outline đã gồm đua)
+  thickness?: number; // dày kết cấu theo phương vuông góc mặt mái; mặc định 150
+  material?: string; // "ngoi" | "ton"… — nuôi render/estimate về sau
 };
 
 export type StairType = "1-ve" | "2-ve-U" | "chu-L";
@@ -243,6 +298,7 @@ export type EntityKind =
   | "wall"
   | "opening"
   | "slab"
+  | "roof"
   | "stair"
   | "room"
   | "furniture"

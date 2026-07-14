@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import {
-  getAsset, stairLayout, wallLength,
-  type CaptureCamera, type Furniture, type Level, type Op, type Project, type Room, type Slab, type Stair, type Wall,
+  getAsset, groundAt, roofGeometry, roofsOf, stairLayout, wallLength,
+  type CaptureCamera, type Furniture, type Level, type Op, type Project, type Roof, type Room, type Slab, type Stair,
+  type Wall,
 } from "@atelier/core";
 import { wallPieces } from "./geo3d.js";
 import { buildFurnitureLocal } from "./furniture3d.js";
@@ -21,6 +22,7 @@ const C = {
   glass: 0x9cc7e8,
   door: 0xb08968,
   slab: 0xe6dfcf,
+  roof: 0xc9b8a3,
   stair: 0xd8d0bd,
   flash: 0x2c5b96,
   label: "#4a453a",
@@ -149,6 +151,7 @@ export class Scene3D {
     for (const level of p.levels) {
       for (const w of p.walls) if (w.level === level.id) this.setGroup(w.id, this.buildWall(p, w, level));
       for (const s of p.slabs) if (s.level === level.id) this.setGroup(s.id, this.buildSlab(s, level));
+      for (const rf of roofsOf(p)) if (rf.level === level.id) this.setGroup(rf.id, this.buildRoof(rf, level));
       for (const st of p.stairs) if (st.level === level.id) this.setGroup(st.id, this.buildStair(st, level));
       for (const f of p.furniture) if (f.level === level.id) this.setGroup(f.id, this.buildFurniture(f, level));
       for (const r of p.rooms) if (r.level === level.id) this.setGroup(r.id, this.buildRoom(p, r, level));
@@ -194,6 +197,7 @@ export class Scene3D {
           full = true; // đổi cao độ/chiều cao tầng chạm mọi thứ — dựng lại cả nhà (hiếm)
           break;
         case "slab":
+        case "roof":
         case "stair":
         case "room":
         case "furniture":
@@ -230,9 +234,10 @@ export class Scene3D {
     this.setGroup(wid, this.buildWall(model, wall, level));
   }
 
-  private rebuildSingle(model: Project, entity: "slab" | "stair" | "room" | "furniture", id: string): void {
-    const list = { slab: model.slabs, stair: model.stairs, room: model.rooms, furniture: model.furniture }[entity] as
-      Array<{ id: string; level: string }>;
+  private rebuildSingle(model: Project, entity: "slab" | "roof" | "stair" | "room" | "furniture", id: string): void {
+    const list = {
+      slab: model.slabs, roof: roofsOf(model), stair: model.stairs, room: model.rooms, furniture: model.furniture,
+    }[entity] as Array<{ id: string; level: string }>;
     const e = list.find((x) => x.id === id);
     const level = e ? model.levels.find((l) => l.id === e.level) : undefined;
     if (!e || !level) {
@@ -241,6 +246,7 @@ export class Scene3D {
     }
     const g =
       entity === "slab" ? this.buildSlab(e as Slab, level)
+      : entity === "roof" ? this.buildRoof(e as Roof, level)
       : entity === "stair" ? this.buildStair(e as Stair, level)
       : entity === "room" ? this.buildRoom(model, e as Room, level)
       : this.buildFurniture(e as Furniture, level);
@@ -301,6 +307,37 @@ export class Scene3D {
     const top = s.kind === "floor" ? level.elevation : level.elevation + level.height;
     mesh.position.z = top * MM - s.thickness * MM;
     g.add(mesh);
+    return g;
+  }
+
+  /** Mái dốc (P7): mesh từ faces của roofGeometry — cùng nguồn với 2D. */
+  private buildRoof(rf: Roof, level: Level): THREE.Group {
+    const g = new THREE.Group();
+    const geom = roofGeometry(rf, level);
+    const mat = lambert(C.roof, { side: THREE.DoubleSide });
+    const edgeMat = new THREE.LineBasicMaterial({ color: C.edge });
+    for (const face of geom.faces) {
+      if (face.length < 3) continue;
+      // mặt mái không bao giờ thẳng đứng (pitch < 90°) → chiếu XY là đơn ánh,
+      // tam giác hóa trên hình chiếu rồi trả về đỉnh 3D
+      const flat = face.map(([x, y]) => new THREE.Vector2(x * MM, y * MM));
+      const tris = THREE.ShapeUtils.triangulateShape(flat, []);
+      const pos: number[] = [];
+      for (const tri of tris) {
+        for (const i of tri) {
+          const v = face[i]!;
+          pos.push(v[0] * MM, v[1] * MM, v[2] * MM);
+        }
+      }
+      const buf = new THREE.BufferGeometry();
+      buf.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+      buf.computeVertexNormals();
+      g.add(new THREE.Mesh(buf, mat));
+
+      const outline = face.map(([x, y, z]) => new THREE.Vector3(x * MM, y * MM, z * MM));
+      outline.push(outline[0]!.clone());
+      g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(outline), edgeMat));
+    }
     return g;
   }
 
@@ -394,12 +431,31 @@ export class Scene3D {
     const maxX = Math.max(...xs) + 3000;
     const minY = Math.min(...ys) - 3000;
     const maxY = Math.max(...ys) + 3000;
-    const ground = new THREE.Mesh(
-      new THREE.ShapeGeometry(shapeFrom([[minX, minY], [maxX, minY], [maxX, maxY], [minX, maxY]])),
-      lambert(C.ground),
-    );
-    ground.position.z = -0.03;
-    this.env.add(ground);
+    if (p.site.terrain?.elevations?.length) {
+      // đất dốc (P7): lưới 32×32 nhấp nhô theo groundAt (IDW từ cao độ đỉnh ranh)
+      const SEG = 32;
+      const geo = new THREE.PlaneGeometry((maxX - minX) * MM, (maxY - minY) * MM, SEG, SEG);
+      const posAttr = geo.getAttribute("position") as THREE.BufferAttribute;
+      for (let i = 0; i < posAttr.count; i++) {
+        const mx = (minX + maxX) / 2 + posAttr.getX(i) / MM;
+        const my = (minY + maxY) / 2 + posAttr.getY(i) / MM;
+        posAttr.setZ(i, groundAt(p, [mx, my]) * MM - 0.03);
+      }
+      geo.computeVertexNormals();
+      const ground = new THREE.Mesh(geo, lambert(C.ground));
+      ground.position.set(((minX + maxX) / 2) * MM, ((minY + maxY) / 2) * MM, 0);
+      ground.receiveShadow = true;
+      this.env.add(ground);
+      // ranh đất bám theo mặt đất
+      loop.geometry.setFromPoints(b.map(([x, y]) => new THREE.Vector3(x * MM, y * MM, groundAt(p, [x, y]) * MM + 0.004)));
+    } else {
+      const ground = new THREE.Mesh(
+        new THREE.ShapeGeometry(shapeFrom([[minX, minY], [maxX, minY], [maxX, maxY], [minX, maxY]])),
+        lambert(C.ground),
+      );
+      ground.position.z = -0.03;
+      this.env.add(ground);
+    }
 
     const size = Math.max(maxX - minX, maxY - minY) * MM;
     this.grid = new THREE.GridHelper(size, Math.round(size), 0x2c323b, 0x262b32);

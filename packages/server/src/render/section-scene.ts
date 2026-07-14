@@ -1,5 +1,5 @@
 import {
-  pointOnWall, stairLayout, wallLength,
+  groundAt, pointOnWall, polygonBounds, roofGeometry, roofProfile, roofsOf, stairLayout, wallLength,
   type Level, type Point, type Polygon, type Project, type Wall,
 } from "@atelier/core";
 import { drawLevelMark, drawVerticalDims } from "./elevation-scene.js";
@@ -112,6 +112,24 @@ export function buildSectionScene(p: Project, opts: SectionOptions = {}): Sectio
     for (const [u0, u1] of spans) slabBands.push({ u0, u1, z0: top - s.thickness, z1: top, id: s.id });
   }
 
+  // ── mái dốc bị cắt (P7): polyline (u, z) trên mặt phẳng x=cutX ────
+  type RoofCut = { id: string; pts: Point[]; drop: number };
+  const roofCuts: RoofCut[] = [];
+  for (const rf of roofsOf(p)) {
+    const level = p.levels.find((l) => l.id === rf.level);
+    if (!level) continue;
+    const rb = polygonBounds(rf.outline);
+    if (cutX < rb.minX || cutX > rb.maxX) continue;
+    const g = roofGeometry(rf, level);
+    const a: Point = [cutX, rb.minY - 1];
+    const b: Point = [cutX, rb.maxY + 1];
+    // dày kết cấu đo vuông góc mặt mái → offset ĐỨNG = t / cos(pitch)
+    const drop = (rf.thickness ?? 150) / Math.cos((rf.pitch * Math.PI) / 180);
+    for (const line of roofProfile(g, rf, a, b)) {
+      roofCuts.push({ id: rf.id, pts: line.map(([s, z]) => [a[1] + s, z] as Point), drop });
+    }
+  }
+
   // ── phạm vi ───────────────────────────────────────────────
   let minU = Infinity, maxU = -Infinity, top = 0, minZ = 0;
   for (const c of cutWalls) {
@@ -125,7 +143,22 @@ export function buildSectionScene(p: Project, opts: SectionOptions = {}): Sectio
     top = Math.max(top, b.z1);
     minZ = Math.min(minZ, b.z0);
   }
+  for (const rc of roofCuts) {
+    for (const [uu, z] of rc.pts) {
+      minU = Math.min(minU, uu);
+      maxU = Math.max(maxU, uu);
+      top = Math.max(top, z);
+    }
+  }
   if (!Number.isFinite(minU)) throw new Error("Mặt phẳng cắt không chạm tường/sàn nào — kiểm tra vị trí thang.");
+
+  // địa hình (P7): không khai terrain → đất phẳng z=0 y hệt cũ
+  const hasTerrain = !!p.site.terrain?.elevations?.length;
+  const groundU = (uu: number): number => (hasTerrain ? groundAt(p, [cutX, uu]) : 0);
+  if (hasTerrain) {
+    for (let uu = minU; uu <= maxU; uu += Math.max(200, (maxU - minU) / 40)) minZ = Math.min(minZ, groundU(uu));
+    minZ = Math.min(minZ, groundU(maxU));
+  }
 
   const bounds: Bounds = { minX: minU, minY: minZ, maxX: maxU, maxY: top };
   const tf = planTransform(bounds, opts.scale, { noRotate: true });
@@ -186,12 +219,32 @@ export function buildSectionScene(p: Project, opts: SectionOptions = {}): Sectio
     }, b.id);
   }
 
-  // ── đường đất + gạch chân ─────────────────────────────────
+  // ── mái dốc bị cắt: dải poché giữa mặt trên và mặt dưới (P7) ──
+  for (const rc of roofCuts) {
+    if (rc.pts.length < 2) continue;
+    const strip: Point[] = [
+      ...rc.pts,
+      ...[...rc.pts].reverse().map(([uu, z]) => [uu, z - rc.drop] as Point),
+    ];
+    push("TUONG-CAT", { kind: "polygon", pts: strip, fill: "#000000", weight: W.cut }, rc.id);
+  }
+
+  // ── đường đất + gạch chân (đất dốc theo terrain) ──────────
   const g0 = minU - mm(8);
   const g1 = maxU + mm(8);
-  push("TUONG-CAT", { kind: "line", a: [g0, 0], b: [g1, 0], weight: W.frame });
-  for (let x = g0; x <= g1; x += mm(3)) {
-    push("TUONG-THAY", { kind: "line", a: [x, 0], b: [x - mm(1.6), -mm(1.6)], weight: W.hair });
+  if (hasTerrain) {
+    const pts: Point[] = [];
+    for (let x = g0; x <= g1; x += mm(3)) pts.push([x, groundU(Math.max(minU, Math.min(maxU, x)))]);
+    pts.push([g1, groundU(maxU)]);
+    push("TUONG-CAT", { kind: "polyline", pts, weight: W.frame });
+    for (const [x, z] of pts) {
+      push("TUONG-THAY", { kind: "line", a: [x, z], b: [x - mm(1.6), z - mm(1.6)], weight: W.hair });
+    }
+  } else {
+    push("TUONG-CAT", { kind: "line", a: [g0, 0], b: [g1, 0], weight: W.frame });
+    for (let x = g0; x <= g1; x += mm(3)) {
+      push("TUONG-THAY", { kind: "line", a: [x, 0], b: [x - mm(1.6), -mm(1.6)], weight: W.hair });
+    }
   }
 
   // ── cao độ + dim đứng + trục ──────────────────────────────

@@ -19,12 +19,14 @@ The model is **one JSON file** (`atelier.project.json`). Everything else — dra
 type Project = {
   meta: { id: string; name: string; revision: number; unit: "mm"; app: "atelier/0.x" };
   brief: Brief;                    // see 02-design-process.md
+  config?: ProjectConfig;          // P6 (doc 12): region/typology/rule packs — empty = VN set
   site: Site;
   axes: { x: Axis[]; y: Axis[] };  // grid axes 1,2,3… / A,B,C…
   levels: Level[];
   walls: Wall[];
   openings: Opening[];             // doors + windows
   slabs: Slab[];                   // floors, flat roofs — with holes (stair, light well)
+  roofs?: Roof[];                  // PITCHED roofs (P7) — legacy files without this field stay valid
   stairs: Stair[];
   rooms: Room[];
   furniture: Furniture[];
@@ -33,11 +35,26 @@ type Project = {
   underlay?: Underlay;             // old drawing/photo traced under the plan (scaffolding, never exported)
 };
 
+type ProjectConfig = {             // P6 — docs 12/13
+  region?: string;                 // empty = "vn" → the VN standards packs, as before
+  typology?: string;               // "nha-ong" | "biet-thu"… — unlocks rules tagged with typologies
+  packs?: string[];                // explicit pack list override (the geo core always runs)
+};
+
 type Site = {
   boundary: [number, number][];    // polygon — irregular lots accepted
   north: number;                    // degrees north deviates from y+
-  front: number;                    // which edge is the street front (boundary edge index)
+  front: number;                    // PRIMARY street-front edge (boundary edge index) — elevations project it
   setbacks?: { front?: number; back?: number; left?: number; right?: number };
+  edges?: SiteEdge[];              // P7: per-edge attributes — corner lots with several frontages
+  terrain?: { elevations: number[] }; // P7: GROUND level at each boundary vertex (mm vs ±0.000,
+                                   // negative = ground below the ground-floor datum); empty = flat at z=0.
+                                   // Interpolated inside the lot via IDW (groundAt).
+};
+
+type SiteEdge = {                  // edge boundary[i] → boundary[i+1]
+  kind?: "street" | "alley" | "neighbor"; // street/alley = open side (PLN-06 allows canopy/roof overhang)
+  setback?: number;                // setback for THIS edge (mm) — checked by PLN-07
 };
 
 type Axis  = { id: string; offset: number; label?: string };
@@ -67,6 +84,27 @@ type Slab = {
   outline: [number, number][];
   holes?: [number, number][][];                    // stair holes, light wells
   thickness: number;                               // default 120
+};
+
+/**
+ * PITCHED roof (P7 — doc 12). v1 conventions:
+ * - level = the TOP storey the roof covers; eave underside at z = level.elevation + level.height.
+ * - outline = plan projection of the OUTER roof edge, overhang INCLUDED (overhang is metadata).
+ * - pitch in DEGREES (typically 18–34°). Flat concrete roofs stay Slab roof-flat.
+ * - gable: ridge along ridgeAxis through the bbox centre (2 planes); shed: 1 plane, high edge
+ *   on highSide; hip: 4 planes on the bbox — outline should be a RECTANGLE (straight skeleton is v2).
+ * - One geometry source for every renderer: geometry/roof.ts (roofGeometry + roofProfile).
+ */
+type Roof = {
+  id: string; level: string;
+  kind: "gable" | "hip" | "shed";
+  outline: [number, number][];
+  pitch: number;                                   // degrees
+  ridgeAxis?: "x" | "y";                           // empty = the LONG bbox axis
+  highSide?: "min" | "max";                        // shed only; default "min"
+  overhang?: number;                               // mm — metadata (outline already includes it)
+  thickness?: number;                              // structural depth normal to the plane; default 150
+  material?: string;                               // "ngoi" | "ton" — feeds estimate (mai_ngoi 0.7 / mai_ton 0.3)
 };
 
 type Stair = {

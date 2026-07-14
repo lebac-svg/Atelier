@@ -5,11 +5,12 @@ import type { EntityKind, Op, Project } from "@atelier/core";
  * gửi lại như op thường (vẫn qua validate + revision). Không đụng op của Claude.
  */
 
-const LIST_KEY: Partial<Record<EntityKind, "levels" | "walls" | "openings" | "slabs" | "stairs" | "rooms" | "furniture">> = {
+const LIST_KEY: Partial<Record<EntityKind, "levels" | "walls" | "openings" | "slabs" | "roofs" | "stairs" | "rooms" | "furniture">> = {
   level: "levels",
   wall: "walls",
   opening: "openings",
   slab: "slabs",
+  roof: "roofs",
   stair: "stairs",
   room: "rooms",
   furniture: "furniture",
@@ -17,7 +18,7 @@ const LIST_KEY: Partial<Record<EntityKind, "levels" | "walls" | "openings" | "sl
 
 function findEntity(p: Project, entity: EntityKind, id: string): Record<string, unknown> | null {
   const key = LIST_KEY[entity];
-  if (key) return ((p[key] as Array<{ id: string }>).find((e) => e.id === id) as Record<string, unknown>) ?? null;
+  if (key) return (((p[key] ?? []) as Array<{ id: string }>).find((e) => e.id === id) as Record<string, unknown>) ?? null;
   if (entity === "axis") return ([...p.axes.x, ...p.axes.y].find((a) => a.id === id) as Record<string, unknown>) ?? null;
   if (entity === "style") return (p.styles.openings[id] as unknown as Record<string, unknown>) ?? null;
   if (entity === "finish") return (p.finishes[id] as unknown as Record<string, unknown>) ?? null;

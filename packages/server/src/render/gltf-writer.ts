@@ -1,5 +1,5 @@
 import {
-  add, getAsset, pointOnWall, rotate, scale as vscale, stairLayout, wallDir, wallLength,
+  add, getAsset, pointOnWall, roofGeometry, roofsOf, rotate, scale as vscale, stairLayout, wallDir, wallLength,
   wallNormal, wallPieces, type Point, type Polygon, type Project,
 } from "@atelier/core";
 
@@ -24,6 +24,7 @@ const COLOR: Record<string, [number, number, number]> = {
   glass: [0.61, 0.78, 0.91],
   door: [0.69, 0.54, 0.41],
   slab: [0.9, 0.87, 0.81],
+  roof: [0.79, 0.72, 0.64],
   stair: [0.85, 0.82, 0.74],
   furniture: [0.69, 0.67, 0.61],
   giuong: [0.56, 0.64, 0.75],
@@ -199,6 +200,37 @@ export function buildMeshes(p: Project): MeshData[] {
     const top = s.kind === "floor" ? level.elevation : level.elevation + level.height;
     const m = mesh(s.id, "slab");
     pushPrism(m, s.outline, top - s.thickness, top); // v1: chưa khoét lỗ
+  }
+
+  for (const rf of roofsOf(p)) {
+    const level = p.levels.find((l) => l.id === rf.level);
+    if (!level) continue;
+    const g = roofGeometry(rf, level);
+    const m = mesh(rf.id, "roof");
+    // tấm mái = mặt trên + mặt dưới (hạ đứng t/cos pitch) + diềm quanh mép
+    const drop = (rf.thickness ?? 150) / Math.cos((rf.pitch * Math.PI) / 180);
+    for (const face of g.faces) {
+      const flat: Polygon = face.map(([x, y]) => [x, y]);
+      const tris = earClip(flat);
+      const zOf = new Map(face.map((v, i) => [i, v[2]]));
+      const baseTop = m.positions.length / 3;
+      for (const [i, v] of face.entries()) {
+        m.positions.push(...toGltf([v[0], v[1], zOf.get(i)!]));
+        m.normals.push(0, 1, 0); // xấp xỉ — viewer tự shade phẳng theo tam giác cũng ổn mức concept
+      }
+      for (let i = 0; i < tris.length; i += 3) m.indices.push(baseTop + tris[i]!, baseTop + tris[i + 1]!, baseTop + tris[i + 2]!);
+      const baseBot = m.positions.length / 3;
+      for (const [i, v] of face.entries()) {
+        m.positions.push(...toGltf([v[0], v[1], zOf.get(i)! - drop]));
+        m.normals.push(0, -1, 0);
+      }
+      for (let i = 0; i < tris.length; i += 3) m.indices.push(baseBot + tris[i + 2]!, baseBot + tris[i + 1]!, baseBot + tris[i]!);
+      for (let i = 0; i < face.length; i++) {
+        const a = face[i]!;
+        const b = face[(i + 1) % face.length]!;
+        pushQuad(m, [a[0], a[1], a[2] - drop], [b[0], b[1], b[2] - drop], [b[0], b[1], b[2]], [a[0], a[1], a[2]]);
+      }
+    }
   }
 
   for (const st of p.stairs) {

@@ -28,10 +28,17 @@ describe("P4 — mặt đứng", () => {
     expect(b.tf.rotated).toBe(false); // trục đứng là trọng lực — không bao giờ xoay
   });
 
-  it("không có tường mặt tiền → lỗi chỉ đường site.front", () => {
+  it("xóa tường sát ranh → mặt đứng LÙI vào cụm tường song song kế tiếp (quy ước v2 — P7); hết tường song song mới lỗi", () => {
     const empty = structuredClone(p);
     empty.walls = empty.walls.filter((w) => w.id !== "W1" && w.id !== "W9");
-    expect(() => buildElevationScene(empty)).toThrow(/site\.front/);
+    expect(() => buildElevationScene(empty)).not.toThrow(); // biệt thự lùi ranh vẫn có mặt đứng
+    const none = structuredClone(p);
+    none.walls = none.walls.filter((w) => {
+      const dx = Math.abs(w.to[0] - w.from[0]);
+      const dy = Math.abs(w.to[1] - w.from[1]);
+      return dx < dy; // bỏ mọi tường ngang (song song cạnh mặt tiền)
+    });
+    expect(() => buildElevationScene(none)).toThrow(/site\.front/);
   });
 
   it("golden SVG mặt đứng", async () => {

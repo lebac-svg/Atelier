@@ -114,6 +114,7 @@ export function geo05(p: Project): Finding[] {
     check(s.outline, s.id);
     (s.holes ?? []).forEach((h, i) => check(h, `${s.id}:hole${i + 1}`));
   }
+  for (const rf of p.roofs ?? []) check(rf.outline, rf.id);
   return out;
 }
 
