@@ -17,6 +17,11 @@ export type SheetFrameOptions = {
   designer?: string;
   /** Hướng bắc TRÊN GIẤY (đơn vị hóa) — chỉ mặt bằng mới có. */
   northPaperDir?: Point;
+  /**
+   * Bộ rule đang áp có số chưa đối chiếu văn bản gốc (P9 — theo project, vì
+   * pack region khác có thể chưa verify). Bỏ trống = soi bộ builtin như cũ.
+   */
+  unverified?: boolean;
 };
 
 /**
@@ -52,7 +57,7 @@ export function drawSheetFrame(push: FramePush, o: SheetFrameOptions): void {
 
   // ghi chú cố định + cờ ⚠ số liệu chưa verify
   T(m + 3, y1 - 5.4, "Bản vẽ concept — không thay thế hồ sơ thiết kế có chữ ký KTS hành nghề.", 2.0);
-  if (unverifiedRules().length > 0) {
+  if (o.unverified ?? unverifiedRules().length > 0) {
     T(m + 3, y1 - 2.6, "⚠ Một số số liệu tiêu chuẩn đang ở mức tham khảo (chưa đối chiếu văn bản gốc).", 2.0);
   }
 

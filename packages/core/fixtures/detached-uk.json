@@ -1,0 +1,215 @@
+{
+  "meta": {
+    "id": "detached-uk",
+    "name": "UK detached — 3 bed, gable roof",
+    "revision": 1,
+    "unit": "mm",
+    "app": "atelier/0.1"
+  },
+  "config": { "region": "uk", "typology": "detached" },
+  "brief": {
+    "dat": {
+      "ranh_gioi": [[0, 0], [15000, 0], [15000, 30000], [0, 30000]],
+      "huong_truoc": "South",
+      "tiep_giap": { "truoc": "street", "sau": "garden", "trai": "neighbour", "phai": "neighbour" }
+    },
+    "gia_dinh": "family of four",
+    "nhu_cau": { "phong_ngu": 3, "wc": 2 },
+    "ngan_sach": { "muc": "—", "hoan_thien": "standard" },
+    "gu": { "phong_cach": "suburban detached", "mau": "brick - slate" }
+  },
+  "site": {
+    "boundary": [[0, 0], [15000, 0], [15000, 30000], [0, 30000]],
+    "north": 0,
+    "front": 0,
+    "edges": [
+      { "kind": "street" },
+      { "kind": "neighbor" },
+      { "kind": "neighbor" },
+      { "kind": "neighbor" }
+    ]
+  },
+  "axes": {
+    "x": [
+      { "id": "A", "offset": 3200 },
+      { "id": "B", "offset": 11800 }
+    ],
+    "y": [
+      { "id": "1", "offset": 4200 },
+      { "id": "2", "offset": 12800 }
+    ]
+  },
+  "levels": [
+    { "id": "L1", "name": "Ground floor", "elevation": 0, "height": 2700 },
+    { "id": "L2", "name": "First floor", "elevation": 2700, "height": 2600 }
+  ],
+  "walls": [
+    { "id": "W1", "level": "L1", "from": [3200, 4200], "to": [11800, 4200], "thickness": 300, "kind": "gach" },
+    { "id": "W2", "level": "L1", "from": [11800, 4200], "to": [11800, 12800], "thickness": 300, "kind": "gach" },
+    { "id": "W3", "level": "L1", "from": [11800, 12800], "to": [3200, 12800], "thickness": 300, "kind": "gach" },
+    { "id": "W4", "level": "L1", "from": [3200, 12800], "to": [3200, 4200], "thickness": 300, "kind": "gach" },
+    { "id": "W5", "level": "L1", "from": [7000, 4200], "to": [7000, 12800], "thickness": 110, "kind": "vach-nhe" },
+    { "id": "W6", "level": "L1", "from": [3200, 8600], "to": [7000, 8600], "thickness": 110, "kind": "vach-nhe" },
+    { "id": "W7", "level": "L1", "from": [7000, 7600], "to": [11800, 7600], "thickness": 110, "kind": "vach-nhe" },
+    { "id": "W8", "level": "L1", "from": [8600, 7600], "to": [8600, 9600], "thickness": 110, "kind": "vach-nhe" },
+    { "id": "W9", "level": "L1", "from": [7000, 9600], "to": [11800, 9600], "thickness": 110, "kind": "vach-nhe" },
+    { "id": "W10", "level": "L2", "from": [3200, 4200], "to": [11800, 4200], "thickness": 300, "kind": "gach" },
+    { "id": "W11", "level": "L2", "from": [11800, 4200], "to": [11800, 12800], "thickness": 300, "kind": "gach" },
+    { "id": "W12", "level": "L2", "from": [11800, 12800], "to": [3200, 12800], "thickness": 300, "kind": "gach" },
+    { "id": "W13", "level": "L2", "from": [3200, 12800], "to": [3200, 4200], "thickness": 300, "kind": "gach" },
+    { "id": "W14", "level": "L2", "from": [7000, 4200], "to": [7000, 12800], "thickness": 110, "kind": "vach-nhe" },
+    { "id": "W15", "level": "L2", "from": [3200, 8600], "to": [7000, 8600], "thickness": 110, "kind": "vach-nhe" },
+    { "id": "W16", "level": "L2", "from": [8600, 7600], "to": [11800, 7600], "thickness": 110, "kind": "vach-nhe" },
+    { "id": "W17", "level": "L2", "from": [8600, 7600], "to": [8600, 9600], "thickness": 110, "kind": "vach-nhe" },
+    { "id": "W18", "level": "L2", "from": [7000, 9600], "to": [11800, 9600], "thickness": 110, "kind": "vach-nhe" }
+  ],
+  "openings": [
+    { "id": "D1", "wall": "W1", "kind": "door", "style": "DC", "offset": 6200, "width": 900, "height": 2100, "sill": 0, "swing": "in-L" },
+    { "id": "S1", "wall": "W1", "kind": "window", "style": "SW", "offset": 800, "width": 1800, "height": 1400, "sill": 900 },
+    { "id": "D2", "wall": "W5", "kind": "door", "style": "DP", "offset": 900, "width": 800, "height": 2040, "sill": 0, "swing": "in-L" },
+    { "id": "D3", "wall": "W5", "kind": "door", "style": "DP", "offset": 6000, "width": 800, "height": 2040, "sill": 0, "swing": "in-R" },
+    { "id": "D4", "wall": "W6", "kind": "door", "style": "DP", "offset": 1400, "width": 800, "height": 2040, "sill": 0, "swing": "in-L" },
+    { "id": "D5", "wall": "W7", "kind": "door", "style": "DW", "offset": 600, "width": 750, "height": 2040, "sill": 0, "swing": "in-R" },
+    { "id": "D10", "wall": "W9", "kind": "door", "style": "DP", "offset": 2400, "width": 750, "height": 2040, "sill": 0, "swing": "in-L" },
+    { "id": "S2", "wall": "W4", "kind": "window", "style": "SW", "offset": 1500, "width": 1500, "height": 1400, "sill": 900 },
+    { "id": "S3", "wall": "W2", "kind": "window", "style": "SW", "offset": 6500, "width": 1500, "height": 1400, "sill": 900 },
+    { "id": "D6", "wall": "W14", "kind": "door", "style": "DP", "offset": 1000, "width": 800, "height": 2040, "sill": 0, "swing": "in-L" },
+    { "id": "D7", "wall": "W14", "kind": "door", "style": "DP", "offset": 4700, "width": 800, "height": 2040, "sill": 0, "swing": "in-L" },
+    { "id": "D8", "wall": "W17", "kind": "door", "style": "DW", "offset": 500, "width": 750, "height": 2040, "sill": 0, "swing": "in-R" },
+    { "id": "D9", "wall": "W18", "kind": "door", "style": "DP", "offset": 400, "width": 800, "height": 2040, "sill": 0, "swing": "in-R" },
+    { "id": "S4", "wall": "W10", "kind": "window", "style": "SW", "offset": 1100, "width": 1500, "height": 1300, "sill": 900 },
+    { "id": "S5", "wall": "W13", "kind": "window", "style": "SW", "offset": 1500, "width": 1500, "height": 1300, "sill": 900 },
+    { "id": "S6", "wall": "W12", "kind": "window", "style": "SW", "offset": 1500, "width": 1500, "height": 1300, "sill": 900 },
+    { "id": "S7", "wall": "W11", "kind": "window", "style": "SW", "offset": 4200, "width": 800, "height": 600, "sill": 1200 }
+  ],
+  "slabs": [
+    {
+      "id": "SL1",
+      "level": "L1",
+      "kind": "floor",
+      "outline": [[3050, 4050], [11950, 4050], [11950, 12950], [3050, 12950]],
+      "thickness": 120
+    },
+    {
+      "id": "SL2",
+      "level": "L2",
+      "kind": "floor",
+      "outline": [[3050, 4050], [11950, 4050], [11950, 12950], [3050, 12950]],
+      "holes": [[[10400, 4550], [11500, 4550], [11500, 7510], [10400, 7510]]],
+      "thickness": 120
+    }
+  ],
+  "roofs": [
+    {
+      "id": "RF1",
+      "level": "L2",
+      "kind": "gable",
+      "outline": [[2700, 3700], [12300, 3700], [12300, 13300], [2700, 13300]],
+      "pitch": 35,
+      "overhang": 350,
+      "thickness": 150,
+      "material": "slate"
+    }
+  ],
+  "stairs": [
+    {
+      "id": "ST1",
+      "level": "L1",
+      "type": "1-ve",
+      "origin": [10500, 4650],
+      "rotation": 0,
+      "width": 900,
+      "steps": 13,
+      "tread": 230
+    }
+  ],
+  "rooms": [
+    {
+      "id": "R1",
+      "level": "L1",
+      "name": "Lounge",
+      "polygon": [[3350, 4350], [6945, 4350], [6945, 8545], [3350, 8545]],
+      "use": "khach"
+    },
+    {
+      "id": "R2",
+      "level": "L1",
+      "name": "Kitchen/diner",
+      "polygon": [[3350, 8655], [6945, 8655], [6945, 12650], [3350, 12650]],
+      "use": "bep-an"
+    },
+    {
+      "id": "R3",
+      "level": "L1",
+      "name": "Hall",
+      "polygon": [[7055, 4350], [11650, 4350], [11650, 7545], [7055, 7545]],
+      "use": "cau-thang"
+    },
+    {
+      "id": "R4",
+      "level": "L1",
+      "name": "Cloakroom",
+      "polygon": [[7055, 7655], [8545, 7655], [8545, 9545], [7055, 9545]],
+      "use": "wc"
+    },
+    {
+      "id": "R5",
+      "level": "L1",
+      "name": "Utility",
+      "polygon": [[8655, 7655], [11650, 7655], [11650, 9545], [8655, 9545]],
+      "use": "kho"
+    },
+    {
+      "id": "R6",
+      "level": "L1",
+      "name": "Family room",
+      "polygon": [[7055, 9655], [11650, 9655], [11650, 12650], [7055, 12650]],
+      "use": "khach"
+    },
+    {
+      "id": "R7",
+      "level": "L2",
+      "name": "Bedroom 1",
+      "polygon": [[3350, 4350], [6945, 4350], [6945, 8545], [3350, 8545]],
+      "use": "ngu"
+    },
+    {
+      "id": "R8",
+      "level": "L2",
+      "name": "Bedroom 2",
+      "polygon": [[3350, 8655], [6945, 8655], [6945, 12650], [3350, 12650]],
+      "use": "ngu"
+    },
+    {
+      "id": "R9",
+      "level": "L2",
+      "name": "Landing",
+      "polygon": [[7055, 4350], [11650, 4350], [11650, 7545], [8545, 7545], [8545, 9545], [7055, 9545]],
+      "use": "cau-thang"
+    },
+    {
+      "id": "R10",
+      "level": "L2",
+      "name": "Bathroom",
+      "polygon": [[8655, 7655], [11650, 7655], [11650, 9545], [8655, 9545]],
+      "use": "wc"
+    },
+    {
+      "id": "R11",
+      "level": "L2",
+      "name": "Bedroom 3",
+      "polygon": [[7055, 9655], [11650, 9655], [11650, 12650], [7055, 12650]],
+      "use": "ngu"
+    }
+  ],
+  "furniture": [],
+  "styles": {
+    "openings": {
+      "DC": { "label": "Front door", "kind": "door", "leaf": "1-canh", "material": "composite" },
+      "DP": { "label": "Internal door", "kind": "door", "leaf": "1-canh", "material": "timber" },
+      "DW": { "label": "WC door", "kind": "door", "leaf": "1-canh", "material": "timber" },
+      "SW": { "label": "Casement window", "kind": "window", "leaf": "2-canh", "material": "uPVC" }
+    }
+  },
+  "finishes": {}
+}

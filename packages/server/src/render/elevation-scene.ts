@@ -1,5 +1,5 @@
 import {
-  groundAt, normalize, pointOnWall, roofGeometry, roofsOf, sub,
+  groundAt, normalize, pointOnWall, roofGeometry, roofsOf, sub, unverifiedRules,
   type Level, type Opening, type Point, type Project, type Wall,
 } from "@atelier/core";
 import { dimTick, drawSheetFrame } from "./frame.js";
@@ -150,6 +150,7 @@ export function buildElevationScene(p: Project, opts: ElevationOptions = {}): El
   drawFacadeAxes(p, A, d, len, top, mm, push);
 
   drawSheetFrame(push, {
+    unverified: unverifiedRules(p).length > 0,
     projectName: p.meta.name,
     app: p.meta.app,
     title: "MẶT ĐỨNG CHÍNH",

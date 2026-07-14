@@ -19,6 +19,8 @@ export type DonGia = {
   version: string;
   ghi_chu: string;
   tham_khao: boolean;
+  /** Tiền tệ của bảng — bỏ trống = VND (bảng VN gốc). Bảng cộng đồng khai rõ. */
+  currency?: { code: string; symbol: string; locale: string };
   don_gia_m2: {
     xay_tho: { label: string; vnd: number };
     hoan_thien: Record<string, { label: string; vnd: number }>;
@@ -39,6 +41,16 @@ export const DON_GIA: DonGia = structuredClone(DON_GIA_GOC);
 export function setDonGia(d: Partial<DonGia> | null): void {
   for (const k of Object.keys(DON_GIA)) delete (DON_GIA as unknown as Record<string, unknown>)[k];
   Object.assign(DON_GIA, structuredClone(DON_GIA_GOC), d ? structuredClone(d) : {});
+}
+
+/**
+ * Bảng đơn giá cho một region (P9): bảng đóng gói là giá VN — chỉ áp cho
+ * region "vn" (hoặc project chưa khai region). Region khác chưa có bảng →
+ * null: estimate chỉ trả KHỐI LƯỢNG, không nhân tiền (không VND lạc region).
+ * Bảng đè từ thư mục dự án (setDonGia) coi như bảng của region dự án đó.
+ */
+export function donGiaFor(region: string | undefined): DonGia | null {
+  return region == null || region === "vn" ? DON_GIA : null;
 }
 
 export type FinishLevel = "co-ban" | "trung-binh-kha" | "cao-cap";
@@ -208,6 +220,24 @@ export type Estimate = {
 
 export function estimateCost(p: Project, muc?: FinishLevel): Estimate {
   const q = computeQuantities(p);
+
+  // Region chưa có bảng đơn giá (P9): trả khối lượng thật, KHÔNG nhân tiền —
+  // không để giá VND lạc sang dự toán region khác.
+  const table = donGiaFor(p.config?.region);
+  if (!table) {
+    return {
+      quantities: q,
+      muc: muc ?? "trung-binh-kha",
+      items: [],
+      tong_vnd: 0,
+      ghi_chu: [
+        ...q.ghi_chu,
+        `Chưa có bảng đơn giá cho region "${p.config?.region}" — dự toán chỉ gồm khối lượng. Đóng góp bảng giá theo docs/13 (rules/don-gia.json + currency).`,
+        "Hệ số quy đổi đang dùng bảng mặc định (nếp tính thầu VN) — chỉ để tham khảo khối lượng.",
+      ],
+    };
+  }
+
   const level = muc ?? suggestFinishLevel(p);
   const hoanThien = DON_GIA.don_gia_m2.hoan_thien[level] ?? DON_GIA.don_gia_m2.hoan_thien["trung-binh-kha"]!;
   const items: EstimateItem[] = [

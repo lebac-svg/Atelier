@@ -4,6 +4,7 @@ import bietThuDocJson from "../fixtures/biet-thu-doc.json" with { type: "json" }
 import nhaCap4Json from "../fixtures/nha-cap-4.json" with { type: "json" };
 import nhaVuonJson from "../fixtures/nha-vuon.json" with { type: "json" };
 import canHoJson from "../fixtures/can-ho.json" with { type: "json" };
+import detachedUkJson from "../fixtures/detached-uk.json" with { type: "json" };
 
 /** Fixture chuẩn: nhà ống 4×16m, 2 tầng, 3PN — dùng cho golden tests + template. */
 export const NHA_ONG_4X16 = nhaOng4x16Json as unknown as Project;
@@ -42,4 +43,14 @@ export const CAN_HO = canHoJson as unknown as Project;
 
 export function loadCanHo(): Project {
   return structuredClone(CAN_HO);
+}
+
+/**
+ * Fixture P9 (DoD doc 12): detached UK 2 tầng gable — region "uk", validate
+ * bằng pack Approved Documents, KHÔNG dính TCVN/Lỗ Ban/VND ở bất kỳ đâu.
+ */
+export const DETACHED_UK = detachedUkJson as unknown as Project;
+
+export function loadDetachedUk(): Project {
+  return structuredClone(DETACHED_UK);
 }

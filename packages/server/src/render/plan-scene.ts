@@ -1,6 +1,6 @@
 import {
   add, areaM2, furnitureObb, getAsset, getLevel, levelAbove, obbCorners, openingSpan,
-  floorSlabOf, pointOnWall, roofGeometry, roofsOfLevel, rotate, scale as vscale, stairLayout, sub,
+  floorSlabOf, pointOnWall, roofGeometry, roofsOfLevel, rotate, scale as vscale, stairLayout, sub, unverifiedRules,
   wallBand, wallDir, wallLength, wallNormal, type Furniture, type Level, type Opening,
   type Point, type Project, type Wall,
 } from "@atelier/core";
@@ -78,6 +78,7 @@ export function buildPlanScene(p: Project, levelId: string, opts: PlanOptions = 
   drawSectionMark(p, levelId, bounds, mm, push);
   drawRoomLabels(p, level, tf, paperVec, push);
   drawSheetFrame(push, {
+    unverified: unverifiedRules(p).length > 0,
     projectName: p.meta.name,
     app: p.meta.app,
     title: `MẶT BẰNG ${level.name}`,

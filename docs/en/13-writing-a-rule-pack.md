@@ -91,7 +91,29 @@ No `config` → the default VN built-in set, behaving like a legacy project. `co
 
 ## Registering a pack
 
-Built-in pack: add it to `BUILTIN_PACKS` in `packages/core/src/validate/rules.ts`. Extra pack (another region/community): `registerPack(toPack(json))` — see the `std-generic` registration as a model. (Loading packs dynamically from the project directory is P9 work.)
+Built-in pack: add it to `BUILTIN_PACKS` in `packages/core/src/validate/rules.ts`. Extra pack (another region/community): `registerPack(toPack(json))` — see `std-generic` (minimal sample) and `uk-approved-docs` (a real region) as models.
+
+## Regions (P9)
+
+A region bundles what a locale needs: display units + default packs + estimate currency.
+
+```ts
+registerRegion({
+  id: "uk",
+  title: "United Kingdom (England)",
+  units: "metric",                       // the model is ALWAYS mm (ADR-04) — this is display only
+  packs: ["uk-approved-docs"],           // IN RUN ORDER; customs modules also live here
+  // omitting currency = no price table yet → estimates return quantities only, the estimate sheet withdraws itself
+});
+```
+
+- A project selects its region via `config.region`; packs resolve from `RegionDef.packs` (the `geo` core always runs).
+- **Region DoD**: a project in your region must never see another region's standards/customs/currency anywhere — rules, drawings, estimate. Sample tests: the P9 block in `rules.test.ts`.
+- Numbers not yet checked against the source (`verified: false`) put a ⚠ footnote on drawings — per the project's OWN pack set (`unverifiedRules(p)`), not a global flag.
+- Per-region price tables: same shape as `rules/don-gia.json` plus `currency {code, symbol, locale}`; project-folder override via the existing `setDonGia` mechanism.
+- Customs modules = packs with `kind: "customs"` — only add one backed by a QUANTITATIVE written source (doc 12 Annex A3 rejected adding vastu/feng shui by analogy).
+
+Full contribution checklists for all three kinds (pack / template / region): see `CONTRIBUTING.md` at the repo root.
 
 ## Tests — one failing + one passing per rule
 

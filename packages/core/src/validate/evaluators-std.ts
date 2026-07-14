@@ -5,7 +5,7 @@ import { area, areaM2, minPolygonWidth, pointInPolygon } from "../geometry/polyg
 import { stairLayout } from "../geometry/stair.js";
 import { openingSidePoints, wallBand } from "../geometry/wall.js";
 import { clearHeight, floorSlabOf, getLevel, getWall, levelAbove, levelsSorted, roomsAdjacent, roomsAtPoint, roomsOfLevel } from "../model.js";
-import type { Polygon, Project, Room } from "../types.js";
+import type { Point, Polygon, Project, Room } from "../types.js";
 import { add, rotate } from "../geometry/vec.js";
 import type { Finding } from "./finding.js";
 import type { RuleDef } from "./rules.js";
@@ -94,6 +94,18 @@ export function std04(p: Project, def: RuleDef): Finding[] {
   return out;
 }
 
+/**
+ * Điểm "ngoài trời" (P7/P9): ngoài ranh đất (hẻm/đường), HOẶC trong lô nhưng
+ * không thuộc phòng nào và ngoài sàn (sân/vườn của nhà lùi ranh). Dùng chung
+ * cho STD-05 (phân loại cửa chính) và STD-09 (lấy sáng).
+ */
+function isOutdoorPoint(p: Project, levelId: string, pt: Point): boolean {
+  if (!pointInPolygon(pt, p.site.boundary)) return true;
+  if (roomsAtPoint(p, levelId, pt).length > 0) return false;
+  const slab = floorSlabOf(p, levelId);
+  return !slab || !pointInPolygon(pt, slab.outline);
+}
+
 export function std05(p: Project, def: RuleDef): Finding[] {
   const prm = def.params!;
   const out: Finding[] = [];
@@ -105,7 +117,7 @@ export function std05(p: Project, def: RuleDef): Finding[] {
     const roomsA = roomsAtPoint(p, w.level, pa);
     const roomsB = roomsAtPoint(p, w.level, pb);
     const isWc = [...roomsA, ...roomsB].some((r) => r.use === "wc");
-    const isExterior = !pointInPolygon(pa, p.site.boundary) || !pointInPolygon(pb, p.site.boundary);
+    const isExterior = isOutdoorPoint(p, w.level, pa) || isOutdoorPoint(p, w.level, pb);
     const [min, loai] = isWc
       ? [prm.wc!, "cửa WC"]
       : isExterior
@@ -196,13 +208,7 @@ function roomHasNaturalLight(p: Project, room: Room): boolean {
     const bIn = pointInPolygon(pb, room.polygon);
     if (!aIn && !bIn) continue;
     const other = aIn ? pb : pa;
-    if (!pointInPolygon(other, p.site.boundary)) return true; // ra ngoài ranh (hẻm/đường)
-    // P7: nhà lùi trong lô (biệt thự) — sân/vườn TRONG ranh vẫn là ngoài trời:
-    // điểm phía kia không thuộc phòng nào và nằm ngoài sàn của tầng
-    if (roomsAtPoint(p, room.level, other).length === 0) {
-      const slab = floorSlabOf(p, room.level);
-      if (!slab || !pointInPolygon(other, slab.outline)) return true;
-    }
+    if (isOutdoorPoint(p, room.level, other)) return true; // hẻm/đường hoặc sân trong lô
     if (roomsAtPoint(p, room.level, other).some((r) => r.use === "gieng-troi")) return true;
   }
   // (b) mở thông sang giếng trời (chạm cạnh thật sự, không qua tường)

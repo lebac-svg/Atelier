@@ -1,5 +1,5 @@
 import {
-  groundAt, pointOnWall, polygonBounds, roofGeometry, roofProfile, roofsOf, stairLayout, wallLength,
+  groundAt, pointOnWall, polygonBounds, roofGeometry, roofProfile, roofsOf, stairLayout, unverifiedRules, wallLength,
   type Level, type Point, type Polygon, type Project, type Wall,
 } from "@atelier/core";
 import { drawLevelMark, drawVerticalDims } from "./elevation-scene.js";
@@ -262,6 +262,7 @@ export function buildSectionScene(p: Project, opts: SectionOptions = {}): Sectio
   }
 
   drawSheetFrame(push, {
+    unverified: unverifiedRules(p).length > 0,
     projectName: p.meta.name,
     app: p.meta.app,
     title: "MẶT CẮT A-A",

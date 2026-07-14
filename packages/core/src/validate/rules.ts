@@ -5,6 +5,7 @@ import stdJson from "../../rules/std-vn.json" with { type: "json" };
 import lobanJson from "../../rules/loban.json" with { type: "json" };
 import plnJson from "../../rules/pln.json" with { type: "json" };
 import genericJson from "../../rules/std-generic.json" with { type: "json" };
+import ukJson from "../../rules/uk-approved-docs.json" with { type: "json" };
 
 export type RuleSource = { vanBan?: string; dieu?: string; verified: boolean };
 
@@ -88,6 +89,57 @@ export function listPacks(): RulePack[] {
 // Pack MẪU ngoài bộ VN — chứng minh cơ chế chọn pack (region "generic").
 // Region thật (UK/US…) sẽ đăng ký y hệt qua quy trình contributor (docs/13).
 registerPack(toPack(genericJson as PackJson));
+// UK Approved Documents (P9) — pack region thật đầu tiên ngoài VN.
+registerPack(toPack(ukJson as PackJson));
+
+/* ── Region (P9 — doc 12): đơn vị hiển thị + bộ pack mặc định + tiền tệ ── */
+
+export type RegionDef = {
+  id: string;
+  title: string;
+  /** Đơn vị HIỂN THỊ — model LUÔN mm số nguyên (ADR-04). "imperial" chờ region US. */
+  units: "metric" | "imperial";
+  /**
+   * Pack áp mặc định cho region, THEO THỨ TỰ CHẠY (mô-đun phong tục như loban
+   * cũng nằm đây — kind "customs" đã khai trong pack header). Core geo luôn chạy.
+   */
+  packs: string[];
+  /** Tiền tệ dự toán; bỏ trống = region chưa có bảng đơn giá (estimate chỉ trả khối lượng). */
+  currency?: { code: string; symbol: string; locale: string };
+};
+
+const regions = new Map<string, RegionDef>();
+
+export function registerRegion(def: RegionDef): void {
+  regions.set(def.id, def);
+}
+
+export function getRegion(id: string): RegionDef | undefined {
+  return regions.get(id);
+}
+
+export function listRegions(): RegionDef[] {
+  return [...regions.values()];
+}
+
+// VN — đóng gói lại hiện trạng. Thứ tự [std-vn, loban, pln] GIỮ NGUYÊN như
+// BUILTIN_PACKS để validate của project VN byte-identical (invariant P6).
+registerRegion({
+  id: "vn",
+  title: "Việt Nam",
+  units: "metric",
+  packs: ["std-vn", "loban", "pln"],
+  currency: { code: "VND", symbol: "₫", locale: "vi-VN" },
+});
+
+// UK (England) — pack Approved Documents (chọn theo Phụ lục A doc 12: văn bản
+// mở dưới OGL). Chưa có bảng đơn giá → estimate degrade thành khối lượng.
+registerRegion({
+  id: "uk",
+  title: "United Kingdom (England)",
+  units: "metric",
+  packs: ["uk-approved-docs"],
+});
 
 export const ALL_RULES: RuleDef[] = BUILTIN_PACKS.flatMap((p) => p.rules);
 export const RULERS: { thong_thuy: RulerDef; khoi_xay: RulerDef; ban_tho: RulerDef } = loban.rulers as never;
@@ -109,7 +161,8 @@ export function getRule(id: string): RuleDef | undefined {
  * Chọn pack áp cho một project:
  * - Core pack (geo) LUÔN chạy — hình học đúng ở mọi nơi.
  * - config.packs khai tường minh → dùng đúng danh sách đó.
- * - Ngược lại suy từ config.region (mặc định "vn") → mọi pack cùng region.
+ * - Ngược lại suy từ config.region (mặc định "vn"): region ĐÃ ĐĂNG KÝ → đúng
+ *   danh sách + thứ tự trong RegionDef (P9); region lạ → mọi pack cùng region.
  * Project không khai config → đúng bộ VN builtin theo thứ tự cũ.
  */
 export function packsFor(p: Project): RulePack[] {
@@ -122,7 +175,12 @@ export function packsFor(p: Project): RulePack[] {
       .filter((pk): pk is RulePack => pk != null && pk.kind !== "core");
   } else {
     const region = cfg?.region ?? "vn";
-    selected = listPacks().filter((pk) => pk.kind !== "core" && pk.region === region);
+    const def = getRegion(region);
+    selected = def
+      ? def.packs
+          .map((id) => getPack(id))
+          .filter((pk): pk is RulePack => pk != null && pk.kind !== "core")
+      : listPacks().filter((pk) => pk.kind !== "core" && pk.region === region);
   }
   const seen = new Set<string>();
   const out: RulePack[] = [];
@@ -154,9 +212,13 @@ export function activeRules(p?: Project): RuleDef[] {
   return out;
 }
 
-/** Rules còn ⚠ chưa đối chiếu văn bản gốc — renderer in chú thích khi > 0. */
-export function unverifiedRules(): RuleDef[] {
-  return activeRules().filter((r) => r.source?.verified === false);
+/**
+ * Rules còn ⚠ chưa đối chiếu văn bản gốc — renderer in chú thích khi > 0.
+ * Truyền project để soi đúng bộ pack đang áp (P9 — pack region khác có thể
+ * chưa verify); không truyền = bộ builtin VN như cũ.
+ */
+export function unverifiedRules(p?: Project): RuleDef[] {
+  return activeRules(p).filter((r) => r.source?.verified === false);
 }
 
 /** Tra cứu rule theo từ khóa — nuôi tool standards_lookup. */

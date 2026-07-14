@@ -1,4 +1,4 @@
-import { DON_GIA, estimateCost, formatVnd, type Project } from "@atelier/core";
+import { DON_GIA, donGiaFor, estimateCost, formatVnd, unverifiedRules, type Project } from "@atelier/core";
 import { drawSheetFrame } from "./frame.js";
 import { drawTable, type Col } from "./schedule-scene.js";
 import { type LayerName, type Prim, type Scene2D } from "./scene.js";
@@ -24,6 +24,11 @@ type Push = (layer: LayerName, prim: Prim, dataId?: string, space?: "model" | "p
 const vnd = (n: number): string => n.toLocaleString("vi-VN");
 
 export function buildEstimateScene(p: Project, opts: EstimateOptions = {}): EstimateBuild {
+  // Region chưa có bảng đơn giá (P9) → tờ dự toán tự rút khỏi bộ hồ sơ
+  // (tryBuild bắt throw → vào skipped, như mặt cắt khi không có thang).
+  if (!donGiaFor(p.config?.region)) {
+    throw new Error(`Region "${p.config?.region}" chưa có bảng đơn giá — bỏ tờ dự toán (đóng góp theo docs/13).`);
+  }
   const items: Scene2D = [];
   const push: Push = (layer, prim, dataId, space) => {
     items.push({ layer, prim, ...(dataId ? { dataId } : {}), ...(space ? { space } : {}) });
@@ -101,6 +106,7 @@ export function buildEstimateScene(p: Project, opts: EstimateOptions = {}): Esti
   }, undefined, "paper");
 
   drawSheetFrame(push, {
+    unverified: unverifiedRules(p).length > 0,
     projectName: p.meta.name,
     app: p.meta.app,
     title: "DỰ TOÁN SƠ BỘ",

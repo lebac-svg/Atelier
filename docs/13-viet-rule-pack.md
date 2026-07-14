@@ -91,7 +91,29 @@ Không khai `config` → mặc định bộ VN builtin, hành vi như dự án c
 
 ## Đăng ký pack
 
-Pack builtin: thêm vào `BUILTIN_PACKS` trong `packages/core/src/validate/rules.ts`. Pack thêm (region khác/cộng đồng): `registerPack(toPack(json))` — xem dòng đăng ký `std-generic` làm mẫu. (Nạp pack động từ thư mục dự án là việc của P9.)
+Pack builtin: thêm vào `BUILTIN_PACKS` trong `packages/core/src/validate/rules.ts`. Pack thêm (region khác/cộng đồng): `registerPack(toPack(json))` — xem `std-generic` (mẫu tối giản) và `uk-approved-docs` (region thật) làm mẫu.
+
+## Region (P9)
+
+Region gói những gì một vùng cần: đơn vị hiển thị + bộ pack mặc định + tiền tệ dự toán.
+
+```ts
+registerRegion({
+  id: "uk",
+  title: "United Kingdom (England)",
+  units: "metric",                       // model LUÔN mm (ADR-04) — đây chỉ là hiển thị
+  packs: ["uk-approved-docs"],           // THEO THỨ TỰ CHẠY; mô-đun phong tục cũng nằm đây
+  // currency bỏ trống = chưa có bảng đơn giá → estimate chỉ trả khối lượng, tờ dự toán tự rút
+});
+```
+
+- Project chọn region qua `config.region`; pack suy từ `RegionDef.packs` (core `geo` luôn chạy).
+- **DoD region**: project ở region của bạn không được thấy chuẩn/phong tục/tiền tệ của region khác ở bất kỳ đâu — rule, bản vẽ, dự toán. Test mẫu: khối P9 trong `rules.test.ts`.
+- Số chưa đối chiếu văn bản (`verified: false`) làm bản vẽ in cờ ⚠ chân tờ — theo ĐÚNG bộ pack của project (`unverifiedRules(p)`), không phải cờ toàn cục.
+- Bảng đơn giá theo region: cấu trúc như `rules/don-gia.json`, khai thêm `currency {code, symbol, locale}`; bảng đè từ thư mục dự án qua cơ chế `setDonGia` sẵn có.
+- Mô-đun phong tục = pack `kind: "customs"` — chỉ thêm khi có nguồn ĐỊNH LƯỢNG thành văn (Phụ lục A3 doc 12 đã bác thêm vastu/phong thủy bằng loại suy).
+
+Checklist đóng góp đầy đủ ba loại (pack / template / region): xem `CONTRIBUTING.md` ở gốc repo.
 
 ## Test — 1 phạm + 1 đạt mỗi rule
 

@@ -1,4 +1,4 @@
-import { areaM2, type Project, type RoomUse } from "@atelier/core";
+import { areaM2, unverifiedRules, type Project, type RoomUse } from "@atelier/core";
 import { drawSheetFrame } from "./frame.js";
 import { W, type LayerName, type Prim, type Scene2D } from "./scene.js";
 import { PAPER, planTransform, type PlanTransform } from "./transform.js";
@@ -173,6 +173,7 @@ export function buildScheduleScene(p: Project, opts: ScheduleOptions = {}): Sche
   }, undefined, "paper");
 
   drawSheetFrame(push, {
+    unverified: unverifiedRules(p).length > 0,
     projectName: p.meta.name,
     app: p.meta.app,
     title: "THỐNG KÊ PHÒNG & CỬA",

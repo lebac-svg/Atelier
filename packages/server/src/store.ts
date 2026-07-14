@@ -1,7 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
-  applyOps, loadBietThuDoc, loadCanHo, loadNhaCap4, loadNhaOng4x16, loadNhaVuon, setDonGia, validateProject,
+  applyOps, loadBietThuDoc, loadCanHo, loadDetachedUk, loadNhaCap4, loadNhaOng4x16, loadNhaVuon, setDonGia, validateProject,
   type ApplyResult, type Issue, type Op, type OpOrigin, type Point, type Project,
 } from "@atelier/core";
 import { SoftLocks } from "./locks.js";
@@ -29,6 +29,7 @@ export const TEMPLATES: Record<string, { label: string; load: () => Project }> =
   "nha-cap-4": { label: "Nhà cấp 4 — 2 phòng ngủ, mái tôn, một tầng", load: loadNhaCap4 },
   "nha-vuon": { label: "Nhà vườn — 1 tầng mái ngói, lô lớn mật độ thấp", load: loadNhaVuon },
   "can-ho": { label: "Căn hộ 2PN — cải tạo trong khung có sẵn (không lô đất)", load: loadCanHo },
+  "detached-uk": { label: "UK detached — 3 bed gable roof (region uk, Approved Documents)", load: loadDetachedUk },
 };
 
 /**

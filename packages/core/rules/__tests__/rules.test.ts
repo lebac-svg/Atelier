@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { registerAsset } from "../../src/catalog.js";
-import { loadBietThuDoc, loadCanHo, loadNhaCap4, loadNhaOng4x16, loadNhaVuon } from "../../src/fixture.js";
+import { loadBietThuDoc, loadCanHo, loadDetachedUk, loadNhaCap4, loadNhaOng4x16, loadNhaVuon } from "../../src/fixture.js";
 import { applyOps } from "../../src/ops/apply.js";
+import { estimateCost } from "../../src/estimate.js";
 import type { Issue, Severity } from "../../src/issues.js";
 import type { Project } from "../../src/types.js";
 import { validateProject } from "../../src/validate/engine.js";
-import { activeRules, unverifiedRules, packsFor, registerPack, getPack, type RulePack } from "../../src/validate/rules.js";
+import { activeRules, getRegion, unverifiedRules, packsFor, registerPack, getPack, type RulePack } from "../../src/validate/rules.js";
 import { cungAt, nearestGood } from "../../src/validate/loban.js";
 import { RULERS } from "../../src/validate/rules.js";
 
@@ -468,5 +469,61 @@ describe("P8 — thư viện template (doc 12): mỗi fixture một golden", () 
     const p = loadNhaVuon();
     p.slabs[0]!.outline = [[2000, 3000], [15500, 3000], [15500, 19000], [2000, 19000]];
     expectRule(validateProject(p), "PLN-03", "error");
+  });
+});
+
+describe("P9 — lớp region (doc 12): UK Approved Documents, DoD không TCVN/Lỗ Ban/VND", () => {
+  it("region registry: vn đóng gói đúng thứ tự builtin; uk có pack riêng", () => {
+    expect(getRegion("vn")!.packs).toEqual(["std-vn", "loban", "pln"]);
+    expect(getRegion("uk")!.packs).toEqual(["uk-approved-docs"]);
+    expect(getRegion("vn")!.currency!.code).toBe("VND");
+    expect(getRegion("uk")!.currency).toBeUndefined();
+  });
+
+  it("fixture detached UK sạch (0 issue) — golden P9", () => {
+    expect(validateProject(loadDetachedUk())).toEqual([]);
+  });
+
+  it("DoD: project region uk KHÔNG thấy rule TCVN/Lỗ Ban/PLN — chỉ GEO core + UK", () => {
+    const ids = activeRules(loadDetachedUk()).map((r) => r.id);
+    expect(ids.length).toBeGreaterThan(0);
+    expect(ids.every((id) => id.startsWith("GEO-") || id.startsWith("UK-"))).toBe(true);
+  });
+
+  it("DoD: estimate region uk không một đồng VND — chỉ khối lượng + ghi chú đóng góp", () => {
+    const est = estimateCost(loadDetachedUk());
+    expect(est.items).toEqual([]);
+    expect(est.tong_vnd).toBe(0);
+    expect(est.quantities.san_thuc_m2).toBeGreaterThan(100); // khối lượng thật vẫn có
+    expect(est.ghi_chu.join(" ")).toContain("Chưa có bảng đơn giá");
+  });
+
+  it("pack UK chưa đối chiếu văn bản → unverifiedRules(p) > 0 (bản vẽ in cờ ⚠); VN vẫn 0", () => {
+    expect(unverifiedRules(loadDetachedUk()).length).toBeGreaterThan(0);
+    expect(unverifiedRules(loadNhaOng4x16())).toEqual([]);
+    expect(unverifiedRules()).toEqual([]); // không truyền project = builtin như cũ
+  });
+
+  it("đối chứng UK-STAIR-01 (Part K): riser vượt 220 là nổ; chuẩn VN không dính vào", () => {
+    const p = loadDetachedUk();
+    p.stairs[0]!.steps = 12; // 2700/12 = 225 > 220
+    const issues = validateProject(p);
+    const i = expectRule(issues, "UK-STAIR-01", "error");
+    expect(i.message).toContain("225");
+    expect(issues.some((x) => x.rule.startsWith("STD-"))).toBe(false);
+  });
+
+  it("đối chứng UK-DOOR-01 (Part M): cửa phòng 700 < 750 nổ (VN 700 lại hợp lệ)", () => {
+    const p = loadDetachedUk();
+    p.openings.find((o) => o.id === "D2")!.width = 700;
+    expectRule(validateProject(p), "UK-DOOR-01", "error");
+  });
+
+  it("STD-05 (P9 fix): cửa chính nhà LÙI TRONG LÔ được nhận là cửa chính (ra sân = ra ngoài)", () => {
+    // biệt thự P7 lùi 3m: bóp D1 xuống 750 < chinh 800 → phải nổ đúng LOẠI cửa chính
+    const p = loadBietThuDoc();
+    p.openings.find((o) => o.id === "D1")!.width = 750;
+    const i = expectRule(validateProject(p), "STD-05", "error");
+    expect(i.message).toContain("cửa chính");
   });
 });
