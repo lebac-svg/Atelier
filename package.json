@@ -24,7 +24,7 @@
     "vitest": "^3.2.0",
     "tsx": "^4.19.0"
   },
-  "description": "An AI architect inside Claude Code — Vietnamese tube houses: TCVN-standard plans, live two-way browser editor, furnished 3D walkthrough, PDF/DXF documentation",
+  "description": "An AI architect for any MCP client — multi-typology houses on any lot, pluggable building-standard rule packs (TCVN, UK Approved Documents), live two-way browser editor, furnished 3D walkthrough, PDF/DXF/IFC documentation",
   "license": "MIT",
   "repository": {
     "type": "git",

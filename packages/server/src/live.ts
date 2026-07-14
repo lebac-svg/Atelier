@@ -392,11 +392,19 @@ export class LiveServer {
           return;
         }
         // agent qua WS chịu chung luật với agent qua MCP (soft-lock, "người dùng luôn thắng")
-        const r = this.store.apply(msg.baseRevision, msg.ops, msg.note, peer.kind === "agent" ? "claude" : "user");
-        if (!r.ok) {
-          this.send(peer, { type: "reject", yourBase: msg.baseRevision, currentRevision: r.currentRevision, errors: r.errors });
+        try {
+          const r = this.store.apply(msg.baseRevision, msg.ops, msg.note, peer.kind === "agent" ? "claude" : "user");
+          if (!r.ok) {
+            this.send(peer, { type: "reject", yourBase: msg.baseRevision, currentRevision: r.currentRevision, errors: r.errors });
+          }
+          // thành công → store event tự broadcast patch + validation cho MỌI client (kể cả người gửi)
+        } catch (e) {
+          // lỗi I/O (persist EPERM sau retry…) — từ chối op này, KHÔNG giết server
+          this.send(peer, {
+            type: "reject", yourBase: msg.baseRevision, currentRevision: this.store.current.meta.revision,
+            errors: [{ rule: "IO-01", severity: "block", entities: [], message: `Không ghi được file dự án: ${e instanceof Error ? e.message : String(e)}. Thử lại sau giây lát.` }],
+          });
         }
-        // thành công → store event tự broadcast patch + validation cho MỌI client (kể cả người gửi)
         return;
       }
       case "presence": {

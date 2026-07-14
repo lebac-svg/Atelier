@@ -278,7 +278,19 @@ export class ProjectStore {
     mkdirSync(path.dirname(this.filePath), { recursive: true });
     const tmp = `${this.filePath}.tmp`;
     writeFileSync(tmp, JSON.stringify(this.current, null, 2) + "\n", "utf8");
-    renameSync(tmp, this.filePath);
+    // Windows: rename có thể EPERM THOÁNG QUA khi antivirus/indexer đang giữ
+    // file đích — retry ngắn; một lỗi ghi nhất thời không được giết server
+    // (bug thật 14/07/2026: user kéo tường trong editor → EPERM → sập process).
+    for (let attempt = 1; ; attempt++) {
+      try {
+        renameSync(tmp, this.filePath);
+        return;
+      } catch (e) {
+        const code = (e as NodeJS.ErrnoException).code;
+        if ((code !== "EPERM" && code !== "EBUSY" && code !== "EACCES") || attempt >= 5) throw e;
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25 * attempt); // sleep sync 25-100ms
+      }
+    }
   }
 
   private appendJournal(entry: JournalEntry): void {

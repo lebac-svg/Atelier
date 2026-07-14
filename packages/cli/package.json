@@ -1,7 +1,7 @@
 {
   "name": "atelier-mcp",
-  "version": "0.3.0",
-  "description": "AI architect MCP server for Vietnamese tube houses — TCVN-standard plans, live two-way browser editor, furnished 3D walkthrough, PDF/DXF/IFC export. Works with any MCP client: Claude Code, Codex CLI, Gemini CLI, Claude Desktop, Cursor. Run it inside your house-project folder.",
+  "version": "0.4.0",
+  "description": "AI architect MCP server — multi-typology houses (tube house, villa, single-storey, garden house, apartment, UK detached) on any lot incl. sloping terrain; pluggable building-standard rule packs (TCVN, UK Approved Documents); standards-checked plans, live two-way browser editor, furnished 3D walkthrough, PDF/DXF/IFC export. Works with any MCP client: Claude Code, Codex CLI, Gemini CLI, Claude Desktop, Cursor.",
   "type": "module",
   "bin": {
     "atelier-mcp": "bin/atelier-mcp.mjs"
@@ -34,9 +34,13 @@
     "architecture",
     "floor-plan",
     "cad",
+    "house-design",
+    "building-regulations",
     "vietnam",
     "tube-house",
-    "nha-ong"
+    "nha-ong",
+    "villa",
+    "pitched-roof"
   ],
   "license": "MIT",
   "repository": {

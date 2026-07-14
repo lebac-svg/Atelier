@@ -6,13 +6,21 @@
 
 **An AI architect that plugs into any MCP client** — Claude Code, Codex CLI, Gemini CLI, Claude Desktop, Cursor… From a spoken description to standards-compliant floor plans and a furnished 3D model, with a live browser editor you can edit by hand while the AI works.
 
-Built for the **Vietnamese tube house** (nhà ống): TCVN drawing symbols, Vietnamese dimensional rules, Lỗ Ban feng-shui rulers, irregular lot polygons — things no Western tool ships as first-class citizens. The editor UI is bilingual and auto-detects by country: Vietnamese in Vietnam, English elsewhere (timezone + browser language — no geo-IP; the **VI/EN** button overrides and is remembered). Exported drawings stay Vietnamese by design: they are TCVN documents.
+**Multi-typology, multi-region by design.** Atelier started with the **Vietnamese tube house** (nhà ống) — TCVN drawing symbols, Vietnamese dimensional rules, Lỗ Ban feng-shui rulers — and now covers **six house types on any lot**: tube house, hip-roof villa on a sloping corner lot, single-storey house, garden house, apartment renovation, and a UK detached (validated against the **UK Approved Documents** pack). Building standards are **pluggable rule packs** (TCVN first, community packs welcome — see [CONTRIBUTING](CONTRIBUTING.md)); pitched roofs, per-edge frontages and sloping terrain are first-class schema. The editor UI is bilingual and auto-detects by country (the **VI/EN** button overrides).
 
 > **Atelier** /ˌætəlˈjeɪ/ — "design workshop".
 
 | Standards-compliant plan, 3-chain dims | First-person walkthrough (WASD) | A/B design comparison |
 |---|---|---|
 | ![Floor plan](docs/images/mat-bang-l1.png) | ![3D walkthrough](docs/images/di-bo-3d.png) | ![A/B comparison](docs/images/so-sanh-phuong-an.png) |
+
+## 50-second demo — empty lot to documented villa
+
+▶ **[Watch the video](docs/media/demo-tu-dau-den-cuoi.webm)** (50s, webm) — one continuous take, no cuts: interview brief → ground floor grows batch-by-batch on the 2D plan → switch to 3D while the first floor and the **30° hip roof** land on **sloping terrain** → orbit → furniture from the catalog → **first-person walkthrough** → sun study 8:00→17:00 → validator clean, 6-sheet documentation set exported. Reproduce it yourself: `npx tsx packages/server/scripts/demo-video.ts`.
+
+| Plan grows live (split view) | Hip roof on sloping corner lot | Walking the living room | Sun study 17:00 |
+|---|---|---|---|
+| ![2D build](docs/media/demo-1-dung-2d.png) | ![Hip roof 3D](docs/media/demo-2-mai-hip-3d.png) | ![Walkthrough](docs/media/demo-3-di-bo.png) | ![Sun study](docs/media/demo-4-sun-study.png) |
 
 ## Core idea
 
@@ -88,6 +96,8 @@ All six phases (P0–P5) plus the first three backlog items shipped:
 
 **Backlog shipped:** rough **cost estimate** (`estimate_cost` + a KT-06 sheet: converted areas × an editable local price table, auto-checked against the interview budget) · **view-only share links** (`/xem/<token>`, server-enforced read-only — send it to your spouse) · **A/B design comparison** (`variant_save/open/compare`, two plans side by side with per-room m² and per-variant cost deltas) · **local zoning rule pack** (PLN-01…06: setbacks for any lot shape, density, floors, height, canopy overhang — checks only what the interview brief declares) · **IFC4 export** (`export ifc`, pure-TS STEP writer: walls with proper opening voids/fills, slabs with real holes, stairs, rooms as IfcSpace — concept-level handover, not construction documents) · **photoreal path** (`export gltf` → one GLB in true metres, one node per entity, plus `scripts/render-photoreal.py` for headless-Blender Cycles renders using the same sun model as the editor's sun study) · **legacy plan import** (`underlay_import` traces an old DXF or plan photo as a dim layer under the live plan — scale from DXF units or a 2-point calibration; `underlay_trace` proposes walls from parallel stroke pairs, always human-reviewed before applying).
 
+**Multi-typology & multi-region (P6–P9, doc 12) — shipped:** **rule packs as data** (standards are pluggable JSON packs selected per project via `config.region`/`typology`; the geometry core always runs; [write your own](docs/en/13-writing-a-rule-pack.md)) · **pitched roofs** (gable/hip/shed entity, one geometry source feeding plan/elevation/section/3D/GLB/**IfcRoof**/estimate at true sloped m²) · **per-edge frontages** (corner lots, per-edge setbacks — PLN-07) · **sloping terrain** (per-vertex ground elevations: sloped ground lines in elevations/sections, 3D terrain mesh, height measured from street level) · **6-template library** (tube house, villa, single-storey, garden house, apartment, UK detached — each a golden-tested fixture) · **region layer** (units + default packs + currency; **UK Approved Documents** is the first non-VN pack, honestly flagged ⚠ until each number is verified against the source; estimates never leak another region's currency).
+
 **Bilingual:** English README + full English design docs (`docs/en/`) + bilingual editor UI auto-detected by country (VN → vi, elsewhere → en; asset catalog included). Out of scope by design: structure & MEP (this is a concept tool, not construction documents).
 
 ## Design docs
@@ -107,10 +117,12 @@ The full spec lives in [`docs/en/`](docs/en/) (English) with the Vietnamese orig
 | 09 | [Web editor](docs/en/09-web-editor.md) | Hand-editing UX: drag, type numbers, 3D, walkthrough |
 | 10 | [Roadmap](docs/en/10-roadmap.md) | 6 phases with Definitions of Done + backlog |
 | 11 | [Decisions](docs/en/11-decisions.md) | 10 ADRs + 8 settled questions |
+| 12 | [Multi-typology expansion](docs/en/12-typology-expansion.md) | P6–P9: rule packs, roofs/terrain, templates, regions + market research annex |
+| 13 | [Writing a rule pack](docs/en/13-writing-a-rule-pack.md) | Contributor guide: pack schema, sourcing rules, regions |
 
 ## Stack
 
-TypeScript monorepo — Node.js (MCP server + WebSocket), Three.js (3D), SVG (2D drawings), Vite (web editor), Vitest + Playwright (162 tests incl. real-browser e2e). Rationale in doc 03.
+TypeScript monorepo — Node.js (MCP server + WebSocket), Three.js (3D), SVG (2D drawings), Vite (web editor), Vitest + Playwright (247 tests incl. real-browser e2e). Rationale in doc 03.
 
 ## Dev environment
 
